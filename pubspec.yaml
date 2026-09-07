@@ -30,11 +30,6 @@ dependencies:
   # UI & Animation
   lottie: ^2.7.0
 
-  # Shared packages from petit ecosystem
-  petit_core: ^1.0.0
-  petit_ui: ^1.0.0
-  petit_ai: ^1.0.0
-
   # Utilities
   uuid: ^4.0.0
   logger: ^2.2.0

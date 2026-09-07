@@ -1,0 +1,158 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 3.47.2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Android APK & AAB
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: |
+          set -o pipefail
+          flutter pub get 2>&1 | tee pub_get.log
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "❌ pub get failed"
+            exit 1
+          fi
+
+      - name: Analyze code
+        run: |
+          set -o pipefail
+          flutter analyze 2>&1 | tee analyze.log
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "⚠️ Analysis found issues (non-fatal)"
+          fi
+
+      - name: Run tests
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee test.log
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "❌ Tests failed"
+            exit 1
+          fi
+        continue-on-error: true
+
+      - name: Build APK (debug)
+        run: |
+          set -o pipefail
+          flutter build apk --debug 2>&1 | tee build_apk_debug.log
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "❌ APK debug build failed"
+            exit 1
+          fi
+          if [ ! -f build/app/outputs/flutter-apk/app-debug.apk ]; then
+            echo "❌ APK file not found after build"
+            exit 1
+          fi
+          ls -lh build/app/outputs/flutter-apk/app-debug.apk
+
+      - name: Build APK (release)
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee build_apk_release.log
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "❌ APK release build failed"
+            exit 1
+          fi
+          if [ ! -f build/app/outputs/flutter-apk/app-release.apk ]; then
+            echo "❌ Release APK file not found after build"
+            exit 1
+          fi
+          ls -lh build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Build AAB (release)
+        run: |
+          set -o pipefail
+          flutter build appbundle --release 2>&1 | tee build_aab_release.log
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "❌ AAB release build failed"
+            exit 1
+          fi
+          if [ ! -f build/app/outputs/bundle/release/app-release.aab ]; then
+            echo "❌ Release AAB file not found after build"
+            exit 1
+          fi
+          ls -lh build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload APK artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-artifacts
+          path: |
+            build/app/outputs/flutter-apk/app-debug.apk
+            build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+      - name: Upload AAB artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aab-artifact
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 7
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            pub_get.log
+            analyze.log
+            test.log
+            build_apk_debug.log
+            build_apk_release.log
+            build_aab_release.log
+          retention-days: 7
+
+      - name: Report build status
+        if: always()
+        run: |
+          echo "## Build Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Artifact | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          if [ -f build/app/outputs/flutter-apk/app-debug.apk ]; then
+            echo "| Debug APK | ✅ Built |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Debug APK | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
+            echo "| Release APK | ✅ Built |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Release APK | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f build/app/outputs/bundle/release/app-release.aab ]; then
+            echo "| Release AAB | ✅ Built |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Release AAB | ❌ Missing |" >> $GITHUB_STEP_SUMMARY
+          fi
