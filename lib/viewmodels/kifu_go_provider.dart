@@ -18,7 +18,7 @@ final kifuLibraryProvider = FutureProvider<List<KifuLibrary>>((ref) async {
 
   final firestoreService = ref.watch(kifuFirestoreProvider);
   try {
-    final games = await firestoreService.getKifuLibrary();
+    final games = await firestoreService.getCopyrightFreeKifus();
     _logger.i('✅ Kifu library fetched: ${games.length} games');
     return games;
   } catch (e) {
