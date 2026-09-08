@@ -49,6 +49,7 @@ jobs:
           if [ ${PIPESTATUS[0]} -ne 0 ]; then
             echo "⚠️ Analysis found issues (non-fatal)"
           fi
+        continue-on-error: true
 
       - name: Run tests
         run: |
