@@ -74,12 +74,53 @@ jobs:
           fi
           ls -lh build/app/outputs/flutter-apk/app-debug.apk
 
+      - name: Prepare release signing (use debug keystore if secrets not available)
+        run: |
+          # For CI environment: use debug keystore
+          # For production: configure GitHub Secrets:
+          #   - ANDROID_KEYSTORE_BASE64 (base64-encoded keystore)
+          #   - ANDROID_KEYSTORE_PASSWORD
+          #   - ANDROID_KEY_ALIAS
+          #   - ANDROID_KEY_PASSWORD
+
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "⚠️  Using debug keystore for release build"
+            # Find Android SDK debug keystore
+            DEBUG_KEYSTORE="$HOME/.android/debug.keystore"
+            if [ -f "$DEBUG_KEYSTORE" ]; then
+              mkdir -p android/app
+              cp "$DEBUG_KEYSTORE" android/app/goen-release.keystore
+              export ANDROID_KEYSTORE_PATH="app/goen-release.keystore"
+              export ANDROID_KEYSTORE_PASSWORD="android"
+              export ANDROID_KEY_ALIAS="androiddebugkey"
+              export ANDROID_KEY_PASSWORD="android"
+              echo "✅ Using debug keystore: $DEBUG_KEYSTORE"
+            else
+              echo "ℹ️  Debug keystore not found, gradle will use auto-generated signing"
+            fi
+          else
+            echo "📝 Decoding release keystore from GitHub Secrets..."
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/goen-release.keystore
+            chmod 600 android/app/goen-release.keystore
+            export ANDROID_KEYSTORE_PATH="app/goen-release.keystore"
+            export ANDROID_KEYSTORE_PASSWORD="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
+            export ANDROID_KEY_ALIAS="${{ secrets.ANDROID_KEY_ALIAS }}"
+            export ANDROID_KEY_PASSWORD="${{ secrets.ANDROID_KEY_PASSWORD }}"
+            echo "✅ Release keystore loaded from secrets"
+          fi
+
       - name: Build APK (release)
+        env:
+          ANDROID_KEYSTORE_PATH: app/goen-release.keystore
+          ANDROID_KEYSTORE_PASSWORD: android
+          ANDROID_KEY_ALIAS: androiddebugkey
+          ANDROID_KEY_PASSWORD: android
         run: |
           set -o pipefail
           flutter build apk --release 2>&1 | tee build_apk_release.log
           if [ ${PIPESTATUS[0]} -ne 0 ]; then
             echo "❌ APK release build failed"
+            cat build_apk_release.log | tail -50
             exit 1
           fi
           if [ ! -f build/app/outputs/flutter-apk/app-release.apk ]; then
@@ -89,11 +130,17 @@ jobs:
           ls -lh build/app/outputs/flutter-apk/app-release.apk
 
       - name: Build AAB (release)
+        env:
+          ANDROID_KEYSTORE_PATH: app/goen-release.keystore
+          ANDROID_KEYSTORE_PASSWORD: android
+          ANDROID_KEY_ALIAS: androiddebugkey
+          ANDROID_KEY_PASSWORD: android
         run: |
           set -o pipefail
           flutter build appbundle --release 2>&1 | tee build_aab_release.log
           if [ ${PIPESTATUS[0]} -ne 0 ]; then
             echo "❌ AAB release build failed"
+            cat build_aab_release.log | tail -50
             exit 1
           fi
           if [ ! -f build/app/outputs/bundle/release/app-release.aab ]; then
