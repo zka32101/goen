@@ -214,7 +214,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           children: [
             // Grid lines
             CustomPaint(
-              painter: GoGridPainter(boardSize: boardSize),
+              painter: _GoGridPainter(boardSize: boardSize),
               size: const Size(300, 300),
             ),
 
@@ -414,10 +414,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 }
 
 /// Custom painter for Go board grid
-class GoGridPainter extends CustomPainter {
+class _GoGridPainter extends CustomPainter {
   final int boardSize;
 
-  GoGridPainter({required this.boardSize});
+  _GoGridPainter({required this.boardSize});
 
   @override
   void paint(Canvas canvas, Size size) {

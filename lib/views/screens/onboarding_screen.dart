@@ -236,7 +236,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               children: [
                 // Grid lines
                 CustomPaint(
-                  painter: GoGridPainter(),
+                  painter: _GoGridPainter(),
                   size: const Size(200, 200),
                 ),
                 // Black stone
@@ -326,7 +326,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               children: [
                 // Grid lines
                 CustomPaint(
-                  painter: GoGridPainter(),
+                  painter: _GoGridPainter(),
                   size: const Size(200, 200),
                 ),
                 // White stone (AI's move)
@@ -426,7 +426,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 }
 
 /// Custom painter for Go board grid
-class GoGridPainter extends CustomPainter {
+class _GoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()

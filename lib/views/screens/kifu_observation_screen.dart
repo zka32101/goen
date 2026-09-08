@@ -393,7 +393,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
       child: Stack(
         children: [
           CustomPaint(
-            painter: GoGridPainter(boardSize: 19),
+            painter: _GoGridPainter(boardSize: 19),
             size: const Size(300, 300),
           ),
           // TODO: Render game board from SGF data with current move
@@ -569,10 +569,10 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
 }
 
 /// Custom painter for Go board grid
-class GoGridPainter extends CustomPainter {
+class _GoGridPainter extends CustomPainter {
   final int boardSize;
 
-  GoGridPainter({required this.boardSize});
+  _GoGridPainter({required this.boardSize});
 
   @override
   void paint(Canvas canvas, Size size) {

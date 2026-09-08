@@ -371,7 +371,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
       child: Stack(
         children: [
           CustomPaint(
-            painter: GoGridPainter(boardSize: 9),
+            painter: _GoGridPainter(boardSize: 9),
             size: const Size(300, 300),
           ),
           // TODO: Render puzzle board from SGF data
@@ -498,10 +498,10 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
 }
 
 /// Custom painter for Go board grid
-class GoGridPainter extends CustomPainter {
+class _GoGridPainter extends CustomPainter {
   final int boardSize;
 
-  GoGridPainter({required this.boardSize});
+  _GoGridPainter({required this.boardSize});
 
   @override
   void paint(Canvas canvas, Size size) {

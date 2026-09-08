@@ -7,3 +7,4 @@ export 'tsume_go_problem.dart';
 export 'user_tsume_go_log.dart';
 export 'kifu_library.dart';
 export 'observation_log.dart';
+export 'board_state.dart';

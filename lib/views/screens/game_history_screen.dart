@@ -464,7 +464,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                 child: Stack(
                   children: [
                     CustomPaint(
-                      painter: GoGridPainter(boardSize: game.boardSize),
+                      painter: _GoGridPainter(boardSize: game.boardSize),
                       size: const Size(300, 300),
                     ),
                     // TODO: Render final board state from SGF data
@@ -682,10 +682,10 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
 }
 
 /// Custom painter for Go board grid
-class GoGridPainter extends CustomPainter {
+class _GoGridPainter extends CustomPainter {
   final int boardSize;
 
-  GoGridPainter({required this.boardSize});
+  _GoGridPainter({required this.boardSize});
 
   @override
   void paint(Canvas canvas, Size size) {
