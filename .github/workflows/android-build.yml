@@ -61,10 +61,16 @@ jobs:
           fi
         continue-on-error: true
 
+      - name: Clean Gradle cache
+        run: |
+          cd android
+          ./gradlew clean 2>&1 | tail -20
+          cd ..
+
       - name: Build APK (debug)
         run: |
           set -o pipefail
-          flutter build apk --debug 2>&1 | tee build_apk_debug.log
+          flutter build apk --debug --verbose 2>&1 | tee build_apk_debug.log
           if [ ${PIPESTATUS[0]} -ne 0 ]; then
             echo "❌ APK debug build failed"
             exit 1
