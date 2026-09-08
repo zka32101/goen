@@ -2,13 +2,13 @@ import 'dart:async';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:logger/logger.dart';
 
-/// Go board state representation
-class BoardState {
+/// Go board state representation for engine communication
+class _EngineBoardState {
   final int boardSize; // 9, 13, or 19
   final List<List<int>> stones; // -1=empty, 0=black, 1=white
   final bool isPlayerBlack;
 
-  BoardState({
+  _EngineBoardState({
     required this.boardSize,
     required this.stones,
     required this.isPlayerBlack,
@@ -38,7 +38,7 @@ class BoardState {
 
   @override
   String toString() =>
-      'BoardState(size: ${boardSize}x$boardSize, playerBlack: $isPlayerBlack)';
+      '_EngineBoardState(size: ${boardSize}x$boardSize, playerBlack: $isPlayerBlack)';
 }
 
 /// AI move response
@@ -117,7 +117,7 @@ class GoEngineService {
   /// - aiLevel: Difficulty 1-10 (1=easiest, 10=hardest)
   /// - movesCount: How many moves have been played (for time management)
   Future<AIMove> requestAiMove({
-    required BoardState boardState,
+    required _EngineBoardState boardState,
     required int aiLevel,
     int movesCount = 0,
   }) async {
@@ -176,7 +176,7 @@ class GoEngineService {
   /// - blackScore/whiteScore: Points including territory (Chinese rules)
   /// - winner: 'black', 'white', or 'draw'
   Future<GameEndResult> judgeGameEnd({
-    required BoardState boardState,
+    required _EngineBoardState boardState,
     required bool lastPlayerPassed,
   }) async {
     _logger.i('Judging game end: boardSize=${boardState.boardSize}, lastPassed=$lastPlayerPassed');
@@ -244,7 +244,7 @@ class GoEngineService {
   }
 
   /// Encode board state for Cloud Function transmission
-  Map<String, dynamic> _encodeBoardState(BoardState state) {
+  Map<String, dynamic> _encodeBoardState(_EngineBoardState state) {
     return {
       'boardSize': state.boardSize,
       'stones': state.stones.map((row) => row.toList()).toList(),
