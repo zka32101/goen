@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.yourwish.goen"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34  // Updated to 34 to satisfy androidx dependency requirements
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
