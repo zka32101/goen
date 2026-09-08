@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:logger/logger.dart';
 
@@ -127,11 +128,10 @@ class GoEngineService {
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
         final callable = _functions
-            .httpsCallableRegion(_regionDefault)
-            .call('requestAiMove');
+            .httpsCallable('requestAiMove');
 
         final result = await callable.call({
-          'boardState': encodeboardState(boardState),
+          'boardState': _encodeBoardState(boardState),
           'aiLevel': aiLevel,
           'movesCount': movesCount,
           'boardSize': boardState.boardSize,
@@ -184,8 +184,7 @@ class GoEngineService {
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
         final callable = _functions
-            .httpsCallableRegion(_regionDefault)
-            .call('judgeGameEnd');
+            .httpsCallable('judgeGameEnd');
 
         final result = await callable.call({
           'boardState': _encodeBoardState(boardState),
@@ -245,7 +244,7 @@ class GoEngineService {
   }
 
   /// Encode board state for Cloud Function transmission
-  Map<String, dynamic> encodeboardState(BoardState state) {
+  Map<String, dynamic> _encodeBoardState(BoardState state) {
     return {
       'boardSize': state.boardSize,
       'stones': state.stones.map((row) => row.toList()).toList(),

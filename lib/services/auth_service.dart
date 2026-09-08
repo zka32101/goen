@@ -1,11 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 
 /// Service for Firebase Authentication
 /// Handles user signup, signin, signout, and session management
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final Logger _logger = Logger();
 
   /// Get current user stream (reactive)

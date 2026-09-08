@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:logger/logger.dart';
 
@@ -110,8 +111,7 @@ class AIExplanationService {
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
         final callable = _functions
-            .httpsCallableRegion(_regionDefault)
-            .call('generateMoveExplanation');
+            .httpsCallable('generateMoveExplanation');
 
         final result = await callable.call({
           'sgfData': sgfData,
@@ -172,8 +172,7 @@ class AIExplanationService {
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
         final callable = _functions
-            .httpsCallableRegion(_regionDefault)
-            .call('generateGameAnalysis');
+            .httpsCallable('generateGameAnalysis');
 
         final result = await callable.call({
           'sgfData': sgfData,
@@ -227,8 +226,7 @@ class AIExplanationService {
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
         final callable = _functions
-            .httpsCallableRegion(_regionDefault)
-            .call('generateQuickMoveComment');
+            .httpsCallable('generateQuickMoveComment');
 
         final result = await callable.call({
           'sgfData': sgfData,
