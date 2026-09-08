@@ -264,7 +264,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildInfoItem(context, 'Category', game.category),
+                _buildInfoItem(context, 'Category', game.category.toString().split('.').last),
                 _buildInfoItem(context, 'Source', game.source),
               ],
             ),

@@ -69,7 +69,10 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           var filteredGames = games;
           if (_filterResult != 'all') {
             filteredGames = filteredGames
-                .where((g) => g.result.toLowerCase() == _filterResult)
+                .where((g) {
+                  final resultStr = g.result.toString().split('.').last.toLowerCase();
+                  return resultStr == _filterResult;
+                })
                 .toList();
           }
 

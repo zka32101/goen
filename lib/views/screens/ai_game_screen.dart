@@ -256,10 +256,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     for (int row = 0; row < boardSize; row++) {
       for (int col = 0; col < boardSize; col++) {
         final stone = stones[row][col];
-        if (stone != -1) {
-          // -1 = empty, 0 = black, 1 = white
-          final color = stone == 0 ? Colors.black : Colors.white;
-          final border = stone == 0 ? null : Border.all(
+        if (stone != 0) {
+          // 0 = empty, 1 = black, 2 = white
+          final color = stone == 1 ? Colors.black : Colors.white;
+          final border = stone == 1 ? null : Border.all(
             color: Colors.black,
             width: 1,
           );
@@ -304,7 +304,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
     // Validate move
     final isLegal = ref.read(
-      validateMoveProvider(row: row, col: col),
+      validateMoveProvider((row: row, col: col)),
     );
 
     if (!isLegal) {
@@ -328,7 +328,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           ? [
               ...currentBoard.stones[i]
                   .sublist(0, col),
-              0, // Black stone (player)
+              1, // Black stone (player) - 0=empty, 1=black, 2=white
               ...currentBoard.stones[i].sublist(col + 1),
             ]
           : currentBoard.stones[i],
@@ -337,7 +337,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     ref.read(gameBoardStateProvider.notifier).state = BoardState(
       boardSize: currentBoard.boardSize,
       stones: newStones,
-      isPlayerBlack: currentBoard.isPlayerBlack,
+      capturedBlack: currentBoard.capturedBlack,
+      capturedWhite: currentBoard.capturedWhite,
+      isBlackTurn: currentBoard.isBlackTurn,
     );
 
     // Add move to history

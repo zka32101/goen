@@ -24,7 +24,9 @@ final firestoreServiceProvider = Provider<FirestoreService>((ref) {
 final gameBoardStateProvider = StateProvider<BoardState>((ref) {
   return BoardState(
     boardSize: 9, // Default to 9x9
-    stones: List.generate(9, (_) => List.filled(9, -1)),
+    stones: List.generate(9, (_) => List.filled(9, 0)),
+    capturedBlack: 0,
+    capturedWhite: 0,
     isBlackTurn: true,
   );
 });

@@ -56,4 +56,26 @@ class BoardState {
       lastMoveCol: lastMoveCol ?? this.lastMoveCol,
     );
   }
+
+  /// Convert to SGF (Standard Game Format) for engine
+  String toSgf() {
+    final buffer = StringBuffer();
+    buffer.write('(;GM[1]SZ[$boardSize]');
+
+    for (int row = 0; row < boardSize; row++) {
+      for (int col = 0; col < boardSize; col++) {
+        if (stones[row][col] != 0) {
+          final stoneType = stones[row][col] == 1 ? 'B' : 'W';
+          buffer.write(';$stoneType[${_coordToSgf(col)},${_coordToSgf(row)}]');
+        }
+      }
+    }
+    buffer.write(')');
+    return buffer.toString();
+  }
+
+  String _coordToSgf(int coord) {
+    // SGF uses letters: a-s for 19x19
+    return String.fromCharCode(97 + coord);
+  }
 }
