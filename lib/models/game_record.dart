@@ -11,6 +11,8 @@ class GameRecord {
   final DateTime playedAt;
   final int? movesCount;
   final Duration? gameDuration;
+  final double? blackScore; // Score for black player (Chinese rules)
+  final double? whiteScore; // Score for white player (Chinese rules)
 
   GameRecord({
     required this.id,
@@ -22,6 +24,8 @@ class GameRecord {
     required this.playedAt,
     this.movesCount,
     this.gameDuration,
+    this.blackScore,
+    this.whiteScore,
   });
 
   /// Create from Firestore document
@@ -39,6 +43,8 @@ class GameRecord {
       gameDuration: data['gameDuration'] != null
           ? Duration(seconds: data['gameDuration'] as int)
           : null,
+      blackScore: (data['blackScore'] as num?)?.toDouble(),
+      whiteScore: (data['whiteScore'] as num?)?.toDouble(),
     );
   }
 
@@ -53,6 +59,8 @@ class GameRecord {
       'playedAt': Timestamp.fromDate(playedAt),
       'movesCount': movesCount,
       'gameDuration': gameDuration?.inSeconds,
+      'blackScore': blackScore,
+      'whiteScore': whiteScore,
     };
   }
 

@@ -28,7 +28,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   void initState() {
     super.initState();
     _logger.i('PaywallScreen initialized');
-    ref.read(logPaywallViewedProvider);
+    ref.read(logPaywallViewedProvider)();
   }
 
   @override
@@ -521,7 +521,12 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     _logger.i('Processing purchase');
 
     final plan = _showAnnual ? 'annual' : 'monthly';
-    ref.read(logPaywallConvertedProvider)(plan: plan);
+    final price = plan == 'annual' ? 79.99 : 9.99;
+    ref.read(logPaywallConvertedProvider)(
+      plan: plan,
+      price: price,
+      currency: 'USD',
+    );
 
     // Show loading
     showDialog(

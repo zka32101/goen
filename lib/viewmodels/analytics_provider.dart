@@ -233,6 +233,26 @@ final logKifuObservationCompletedProvider = Provider<
 
 // ================== PAYWALL EVENTS ==================
 
+/// Log when paywall is viewed
+final logPaywallViewedProvider = Provider<Future<void> Function()>((ref) {
+  final analytics = ref.watch(analyticsProvider);
+
+  return () async {
+    try {
+      _logger.i('Logging paywall viewed event');
+      await analytics.logEvent(
+        name: 'paywall_viewed',
+        parameters: {
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
+      _logger.i('✅ Paywall viewed event logged');
+    } catch (e) {
+      _logger.e('Error logging paywall viewed: $e');
+    }
+  };
+});
+
 /// Log when paywall is triggered (3rd game)
 final logPaywallTriggeredProvider = Provider<
     Future<void> Function({

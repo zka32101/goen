@@ -227,16 +227,17 @@ class GoEngineService {
   ///
   /// Useful for quick client-side validation before sending to engine
   bool validateMove({
-    required BoardState boardState,
+    required int boardSize,
+    required List<List<int>> stones,
     required int row,
     required int col,
   }) {
-    if (row < 0 || row >= boardState.boardSize || col < 0 || col >= boardState.boardSize) {
+    if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
       return false;
     }
 
     // Position must be empty
-    if (boardState.stones[row][col] != -1) {
+    if (stones[row][col] != -1) {
       return false;
     }
 

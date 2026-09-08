@@ -34,12 +34,13 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final gameRecords = ref.watch(userGameRecordsProvider);
     final currentUser = ref.watch(currentUserProvider);
 
     if (currentUser == null) {
       return _buildAuthRequiredState(context);
     }
+
+    final gameRecords = ref.watch(userGameRecordsProvider(currentUser.uid));
 
     return Scaffold(
       backgroundColor: Colors.black87,
@@ -715,6 +716,6 @@ class _GoGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(GoGridPainter oldDelegate) =>
+  bool shouldRepaint(_GoGridPainter oldDelegate) =>
       oldDelegate.boardSize != boardSize;
 }

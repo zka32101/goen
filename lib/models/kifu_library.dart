@@ -69,6 +69,14 @@ class KifuLibrary {
     return title;
   }
 
+  /// Get list of players
+  List<String> get players {
+    final result = <String>[];
+    if (blackPlayer != null) result.add(blackPlayer!);
+    if (whitePlayer != null) result.add(whitePlayer!);
+    return result;
+  }
+
   @override
   String toString() =>
       'KifuLibrary(id: $id, title: $title, category: $category, isPremium: $isPremium)';
