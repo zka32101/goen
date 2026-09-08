@@ -455,5 +455,5 @@ class _GoGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(GoGridPainter oldDelegate) => false;
+  bool shouldRepaint(_GoGridPainter oldDelegate) => false;
 }

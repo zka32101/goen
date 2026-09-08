@@ -113,17 +113,27 @@ class GoEngineService {
   /// Request AI move from GNU Go engine
   ///
   /// Parameters:
-  /// - boardState: Current board position
+  /// - boardSize: Board size (9, 13, or 19)
+  /// - stones: Board state (-1=empty, 0=black, 1=white)
+  /// - isPlayerBlack: True if player is black
   /// - aiLevel: Difficulty 1-10 (1=easiest, 10=hardest)
   /// - movesCount: How many moves have been played (for time management)
   Future<AIMove> requestAiMove({
-    required _EngineBoardState boardState,
+    required int boardSize,
+    required List<List<int>> stones,
+    required bool isPlayerBlack,
     required int aiLevel,
     int movesCount = 0,
   }) async {
     assert(aiLevel >= 1 && aiLevel <= 10, 'aiLevel must be 1-10');
 
-    _logger.i('Requesting AI move: level=$aiLevel, boardSize=${boardState.boardSize}');
+    _logger.i('Requesting AI move: level=$aiLevel, boardSize=$boardSize');
+
+    final boardState = _EngineBoardState(
+      boardSize: boardSize,
+      stones: stones,
+      isPlayerBlack: isPlayerBlack,
+    );
 
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
@@ -171,15 +181,29 @@ class GoEngineService {
 
   /// Judge if game has ended and calculate score (Chinese rules)
   ///
+  /// Parameters:
+  /// - boardSize: Board size (9, 13, or 19)
+  /// - stones: Board state (-1=empty, 0=black, 1=white)
+  /// - isPlayerBlack: True if player is black
+  /// - lastPlayerPassed: True if the last move was a pass
+  ///
   /// Returns:
   /// - gameEnded: true if both players pass or board is full
   /// - blackScore/whiteScore: Points including territory (Chinese rules)
   /// - winner: 'black', 'white', or 'draw'
   Future<GameEndResult> judgeGameEnd({
-    required _EngineBoardState boardState,
+    required int boardSize,
+    required List<List<int>> stones,
+    required bool isPlayerBlack,
     required bool lastPlayerPassed,
   }) async {
-    _logger.i('Judging game end: boardSize=${boardState.boardSize}, lastPassed=$lastPlayerPassed');
+    _logger.i('Judging game end: boardSize=$boardSize, lastPassed=$lastPlayerPassed');
+
+    final boardState = _EngineBoardState(
+      boardSize: boardSize,
+      stones: stones,
+      isPlayerBlack: isPlayerBlack,
+    );
 
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {

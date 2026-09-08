@@ -25,7 +25,7 @@ final gameBoardStateProvider = StateProvider<BoardState>((ref) {
   return BoardState(
     boardSize: 9, // Default to 9x9
     stones: List.generate(9, (_) => List.filled(9, -1)),
-    isPlayerBlack: true,
+    isBlackTurn: true,
   );
 });
 
@@ -68,7 +68,9 @@ final aiMoveProvider = FutureProvider.autoDispose<AIMove>((ref) async {
   final goEngineService = ref.watch(goEngineServiceProvider);
   try {
     final aiMove = await goEngineService.requestAiMove(
-      boardState: boardState,
+      boardSize: boardState.boardSize,
+      stones: boardState.stones,
+      isPlayerBlack: boardState.isBlackTurn,
       aiLevel: aiLevel,
       movesCount: movesCount,
     );
@@ -88,7 +90,8 @@ final validateMoveProvider = Provider.family<bool, ({int row, int col})>(
     final boardState = ref.watch(gameBoardStateProvider);
     final goEngineService = ref.watch(goEngineServiceProvider);
     return goEngineService.validateMove(
-      boardState: boardState,
+      boardSize: boardState.boardSize,
+      stones: boardState.stones,
       row: params.row,
       col: params.col,
     );
@@ -105,7 +108,9 @@ final judgeGameEndProvider = FutureProvider.autoDispose<GameEndResult>((ref) asy
   final goEngineService = ref.watch(goEngineServiceProvider);
   try {
     final result = await goEngineService.judgeGameEnd(
-      boardState: boardState,
+      boardSize: boardState.boardSize,
+      stones: boardState.stones,
+      isPlayerBlack: boardState.isBlackTurn,
       lastPlayerPassed: lastPlayerPassed,
     );
     _logger.i('✅ Game judgment received: $result');

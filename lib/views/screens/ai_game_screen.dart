@@ -470,6 +470,6 @@ class _GoGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(GoGridPainter oldDelegate) =>
+  bool shouldRepaint(_GoGridPainter oldDelegate) =>
       oldDelegate.boardSize != boardSize;
 }
