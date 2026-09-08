@@ -87,7 +87,7 @@ class AuthService {
         createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
-    } on FirebaseAuthException catch (e) {
+    } on firebase_auth.FirebaseAuthException catch (e) {
       _logger.e('Auth error during signup: ${e.code}');
       throw AuthServiceException(_parseAuthError(e));
     } catch (e) {
@@ -133,7 +133,7 @@ class AuthService {
         createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
-    } on FirebaseAuthException catch (e) {
+    } on firebase_auth.FirebaseAuthException catch (e) {
       _logger.e('Auth error during signin: ${e.code}');
       throw AuthServiceException(_parseAuthError(e));
     } catch (e) {
@@ -165,7 +165,7 @@ class AuthService {
         createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
-    } on FirebaseAuthException catch (e) {
+    } on firebase_auth.FirebaseAuthException catch (e) {
       _logger.e('Auth error during anonymous signin: ${e.code}');
       throw AuthServiceException(_parseAuthError(e));
     } catch (e) {
@@ -192,7 +192,7 @@ class AuthService {
 
       _logger.i('Linking anonymous account to email: $email');
 
-      final credential = EmailAuthProvider.credential(
+      final credential = firebase_auth.EmailAuthProvider.credential(
         email: email,
         password: password,
       );
@@ -200,7 +200,7 @@ class AuthService {
       await user.linkWithCredential(credential);
 
       _logger.i('✅ Account linked successfully');
-    } on FirebaseAuthException catch (e) {
+    } on firebase_auth.FirebaseAuthException catch (e) {
       _logger.e('Auth error during link: ${e.code}');
       throw AuthServiceException(_parseAuthError(e));
     } catch (e) {
@@ -229,7 +229,7 @@ class AuthService {
       _logger.i('Sending password reset email: $email');
       await _auth.sendPasswordResetEmail(email: email);
       _logger.i('✅ Password reset email sent');
-    } on FirebaseAuthException catch (e) {
+    } on firebase_auth.FirebaseAuthException catch (e) {
       _logger.e('Auth error sending reset email: ${e.code}');
       throw AuthServiceException(_parseAuthError(e));
     } catch (e) {
@@ -266,7 +266,7 @@ class AuthService {
       _logger.w('Deleting user account: ${user.uid}');
       await user.delete();
       _logger.i('✅ Account deleted');
-    } on FirebaseAuthException catch (e) {
+    } on firebase_auth.FirebaseAuthException catch (e) {
       _logger.e('Auth error deleting account: ${e.code}');
       throw AuthServiceException(_parseAuthError(e));
     } catch (e) {
@@ -291,7 +291,7 @@ class AuthService {
   }
 
   /// Parse Firebase auth error into user-friendly message
-  String _parseAuthError(FirebaseAuthException e) {
+  String _parseAuthError(firebase_auth.FirebaseAuthException e) {
     switch (e.code) {
       case 'weak-password':
         return 'Password is too weak. Use at least 6 characters.';

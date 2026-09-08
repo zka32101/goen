@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 
 final _logger = Logger();
