@@ -25,7 +25,7 @@ dependencies:
   firebase_remote_config: ^4.3.0
 
   # Monetization
-  in_app_purchase: ^5.1.0
+  in_app_purchase: ^3.3.0
 
   # UI & Animation
   lottie: ^2.7.0
