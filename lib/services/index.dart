@@ -4,3 +4,4 @@ export 'go_engine_service.dart';
 export 'firestore_service.dart';
 export 'auth_service.dart';
 export 'ai_explanation_service.dart';
+export 'social_share_service.dart';

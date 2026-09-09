@@ -8,3 +8,4 @@ export 'user_tsume_go_log.dart';
 export 'kifu_library.dart';
 export 'observation_log.dart';
 export 'board_state.dart';
+export 'social_share_models.dart';
