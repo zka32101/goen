@@ -74,6 +74,14 @@ jobs:
           ./gradlew --stop || true
           cd ..
 
+      - name: Test Gradle setup
+        run: |
+          cd android
+          echo "Testing Gradle..."
+          ./gradlew --version
+          ./gradlew help 2>&1 | head -20
+          cd ..
+
       - name: Build APK (debug)
         env:
           GRADLE_OPTS: '-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC'
