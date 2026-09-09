@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/views/widgets/index.dart';
 
 final _logger = Logger();
 
@@ -56,6 +57,30 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
             tooltip: 'Hint',
           ),
         ],
+      ),
+      floatingActionButton: todaysPuzzle.maybeWhen(
+        data: (puzzle) {
+          if (puzzle != null && isPuzzleSolved) {
+            final puzzleShareData = PuzzleShareData(
+              puzzleId: puzzle.id,
+              difficulty: _getDifficultyLabel(puzzle.difficulty),
+              attemptCount: attemptCount,
+              solvingTime: Duration(seconds: 300), // Placeholder
+              isSolved: true,
+              currentStreak: ref.watch(puzzleStreakProvider) ?? 0,
+            );
+            return PuzzleShareButton(
+              puzzleData: puzzleShareData,
+              onShared: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Puzzle shared successfully!')),
+                );
+              },
+            );
+          }
+          return null;
+        },
+        orElse: () => null,
       ),
       body: todaysPuzzle.when(
         loading: () => _buildLoadingState(context),
@@ -494,6 +519,23 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
         ],
       ),
     );
+  }
+
+  String _getDifficultyLabel(int difficulty) {
+    switch (difficulty) {
+      case 1:
+        return 'easy';
+      case 2:
+        return 'easy';
+      case 3:
+        return 'medium';
+      case 4:
+        return 'hard';
+      case 5:
+        return 'master';
+      default:
+        return 'medium';
+    }
   }
 }
 

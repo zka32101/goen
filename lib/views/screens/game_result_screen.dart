@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/views/widgets/index.dart';
 
 final _logger = Logger();
 
@@ -42,8 +43,26 @@ class GameResultScreen extends ConsumerWidget {
       whiteScore ?? 0,
     );
 
+    // Prepare game share data
+    final gameShareData = GameShareData(
+      gameId: '${boardState.gameId ?? DateTime.now().millisecondsSinceEpoch}',
+      result: winner == 'player' ? 'win' : winner == 'ai' ? 'loss' : 'draw',
+      blackScore: blackScore ?? 0,
+      whiteScore: whiteScore ?? 0,
+      boardSize: boardState.boardSize,
+      aiLevel: aiLevel,
+    );
+
     return Scaffold(
       backgroundColor: Colors.black87,
+      floatingActionButton: GameShareButton(
+        gameData: gameShareData,
+        onShared: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Game shared successfully!')),
+          );
+        },
+      ),
       body: SingleChildScrollView(
         child: SafeArea(
           child: Column(
