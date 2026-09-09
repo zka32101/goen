@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../services/social_share_service.dart';
 import '../models/social_share_models.dart';
+import 'analytics_provider.dart';
 
 part 'social_share_provider.g.dart';
 
@@ -17,7 +18,23 @@ Future<bool> shareGameToTwitter(
   required GameShareData gameData,
 }) async {
   final service = ref.watch(socialShareServiceProvider);
-  return service.shareGameToTwitter(gameData);
+  final analytics = ref.watch(analyticsProvider);
+
+  final success = await service.shareGameToTwitter(gameData);
+
+  if (success) {
+    analytics.logEvent(
+      name: 'game_shared',
+      parameters: {
+        'platform': 'twitter',
+        'result': gameData.result,
+        'board_size': gameData.boardSize,
+        'ai_level': gameData.aiLevel,
+      },
+    );
+  }
+
+  return success;
 }
 
 /// Provider to share a puzzle achievement to Twitter
@@ -27,7 +44,23 @@ Future<bool> sharePuzzleToTwitter(
   required PuzzleShareData puzzleData,
 }) async {
   final service = ref.watch(socialShareServiceProvider);
-  return service.sharePuzzleToTwitter(puzzleData);
+  final analytics = ref.watch(analyticsProvider);
+
+  final success = await service.sharePuzzleToTwitter(puzzleData);
+
+  if (success) {
+    analytics.logEvent(
+      name: 'puzzle_shared',
+      parameters: {
+        'platform': 'twitter',
+        'difficulty': puzzleData.difficulty,
+        'solved': puzzleData.isSolved,
+        'attempts': puzzleData.attemptCount,
+      },
+    );
+  }
+
+  return success;
 }
 
 /// Provider to share profile to Twitter
@@ -37,7 +70,26 @@ Future<bool> shareProfileToTwitter(
   required ProfileShareData profileData,
 }) async {
   final service = ref.watch(socialShareServiceProvider);
-  return service.shareProfileToTwitter(profileData);
+  final analytics = ref.watch(analyticsProvider);
+
+  final success = await service.shareProfileToTwitter(profileData);
+
+  if (success) {
+    final winRate = profileData.totalGamesPlayed > 0
+        ? (profileData.winCount / profileData.totalGamesPlayed) * 100
+        : 0.0;
+    analytics.logEvent(
+      name: 'profile_shared',
+      parameters: {
+        'platform': 'twitter',
+        'total_games': profileData.totalGamesPlayed,
+        'win_rate': winRate,
+        'puzzles_solved': profileData.totalPuzzlesSolved,
+      },
+    );
+  }
+
+  return success;
 }
 
 /// Provider to share to a specific platform
@@ -48,7 +100,20 @@ Future<bool> shareWithPlatform(
   required SocialPlatform platform,
 }) async {
   final service = ref.watch(socialShareServiceProvider);
-  return service.shareWithPlatform(content, platform: platform);
+  final analytics = ref.watch(analyticsProvider);
+
+  final success = await service.shareWithPlatform(content, platform: platform);
+
+  if (success) {
+    analytics.logEvent(
+      name: 'content_shared_to_platform',
+      parameters: {
+        'platform': platform.toString().split('.').last,
+      },
+    );
+  }
+
+  return success;
 }
 
 /// Provider for generic share to system share sheet
