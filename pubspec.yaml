@@ -33,7 +33,7 @@ dependencies:
   # Utilities
   uuid: ^4.0.0
   logger: ^2.2.0
-  connectivity_plus: ^5.0.0
+  connectivity_plus: ^6.0.0
 
 dev_dependencies:
   flutter_test:
