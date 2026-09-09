@@ -88,8 +88,8 @@ jobs:
 
           echo "GRADLE_OPTS: $GRADLE_OPTS"
 
-          # Try to build with explicit Gradle verbosity
-          flutter build apk --debug --verbose --gradle-debug 2>&1 | tee build_apk_debug.log
+          # Build APK debug
+          flutter build apk --debug --verbose 2>&1 | tee build_apk_debug.log
           BUILD_EXIT_CODE=${PIPESTATUS[0]}
           echo "Build exit code: $BUILD_EXIT_CODE"
 
