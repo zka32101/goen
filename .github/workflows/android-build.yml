@@ -77,18 +77,30 @@ jobs:
         run: |
           set -o pipefail
           echo "Starting APK debug build..."
+          echo "Disk space before build:"
+          df -h
+
           flutter build apk --debug --verbose 2>&1 | tee build_apk_debug.log
           BUILD_EXIT_CODE=${PIPESTATUS[0]}
           echo "Build exit code: $BUILD_EXIT_CODE"
 
+          echo "Disk space after build:"
+          df -h
+
+          echo "Checking for build outputs:"
+          ls -la build/app/outputs/ 2>/dev/null || echo "build/app/outputs/ does not exist"
+          find build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+
           if [ $BUILD_EXIT_CODE -ne 0 ]; then
-            echo "❌ APK debug build failed"
-            echo "Last 100 lines of build log:"
-            tail -100 build_apk_debug.log
+            echo "❌ APK debug build failed with exit code $BUILD_EXIT_CODE"
+            echo "Last 200 lines of build log:"
+            tail -200 build_apk_debug.log
             exit 1
           fi
           if [ ! -f build/app/outputs/flutter-apk/app-debug.apk ]; then
-            echo "❌ APK file not found after build"
+            echo "❌ APK file not found after successful build"
+            echo "Contents of build directory:"
+            find build -type f -name "*.apk" 2>/dev/null | head -20
             exit 1
           fi
           ls -lh build/app/outputs/flutter-apk/app-debug.apk
