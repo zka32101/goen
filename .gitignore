@@ -65,11 +65,10 @@ app.*.map.json
 **/macos/Flutter/GeneratedPluginRegistrant.swift
 
 # Android/gradle
-**/android/**/gradle-wrapper.jar
+# Note: Gradle wrapper files (gradlew, gradlew.bat, gradle-wrapper.jar) ARE committed for CI/CD
+# Only ignore gradle-wrapper.jar if truly needed; wrapper files should be in VCS
 **/android/.gradle
 **/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
