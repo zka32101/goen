@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/views/widgets/index.dart';
 
 final _logger = Logger();
 
@@ -203,6 +204,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
         const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => _handleShareProfile(context, user),
+            child: const Text('Share Profile'),
+          ),
+        ),
+        const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -565,6 +574,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _logger.i('Saving profile changes');
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Profile updated!')),
+    );
+  }
+
+  void _handleShareProfile(BuildContext context, User user) {
+    _logger.i('Opening share dialog for user profile');
+    final profileShareData = ProfileShareData(
+      userId: user.uid,
+      displayName: user.displayName ?? 'GoEn Player',
+      totalGamesPlayed: 0, // TODO: Fetch from gameProvider
+      winCount: 0, // TODO: Fetch from gameProvider
+      currentPuzzleStreak: 0, // TODO: Fetch from puzzleProvider
+      totalPuzzlesSolved: 0, // TODO: Fetch from puzzleProvider
+    );
+
+    final profileContent = _generateProfileShareContent(profileShareData);
+
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => ShareDialog(
+        content: profileContent,
+        onShare: (platform) async {
+          _logger.i('Sharing profile via $platform');
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Profile shared via $platform!')),
+          );
+        },
+      ),
+    );
+  }
+
+  ShareContent _generateProfileShareContent(ProfileShareData data) {
+    final winRate = data.totalGamesPlayed > 0
+        ? ((data.winCount / data.totalGamesPlayed) * 100).toStringAsFixed(1)
+        : '0.0';
+
+    final text = '''🎓 碁縁でのプログレス報告
+
+👤 ${data.displayName}
+🎮 対局数: ${data.totalGamesPlayed}
+🏆 勝利数: ${data.winCount} (勝率: $winRate%)
+💯 詰碁: ${data.totalPuzzlesSolved}問
+🔥 連続成功: ${data.currentPuzzleStreak}問
+
+AI解説で碁を上達しよう！''';
+
+    return ShareContent(
+      text: text,
+      hashtags: '#碁 #碁縁 #Go学習 #AI解説',
     );
   }
 
