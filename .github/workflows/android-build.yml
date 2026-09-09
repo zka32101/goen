@@ -38,6 +38,8 @@ jobs:
           flutter clean
           rm -rf .android
           rm -rf build/
+          rm -rf ~/gradle_cache || true
+          rm -rf ~/.gradle || true
 
       - name: Get dependencies
         run: |
@@ -70,6 +72,7 @@ jobs:
       - name: Clean Gradle cache
         run: |
           cd android
+          rm -rf .gradle || true
           ./gradlew clean 2>&1 | tail -20
           ./gradlew --stop || true
           cd ..
