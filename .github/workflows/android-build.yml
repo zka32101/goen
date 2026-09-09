@@ -71,21 +71,33 @@ jobs:
         run: |
           cd android
           ./gradlew clean 2>&1 | tail -20
+          ./gradlew --stop || true
           cd ..
 
       - name: Build APK (debug)
+        env:
+          GRADLE_OPTS: '-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC'
         run: |
           set -o pipefail
           echo "Starting APK debug build..."
           echo "Disk space before build:"
           df -h
 
-          flutter build apk --debug --verbose 2>&1 | tee build_apk_debug.log
+          echo "Memory info before build:"
+          free -h
+
+          echo "GRADLE_OPTS: $GRADLE_OPTS"
+
+          # Try to build with explicit Gradle verbosity
+          flutter build apk --debug --verbose --gradle-debug 2>&1 | tee build_apk_debug.log
           BUILD_EXIT_CODE=${PIPESTATUS[0]}
           echo "Build exit code: $BUILD_EXIT_CODE"
 
           echo "Disk space after build:"
           df -h
+
+          echo "Memory info after build:"
+          free -h
 
           echo "Checking for build outputs:"
           ls -la build/app/outputs/ 2>/dev/null || echo "build/app/outputs/ does not exist"
