@@ -6,12 +6,53 @@ import 'package:goen/viewmodels/index.dart';
 final _logger = Logger();
 
 /// CorrespondenceGameSettingsScreen
-class CorrespondenceGameSettingsScreen extends ConsumerWidget {
+class CorrespondenceGameSettingsScreen extends ConsumerStatefulWidget {
   const CorrespondenceGameSettingsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CorrespondenceGameSettingsScreen> createState() =>
+      _CorrespondenceGameSettingsScreenState();
+}
+
+class _CorrespondenceGameSettingsScreenState
+    extends ConsumerState<CorrespondenceGameSettingsScreen> {
+  bool _isLoading = true;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreviousSettings();
+  }
+
+  Future<void> _loadPreviousSettings() async {
+    try {
+      _logger.i('Loading previous Correspondence settings...');
+      await ref.read(loadCorrespondenceSettingsProvider.future);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      _logger.i('Correspondence settings loaded successfully');
+    } catch (e) {
+      _logger.w('Failed to load previous settings: $e, using defaults');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadError = 'Previous settings not found, using defaults';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     _logger.i('Building CorrespondenceGameSettingsScreen');
+
+    if (_isLoading) {
+      return _buildLoadingScreen(context);
+    }
 
     final boardSize = ref.watch(correspondenceBoardSizeProvider);
     final playerColor = ref.watch(correspondencePlayerColorProvider);
@@ -32,6 +73,8 @@ class CorrespondenceGameSettingsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_loadError != null) _buildErrorMessage(context),
+
             _buildSectionTitle(context, 'ボードサイズ'),
             const SizedBox(height: 12),
             _buildBoardSizeSelector(ref, boardSize),
@@ -54,6 +97,63 @@ class CorrespondenceGameSettingsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildLoadingScreen(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      appBar: AppBar(
+        title: const Text('ターンベース対局設定'),
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '設定を読み込み中...',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorMessage(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.orange[900],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange[600]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info, color: Colors.orange[300], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _loadError!,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Colors.orange[100],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
@@ -72,14 +172,16 @@ class CorrespondenceGameSettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: selected == size ? Colors.amber[600] : Colors.grey[800],
+                backgroundColor:
+                    selected == size ? Colors.amber[600] : Colors.grey[800],
               ),
               onPressed: () {
                 ref.read(correspondenceBoardSizeProvider.notifier).state = size;
               },
-              child: Text('${size}×$size', style: TextStyle(
-                color: selected == size ? Colors.black : Colors.white,
-              )),
+              child: Text('${size}×$size',
+                  style: TextStyle(
+                    color: selected == size ? Colors.black : Colors.white,
+                  )),
             ),
           ),
         );
@@ -96,14 +198,17 @@ class CorrespondenceGameSettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: selected == color ? Colors.amber[600] : Colors.grey[800],
+                backgroundColor:
+                    selected == color ? Colors.amber[600] : Colors.grey[800],
               ),
               onPressed: () {
-                ref.read(correspondencePlayerColorProvider.notifier).state = color;
+                ref.read(correspondencePlayerColorProvider.notifier).state =
+                    color;
               },
-              child: Text(label, style: TextStyle(
-                color: selected == color ? Colors.black : Colors.white,
-              )),
+              child: Text(label,
+                  style: TextStyle(
+                    color: selected == color ? Colors.black : Colors.white,
+                  )),
             ),
           ),
         );
@@ -141,7 +246,8 @@ class CorrespondenceGameSettingsScreen extends ConsumerWidget {
                 _logger.i('Starting Correspondence game: $settings');
 
                 // Save settings to persistent storage
-                await ref.read(saveCorrespondenceSettingsProvider(settings).future);
+                await ref.read(
+                    saveCorrespondenceSettingsProvider(settings).future);
 
                 // Navigate to game screen
                 if (context.mounted) {

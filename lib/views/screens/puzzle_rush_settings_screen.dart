@@ -6,12 +6,52 @@ import 'package:goen/viewmodels/index.dart';
 final _logger = Logger();
 
 /// PuzzleRushSettingsScreen
-class PuzzleRushSettingsScreen extends ConsumerWidget {
+class PuzzleRushSettingsScreen extends ConsumerStatefulWidget {
   const PuzzleRushSettingsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PuzzleRushSettingsScreen> createState() =>
+      _PuzzleRushSettingsScreenState();
+}
+
+class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScreen> {
+  bool _isLoading = true;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreviousSettings();
+  }
+
+  Future<void> _loadPreviousSettings() async {
+    try {
+      _logger.i('Loading previous Puzzle Rush settings...');
+      await ref.read(loadPuzzleRushSettingsProvider.future);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      _logger.i('Puzzle Rush settings loaded successfully');
+    } catch (e) {
+      _logger.w('Failed to load previous settings: $e, using defaults');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadError = 'Previous settings not found, using defaults';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     _logger.i('Building PuzzleRushSettingsScreen');
+
+    if (_isLoading) {
+      return _buildLoadingScreen(context);
+    }
 
     final difficulty = ref.watch(puzzleRushDifficultyProvider);
     final isValid = ref.watch(isPuzzleRushSettingsValidProvider);
@@ -31,6 +71,8 @@ class PuzzleRushSettingsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_loadError != null) _buildErrorMessage(context),
+
             _buildSectionTitle(context, '難易度を選択'),
             const SizedBox(height: 16),
             _buildDifficultyCards(ref, difficulty),
@@ -42,6 +84,63 @@ class PuzzleRushSettingsScreen extends ConsumerWidget {
             _buildStartButton(context, ref, isValid),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingScreen(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      appBar: AppBar(
+        title: const Text('詰碁ラッシュ設定'),
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '設定を読み込み中...',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorMessage(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.orange[900],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange[600]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info, color: Colors.orange[300], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _loadError!,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Colors.orange[100],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -93,7 +192,8 @@ class PuzzleRushSettingsScreen extends ConsumerWidget {
                 children: [
                   Text(
                     diff['label'] as String,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style:
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: isSelected ? Colors.white : Colors.white70,
                       fontWeight: FontWeight.bold,
                     ),

@@ -6,12 +6,52 @@ import 'package:goen/viewmodels/index.dart';
 final _logger = Logger();
 
 /// TeamGameSettingsScreen
-class TeamGameSettingsScreen extends ConsumerWidget {
+class TeamGameSettingsScreen extends ConsumerStatefulWidget {
   const TeamGameSettingsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TeamGameSettingsScreen> createState() =>
+      _TeamGameSettingsScreenState();
+}
+
+class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen> {
+  bool _isLoading = true;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreviousSettings();
+  }
+
+  Future<void> _loadPreviousSettings() async {
+    try {
+      _logger.i('Loading previous Team settings...');
+      await ref.read(loadTeamSettingsProvider.future);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      _logger.i('Team settings loaded successfully');
+    } catch (e) {
+      _logger.w('Failed to load previous settings: $e, using defaults');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadError = 'Previous settings not found, using defaults';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     _logger.i('Building TeamGameSettingsScreen');
+
+    if (_isLoading) {
+      return _buildLoadingScreen(context);
+    }
 
     final boardSize = ref.watch(teamBoardSizeProvider);
     final team1 = ref.watch(team1PlayersProvider);
@@ -33,6 +73,8 @@ class TeamGameSettingsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_loadError != null) _buildErrorMessage(context),
+
             _buildSectionTitle(context, 'ボードサイズ'),
             const SizedBox(height: 12),
             _buildBoardSizeSelector(ref, boardSize),
@@ -55,6 +97,63 @@ class TeamGameSettingsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildLoadingScreen(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      appBar: AppBar(
+        title: const Text('チーム戦設定'),
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '設定を読み込み中...',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorMessage(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.orange[900],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange[600]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info, color: Colors.orange[300], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _loadError!,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Colors.orange[100],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
@@ -73,14 +172,16 @@ class TeamGameSettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: selected == size ? Colors.amber[600] : Colors.grey[800],
+                backgroundColor:
+                    selected == size ? Colors.amber[600] : Colors.grey[800],
               ),
               onPressed: () {
                 ref.read(teamBoardSizeProvider.notifier).state = size;
               },
-              child: Text('${size}×$size', style: TextStyle(
-                color: selected == size ? Colors.black : Colors.white,
-              )),
+              child: Text('${size}×$size',
+                  style: TextStyle(
+                    color: selected == size ? Colors.black : Colors.white,
+                  )),
             ),
           ),
         );
@@ -108,14 +209,16 @@ class TeamGameSettingsScreen extends ConsumerWidget {
           if (players.isNotEmpty)
             ...players.map((p) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(p, style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Colors.white70,
-              )),
+              child: Text(p,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Colors.white70,
+                  )),
             )).toList()
           else
-            Text('プレイヤー未選択', style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white54,
-            )),
+            Text('プレイヤー未選択',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Colors.white54,
+                )),
         ],
       ),
     );

@@ -6,12 +6,53 @@ import 'package:goen/viewmodels/index.dart';
 final _logger = Logger();
 
 /// BlitzGameSettingsScreen - Blitz game settings before starting
-class BlitzGameSettingsScreen extends ConsumerWidget {
+class BlitzGameSettingsScreen extends ConsumerStatefulWidget {
   const BlitzGameSettingsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BlitzGameSettingsScreen> createState() =>
+      _BlitzGameSettingsScreenState();
+}
+
+class _BlitzGameSettingsScreenState
+    extends ConsumerState<BlitzGameSettingsScreen> {
+  bool _isLoading = true;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreviousSettings();
+  }
+
+  Future<void> _loadPreviousSettings() async {
+    try {
+      _logger.i('Loading previous Blitz settings...');
+      await ref.read(loadBlitzSettingsProvider.future);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      _logger.i('Blitz settings loaded successfully');
+    } catch (e) {
+      _logger.w('Failed to load previous settings: $e, using defaults');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadError = 'Previous settings not found, using defaults';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     _logger.i('Building BlitzGameSettingsScreen');
+
+    if (_isLoading) {
+      return _buildLoadingScreen(context);
+    }
 
     final boardSize = ref.watch(blitzBoardSizeProvider);
     final aiLevel = ref.watch(blitzAiLevelProvider);
@@ -32,6 +73,8 @@ class BlitzGameSettingsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_loadError != null) _buildErrorMessage(context),
+
             // Board Size Selection
             _buildSectionTitle(context, 'ボードサイズ'),
             const SizedBox(height: 12),
@@ -48,6 +91,63 @@ class BlitzGameSettingsScreen extends ConsumerWidget {
             _buildStartButton(context, ref, isValid),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingScreen(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      appBar: AppBar(
+        title: const Text('ブリッツゲーム設定'),
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '設定を読み込み中...',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorMessage(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.orange[900],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange[600]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info, color: Colors.orange[300], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _loadError!,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Colors.orange[100],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -70,7 +170,8 @@ class BlitzGameSettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: selected == size ? Colors.amber[600] : Colors.grey[800],
+                backgroundColor:
+                    selected == size ? Colors.amber[600] : Colors.grey[800],
               ),
               onPressed: () {
                 ref.read(blitzBoardSizeProvider.notifier).state = size;
@@ -108,9 +209,21 @@ class BlitzGameSettingsScreen extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('初級', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white54)),
-              Text('Level $level', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.white)),
-              Text('上級', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white54)),
+              Text('初級',
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: Colors.white54)),
+              Text('Level $level',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(color: Colors.white)),
+              Text('上級',
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: Colors.white54)),
             ],
           ),
         ),
