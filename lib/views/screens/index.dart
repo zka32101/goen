@@ -3,6 +3,7 @@
 export 'splash_screen.dart';
 export 'onboarding_screen.dart';
 export 'home_screen.dart';
+export 'game_mode_selector_screen.dart';
 export 'ai_game_screen.dart';
 export 'game_result_screen.dart';
 export 'tsume_go_screen.dart';

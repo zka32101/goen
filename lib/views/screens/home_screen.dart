@@ -94,15 +94,26 @@ class HomeScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  // Play AI Game - Primary CTA
+                  // Game Mode Selection - Primary CTA (Phase 58)
+                  _buildActionCard(
+                    context,
+                    title: 'Game Modes',
+                    subtitle: 'Choose your game style',
+                    icon: Icons.sports_esports,
+                    color: Colors.amber[600]!,
+                    onTap: () => _navigateToGameModeSelector(context),
+                    isPrimary: true,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Classic AI Game option
                   _buildActionCard(
                     context,
                     title: 'Play AI Game',
                     subtitle: 'Challenge the Go engine',
-                    icon: Icons.sports_esports,
-                    color: Colors.amber[600]!,
+                    icon: Icons.gaming_esports,
+                    color: Colors.amber[500]!,
                     onTap: () => _navigateToAiGame(context, ref),
-                    isPrimary: true,
                   ),
                   const SizedBox(height: 16),
 
@@ -353,6 +364,15 @@ class HomeScreen extends ConsumerWidget {
   }
 
   // Navigation methods
+  void _navigateToGameModeSelector(BuildContext context) {
+    _logger.i('Navigating to Game Mode Selector');
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const GameModeSelectorScreen(),
+      ),
+    );
+  }
+
   void _navigateToAiGame(BuildContext context, WidgetRef ref) {
     _logger.i('Navigating to AI Game');
     ref.read(logPaywallTriggeredProvider)(gameNumber: 1);
