@@ -16,3 +16,8 @@ export 'correspondence_game_service.dart';
 export 'team_game_service.dart';
 export 'puzzle_rush_service.dart';
 export 'game_settings_storage_service.dart';
+export 'friend_service.dart';
+export 'game_invitation_service.dart';
+export 'leaderboard_service.dart';
+export 'game_preset_service.dart';
+export 'analytics_service.dart';

@@ -10,3 +10,6 @@ export 'kifu_go_provider.dart';
 export 'analytics_provider.dart';
 export 'social_share_provider.dart';
 export 'streaming_provider.dart';
+export 'game_result_share_provider.dart';
+export 'social_features_provider.dart';
+export 'game_modes_analytics_provider.dart';
