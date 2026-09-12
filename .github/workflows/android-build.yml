@@ -50,6 +50,15 @@ jobs:
             exit 1
           fi
 
+      - name: Generate code (build_runner)
+        run: |
+          set -o pipefail
+          flutter pub run build_runner build --delete-conflicting-outputs 2>&1 | tee build_runner.log
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "⚠️ build_runner failed (non-fatal, may continue)"
+          fi
+        continue-on-error: true
+
       - name: Analyze code
         run: |
           set -o pipefail
@@ -228,6 +237,7 @@ jobs:
           name: build-logs
           path: |
             pub_get.log
+            build_runner.log
             analyze.log
             test.log
             build_apk_debug.log
