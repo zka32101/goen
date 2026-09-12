@@ -26,3 +26,9 @@ export 'blitz_game_settings_screen.dart';
 export 'correspondence_game_settings_screen.dart';
 export 'team_game_settings_screen.dart';
 export 'puzzle_rush_settings_screen.dart';
+
+// Phase 68-71: SNS, Social, Analytics
+export 'friends_screen.dart';
+export 'leaderboard_screen.dart';
+export 'game_preset_manager_screen.dart';
+export 'analytics_dashboard_screen.dart';
