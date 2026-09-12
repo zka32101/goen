@@ -171,6 +171,14 @@ class HomeScreen extends ConsumerWidget {
               ),
 
             const SizedBox(height: 32),
+
+            // Settings Reset Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildSettingsResetButton(context, ref),
+            ),
+
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -303,6 +311,66 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  /// Settings reset button
+  Widget _buildSettingsResetButton(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.red[700]!, width: 1),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.red[900]?.withOpacity(0.1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.refresh,
+                color: Colors.red[600],
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Game Settings',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Reset all game settings (board size, difficulty, etc.) to defaults.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.white70,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[700],
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+              onPressed: () => _showResetConfirmationDialog(context, ref),
+              child: Text(
+                'Reset Settings',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Paywall teaser for free users
   Widget _buildPaywallTeaser(BuildContext context, WidgetRef ref) {
     return Container(
@@ -407,5 +475,153 @@ class HomeScreen extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  // Settings reset methods
+  void _showResetConfirmationDialog(BuildContext context, WidgetRef ref) {
+    _logger.i('Showing reset confirmation dialog');
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: Text(
+            'Reset Settings?',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Colors.white,
+            ),
+          ),
+          content: Text(
+            'This will reset all game settings (board size, difficulty, player color, etc.) to their default values.\n\nThis action cannot be undone.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.white70,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.blue[400]),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                _logger.i('Confirming settings reset');
+                Navigator.pop(dialogContext);
+
+                // Show loading indicator
+                _showResetProgressDialog(context);
+
+                try {
+                  // Reset all settings
+                  final result =
+                      await ref.read(clearAllSettingsProvider.future);
+
+                  if (mounted) {
+                    Navigator.pop(context); // Close progress dialog
+
+                    if (result) {
+                      _logger.i('Settings reset successfully');
+                      _showResetSuccessSnackbar(context);
+                    } else {
+                      _logger.e('Settings reset failed');
+                      _showResetErrorSnackbar(context);
+                    }
+                  }
+                } catch (e) {
+                  _logger.e('Error resetting settings: $e');
+                  if (mounted) {
+                    Navigator.pop(context); // Close progress dialog
+                    _showResetErrorSnackbar(context);
+                  }
+                }
+              },
+              child: Text(
+                'Reset',
+                style: TextStyle(color: Colors.red[600]),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showResetProgressDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          content: Row(
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                'Resetting settings...',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showResetSuccessSnackbar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green[400]),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'All settings have been reset to defaults',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green[900],
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _showResetErrorSnackbar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error, color: Colors.red[400]),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Failed to reset settings',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red[900],
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 }
