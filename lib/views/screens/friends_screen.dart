@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
+import '../widgets/index.dart';
 
 final _logger = Logger();
 
@@ -84,110 +85,32 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
 
     return friendsAsync.when(
       data: (friends) {
-        if (friends.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.people_outline, size: 64, color: Colors.grey[600]),
-                const SizedBox(height: 16),
-                Text('まだフレンドがいません',
-                    style: TextStyle(color: Colors.grey[400])),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          itemCount: friends.length,
-          itemBuilder: (context, index) {
-            final friend = friends[index];
-            return _buildFriendTile(context, uid, friend);
+        return FriendListWidget(
+          friends: friends,
+          isLoading: false,
+          onRefresh: () async {
+            // Trigger refresh via Riverpod
+            ref.refresh(friendsStreamProvider(uid));
+          },
+          onTap: (friend) {
+            _showMessage(context, 'プロフィール表示は準備中です');
+          },
+          onMessage: (friend) {
+            _showMessage(context, 'メッセージ機能は準備中です');
+          },
+          onInvite: (friend) {
+            _showGameInviteDialog(context, uid, friend.uid, friend.displayName);
+          },
+          onBlock: (friend) {
+            _blockFriend(context, uid, friend.uid);
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('エラー: $err')),
-    );
-  }
-
-  Widget _buildFriendTile(BuildContext context, String uid, Friend friend) {
-    return Card(
-      color: Colors.grey[900],
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // Avatar
-            CircleAvatar(
-              backgroundColor: Colors.amber[700],
-              radius: 24,
-              backgroundImage: friend.avatarUrl != null
-                  ? NetworkImage(friend.avatarUrl!)
-                  : null,
-              child: friend.avatarUrl == null
-                  ? const Icon(Icons.person, color: Colors.white)
-                  : null,
-            ),
-            const SizedBox(width: 16),
-
-            // Friend info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    friend.displayName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (friend.notes != null && friend.notes!.isNotEmpty)
-                    Text(
-                      friend.notes!,
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  Text(
-                    'Added: ${friend.addedAt.toString().split(' ')[0]}',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-
-            // Actions
-            PopupMenuButton(
-              color: Colors.grey[900],
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  child: const Text('メッセージ'),
-                  value: 'message',
-                ),
-                PopupMenuItem(
-                  child: const Text('ゲーム招待'),
-                  value: 'invite',
-                ),
-                PopupMenuItem(
-                  child: const Text('プロフィール'),
-                  value: 'profile',
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  child: const Text('ブロック', style: TextStyle(color: Colors.red)),
-                  value: 'block',
-                ),
-              ],
-              onSelected: (value) {
-                _handleFriendAction(context, uid, friend, value as String);
-              },
-            ),
-          ],
-        ),
+      loading: () => const FriendListWidget(
+        friends: [],
+        isLoading: true,
       ),
+      error: (err, stack) => Center(child: Text('エラー: $err')),
     );
   }
 

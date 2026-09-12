@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
+import '../widgets/index.dart';
 
 /// Analytics dashboard screen
 class AnalyticsDashboardScreen extends ConsumerWidget {
@@ -196,74 +197,22 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
-        color: Colors.grey[900],
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'ボードサイズ別勝率',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              winRateAsync.when(
-                data: (winRates) {
-                  if (winRates.isEmpty) {
-                    return Text('データなし',
-                        style: TextStyle(color: Colors.grey[400]));
-                  }
-
-                  return Column(
-                    children: winRates.entries.map((entry) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 60,
-                              child: Text(
-                                entry.key,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
-                                  value: entry.value / 100,
-                                  minHeight: 24,
-                                  backgroundColor: Colors.grey[800],
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    entry.value >= 60
-                                        ? Colors.green[600]!
-                                        : entry.value >= 40
-                                            ? Colors.amber[600]!
-                                            : Colors.red[600]!,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${entry.value.toStringAsFixed(1)}%',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (err, stack) => Text('エラー: $err'),
-              ),
-            ],
+      child: winRateAsync.when(
+        data: (winRates) {
+          return WinRateBarChartWidget(
+            data: winRates,
+            title: 'ボードサイズ別勝率',
+            xAxisLabel: 'ボードサイズ',
+            yAxisLabel: '勝率（%）',
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Card(
+          color: Colors.grey[900],
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('エラー: $err',
+                style: TextStyle(color: Colors.red[600])),
           ),
         ),
       ),
@@ -275,81 +224,27 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
-        color: Colors.grey[900],
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'AI レベル別勝率',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              winRateAsync.when(
-                data: (winRates) {
-                  if (winRates.isEmpty) {
-                    return Text('データなし',
-                        style: TextStyle(color: Colors.grey[400]));
-                  }
+      child: winRateAsync.when(
+        data: (winRates) {
+          // Convert Map<int, double> to Map<String, double>
+          final chartData = <String, double>{
+            for (var entry in winRates.entries) 'Lv${entry.key}': entry.value
+          };
 
-                  return Column(
-                    children: winRates.entries
-                        .toList()
-                        .asMap()
-                        .entries
-                        .map((entry) {
-                      final level = entry.value.key;
-                      final winRate = entry.value.value;
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 60,
-                              child: Text(
-                                'Lv $level',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
-                                  value: winRate / 100,
-                                  minHeight: 24,
-                                  backgroundColor: Colors.grey[800],
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    winRate >= 60
-                                        ? Colors.green[600]!
-                                        : winRate >= 40
-                                            ? Colors.amber[600]!
-                                            : Colors.red[600]!,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${winRate.toStringAsFixed(1)}%',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (err, stack) => Text('エラー: $err'),
-              ),
-            ],
+          return WinRateBarChartWidget(
+            data: chartData,
+            title: 'AI レベル別勝率',
+            xAxisLabel: 'AIレベル',
+            yAxisLabel: '勝率（%）',
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Card(
+          color: Colors.grey[900],
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('エラー: $err',
+                style: TextStyle(color: Colors.red[600])),
           ),
         ),
       ),
@@ -382,18 +277,11 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                 );
               }
 
-              return GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                ),
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: achievements.length,
-                itemBuilder: (context, index) {
-                  final achievement = achievements[index];
-                  return _buildAchievementBadge(achievement);
+              return AchievementGridWidget(
+                achievements: achievements,
+                crossAxisCount: 3,
+                onAchievementTap: () {
+                  // Future: Show achievement detail dialog
                 },
               );
             },
@@ -402,36 +290,6 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
             error: (err, stack) => Text('エラー: $err'),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildAchievementBadge(Achievement achievement) {
-    return Card(
-      color: Colors.grey[900],
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              achievement.iconEmoji,
-              style: const TextStyle(fontSize: 32),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              achievement.name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
       ),
     );
   }
