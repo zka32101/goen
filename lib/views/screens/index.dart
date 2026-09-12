@@ -14,3 +14,9 @@ export 'paywall_screen.dart';
 export 'youtube_share_screen.dart';
 export 'twitch_stream_screen.dart';
 export 'sponsorship_screen.dart';
+
+// Phase 61: Advanced Game Modes
+export 'blitz_game_screen.dart';
+export 'correspondence_game_screen.dart';
+export 'team_game_screen.dart';
+export 'puzzle_rush_screen.dart';
