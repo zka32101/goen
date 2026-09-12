@@ -7,3 +7,4 @@ export 'tsume_go_provider.dart';
 export 'kifu_go_provider.dart';
 export 'analytics_provider.dart';
 export 'social_share_provider.dart';
+export 'streaming_provider.dart';

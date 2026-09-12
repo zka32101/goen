@@ -8,3 +8,6 @@ export 'social_share_service.dart';
 export 'sns_api_service.dart';
 export 'game_mode_service.dart';
 export 'social_features_service.dart';
+export 'youtube_share_service.dart';
+export 'twitch_share_service.dart';
+export 'sponsorship_service.dart';
