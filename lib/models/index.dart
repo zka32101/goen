@@ -12,3 +12,4 @@ export 'social_share_models.dart';
 export 'sns_models.dart';
 export 'streaming_models.dart';
 export 'game_modes.dart';
+export 'game_settings.dart';

@@ -15,3 +15,4 @@ export 'blitz_game_service.dart';
 export 'correspondence_game_service.dart';
 export 'team_game_service.dart';
 export 'puzzle_rush_service.dart';
+export 'game_settings_storage_service.dart';

@@ -20,3 +20,9 @@ export 'blitz_game_screen.dart';
 export 'correspondence_game_screen.dart';
 export 'team_game_screen.dart';
 export 'puzzle_rush_screen.dart';
+
+// Phase 63: Game Settings
+export 'blitz_game_settings_screen.dart';
+export 'correspondence_game_settings_screen.dart';
+export 'team_game_settings_screen.dart';
+export 'puzzle_rush_settings_screen.dart';

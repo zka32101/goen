@@ -268,32 +268,34 @@ class GameModeSelectorScreen extends ConsumerWidget {
   }
 
   void _navigateToBlitzGame(BuildContext context, GameMode mode) {
-    _logger.i('Navigating to Blitz game: ${mode.name}');
-    // Navigate to appropriate game screen
-    // For now: Navigator.of(context).pushNamed('/ai-game', arguments: mode);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('ブリッツゲーム開始: ${mode.name}')),
+    _logger.i('Navigating to Blitz settings: ${mode.name}');
+    Navigator.of(context).pushNamed(
+      '/blitz-settings',
+      arguments: {'mode': mode},
     );
   }
 
   void _navigateToCorrespondenceGame(BuildContext context, GameMode mode) {
-    _logger.i('Navigating to Correspondence game: ${mode.name}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('ターンベース対局開始: ${mode.name}')),
+    _logger.i('Navigating to Correspondence settings: ${mode.name}');
+    Navigator.of(context).pushNamed(
+      '/correspondence-settings',
+      arguments: {'mode': mode},
     );
   }
 
   void _navigateToTeamGame(BuildContext context, GameMode mode) {
-    _logger.i('Navigating to Team game: ${mode.name}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('チーム戦開始: ${mode.name}')),
+    _logger.i('Navigating to Team settings: ${mode.name}');
+    Navigator.of(context).pushNamed(
+      '/team-settings',
+      arguments: {'mode': mode},
     );
   }
 
   void _navigateToPuzzleRush(BuildContext context, GameMode mode) {
-    _logger.i('Navigating to Puzzle Rush: ${mode.name}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('詰碁ラッシュ開始: ${mode.name}')),
+    _logger.i('Navigating to Puzzle Rush settings: ${mode.name}');
+    Navigator.of(context).pushNamed(
+      '/puzzle-rush-settings',
+      arguments: {'mode': mode},
     );
   }
 
