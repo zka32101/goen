@@ -62,6 +62,11 @@ class GoEnApp extends ConsumerWidget {
         '/game-history': (_) => const GameHistoryScreen(),
         '/settings': (_) => const SettingsScreen(),
         '/paywall': (_) => const PaywallScreen(),
+        // Phase 68-71: SNS Integration, Social Features, Analytics
+        '/friends': (_) => const FriendsScreen(),
+        '/leaderboard': (_) => const LeaderboardScreen(),
+        '/game-preset-manager': (_) => const GamePresetManagerScreen(),
+        '/analytics-dashboard': (_) => const AnalyticsDashboardScreen(),
       },
       onUnknownRoute: (_) {
         return MaterialPageRoute(
