@@ -45,12 +45,28 @@ class GoEnApp extends ConsumerWidget {
         '/home': (_) => const HomeScreen(),
         '/ai-game': (_) => const AIGameScreen(),
         '/game-result': (_) => GameResultScreenRouter(),
-        // Future screens (Phase 5)
+        // Phase 63 Game Settings
+        '/blitz-settings': (_) => const BlitzGameSettingsScreen(),
+        '/correspondence-settings': (_) =>
+            const CorrespondenceGameSettingsScreen(),
+        '/team-settings': (_) => const TeamGameSettingsScreen(),
+        '/puzzle-rush-settings': (_) => const PuzzleRushSettingsScreen(),
+        // Phase 61 Game Modes
+        '/blitz-game': (_) => const BlitzGameScreen(),
+        '/correspondence-game': (_) => const CorrespondenceGameScreen(),
+        '/team-game': (_) => const TeamGameScreen(),
+        '/puzzle-rush': (_) => const PuzzleRushScreen(),
+        // Phase 5 screens
         '/tsume-go': (_) => const TsumeGoScreen(),
         '/kifu-observation': (_) => const KifuObservationScreen(),
         '/game-history': (_) => const GameHistoryScreen(),
         '/settings': (_) => const SettingsScreen(),
         '/paywall': (_) => const PaywallScreen(),
+        // Phase 68-71: SNS Integration, Social Features, Analytics
+        '/friends': (_) => const FriendsScreen(),
+        '/leaderboard': (_) => const LeaderboardScreen(),
+        '/game-preset-manager': (_) => const GamePresetManagerScreen(),
+        '/analytics-dashboard': (_) => const AnalyticsDashboardScreen(),
       },
       onUnknownRoute: (_) {
         return MaterialPageRoute(
