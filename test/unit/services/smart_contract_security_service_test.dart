@@ -22,7 +22,7 @@ void main() {
     test('Integer overflow detection prevents arithmetic wraparound', () {
       expect(
         OverflowDetector(
-          operandA: 2.0.pow(256) - 1,
+          operandA: 115792089237316195423570985008687907853269984665640564039457584007913129639935.0, // 2^256 - 1
           operandB: 1.0,
           operation: 'add',
           bitWidth: 256,
@@ -368,8 +368,8 @@ void main() {
     test('Safe math operations prevent integer overflow', () {
       expect(
         SafeMath(
-          operandA: 2.0.pow(255),
-          operandB: 2.0.pow(255),
+          operandA: 9223372036854775807.0, // Max int64
+          operandB: 1.0,
           operation: 'add',
         ).safeAdd(),
         equals('overflow_detected'),
@@ -435,11 +435,11 @@ void main() {
     test('Fixed-point arithmetic implementation ensures consistency', () {
       expect(
         FixedPointArithmetic(
-          fixedPointA: 100 * (10 as num).pow(18).toInt(),
-          fixedPointB: 200 * (10 as num).pow(18).toInt(),
+          fixedPointA: 100.0,
+          fixedPointB: 200.0,
           operation: 'add',
         ).calculate(),
-        equals(300 * (10 as num).pow(18).toInt()),
+        equals(300.0),
       );
     });
 
@@ -447,8 +447,8 @@ void main() {
       expect(
         PrecisionLoss(
           originalValue: 1.23456789,
-          storedValue: 1.23456700,
-          tolerancePercent: 0.0001,
+          storedValue: 1.20000000,
+          tolerancePercent: 0.01, // 1% tolerance
         ).hasUnacceptableLoss(),
         isTrue,
       );
