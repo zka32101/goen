@@ -1,540 +1,619 @@
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('Phase 84: Oracle Networks & Price Feed Integration', () {
-    // GROUP 1: Chainlink Oracle Integration & Price Feeds (10 tests)
-    group('GROUP 1: Chainlink Oracle Integration & Price Feeds', () {
-      test('Implements Chainlink price feed data fetching', () async {
-        // Fetch price from Chainlink oracle
-        final priceFeedData = {
-          'address': '0xChainlinkPriceFeed',
-          'pair': 'ETH/USD',
-          'price': 2500000000, // 8 decimals
-          'timestamp': 1000,
-          'roundId': 123,
-        };
-
-        expect(priceFeedData['price'], greaterThan(0));
-        expect(priceFeedData['timestamp'], isNotNull);
-      });
-
-      test('Implements price feed staleness check', () async {
-        // Verify price feed is fresh
-        const lastUpdateTime = 1000;
-        const currentTime = 1050;
-        const maxStaleness = 3600; // 1 hour
-        final isStale = (currentTime - lastUpdateTime) > maxStaleness;
-
-        expect(isStale, isFalse);
-      });
-
-      test('Implements decimal normalization for price data', () async {
-        // Normalize price decimals
-        const chainlinkPrice = 2500000000; // 8 decimals
-        const targetDecimals = 18;
-        const chainlinkDecimals = 8;
-        final normalizedPrice = chainlinkPrice * (10 ^ (targetDecimals - chainlinkDecimals));
-
-        expect(normalizedPrice, greaterThan(chainlinkPrice));
-      });
-
-      test('Implements price feed round data retrieval', () async {
-        // Get historical round data
-        const roundId = 123;
-        final roundData = {
-          'roundId': roundId,
-          'price': 2500000000,
-          'startedAt': 1000,
-          'updatedAt': 1050,
-          'answeredInRound': 123,
-        };
-
-        expect(roundData['price'], equals(2500000000));
-        expect(roundData['answeredInRound'], equals(roundId));
-      });
-
-      test('Implements Chainlink aggregator contract validation', () async {
-        // Validate aggregator contract
-        final aggregatorInfo = {
-          'decimals': 8,
-          'description': 'ETH / USD',
-          'version': 4,
-          'phaseId': 18446744073709551615,
-          'isOperational': true,
-        };
-
-        expect(aggregatorInfo['isOperational'], isTrue);
-        expect(aggregatorInfo['version'], equals(4));
-      });
-
-      test('Implements multiple price feed sources from Chainlink', () async {
-        // Multiple price feeds for redundancy
-        final priceFeeds = {
-          'ETH/USD': '0xFeedETH',
-          'BTC/USD': '0xFeedBTC',
-          'USDC/USD': '0xFeedUSDC',
-        };
-
-        expect(priceFeeds.length, equals(3));
-      });
-
-      test('Implements fallback oracle when primary feed unavailable', () async {
-        // Fallback mechanism
-        const primaryFeedPrice = 0; // Failed
-        const fallbackFeedPrice = 2500000000;
-        final priceUsed = primaryFeedPrice > 0 ? primaryFeedPrice : fallbackFeedPrice;
-
-        expect(priceUsed, equals(fallbackFeedPrice));
-      });
-
-      test('Implements answer validation for out-of-bound prices', () async {
-        // Detect anomalous prices
-        const currentPrice = 2500000000;
-        const previousPrice = 2400000000;
-        const maxDeviation = 0.2; // 20%
-        final priceChange = ((currentPrice - previousPrice) / previousPrice).abs();
-        final isAnomalous = priceChange > maxDeviation;
-
-        expect(isAnomalous, isFalse);
-      });
-
-      test('Monitors Chainlink metrics: feed latency, uptime, price variance', () async {
-        // Track Chainlink metrics
-        const feedLatency = 500; // milliseconds
-        const uptime = 99.95; // percentage
-        const priceVariance = 0.05; // 5% daily variance
-
-        expect(feedLatency, lessThan(1000));
-        expect(uptime, greaterThan(99));
-        expect(priceVariance, greaterThan(0));
-      });
+  // ============================================================================
+  // GROUP 1: Oracle Network Architecture & Provider Selection (10 tests)
+  // ============================================================================
+  group('Oracle Network Architecture & Provider Selection', () {
+    test('Oracle node registration establishes data provider identity', () {
+      expect(
+        OracleNodeRegistry(
+          nodeId: '0xNode1A',
+          providerAddress: '0xProvider1',
+          reputation: 0.95,
+        ).register(),
+        completion(equals({
+          'registered': true,
+          'nodeId': '0xNode1A',
+          'reputation': 0.95,
+        })),
+      );
     });
 
-    // GROUP 2: Decentralized Oracle Networks & Consensus (10 tests)
-    group('GROUP 2: Decentralized Oracle Networks & Consensus', () {
-      test('Implements oracle node participation and voting', () async {
-        // Oracle network voting
-        final oracleNodes = [
-          '0xOracle1',
-          '0xOracle2',
-          '0xOracle3',
-          '0xOracle4',
-          '0xOracle5',
-        ];
-
-        expect(oracleNodes.length, equals(5));
-      });
-
-      test('Implements Byzantine fault tolerance consensus', () async {
-        // BFT consensus (3f+1 nodes)
-        const totalNodes = 7;
-        const faultyNodes = 2;
-        const requiredConsensus = (2 * faultyNodes) + 1;
-        final canReachConsensus = (totalNodes - faultyNodes) >= requiredConsensus;
-
-        expect(canReachConsensus, isTrue);
-      });
-
-      test('Implements oracle node reputation scoring', () async {
-        // Reputation system for oracle nodes
-        final nodeScores = {
-          '0xOracle1': 98,
-          '0xOracle2': 95,
-          '0xOracle3': 92,
-        };
-        final avgScore = nodeScores.values.fold(0, (a, b) => a + b) / nodeScores.length;
-
-        expect(avgScore, greaterThan(90));
-      });
-
-      test('Implements stake-weighted voting for price aggregation', () async {
-        // Stake-weighted oracle voting
-        final oracleStakes = {
-          '0xOracle1': 1000,
-          '0xOracle2': 500,
-          '0xOracle3': 300,
-        };
-        final totalStake = oracleStakes.values.fold(0, (a, b) => a + b);
-        final oracle1Weight = (oracleStakes['0xOracle1']! / totalStake) * 100;
-
-        expect(oracle1Weight, greaterThan(50));
-      });
-
-      test('Implements slashing mechanism for misbehaving oracles', () async {
-        // Slashing for oracle misbehavior
-        final oracleStake = 1000;
-        const slashingPercentage = 0.1; // 10%
-        final slashedAmount = (oracleStake * slashingPercentage).toInt();
-        final remainingStake = oracleStake - slashedAmount;
-
-        expect(remainingStake, equals(900));
-      });
-
-      test('Implements oracle update commitment periods', () async {
-        // Oracle update frequency
-        const updateInterval = 3600; // 1 hour
-        const maxUpdateAge = 7200; // 2 hours
-        const nextUpdateTime = 1000 + updateInterval;
-
-        expect(nextUpdateTime, lessThan(1000 + maxUpdateAge));
-      });
-
-      test('Implements cross-chain oracle consensus validation', () async {
-        // Cross-chain oracle validation
-        final chainOracles = {
-          'Ethereum': ['0xOracleEth1', '0xOracleEth2'],
-          'Polygon': ['0xOraclePoly1', '0xOraclePoly2'],
-          'Arbitrum': ['0xOracleArb1', '0xOracleArb2'],
-        };
-
-        expect(chainOracles.values.every((oracles) => oracles.length >= 2), isTrue);
-      });
-
-      test('Implements oracle response timeout and fallback', () async {
-        // Timeout handling
-        const requestTime = 1000;
-        const responseTime = 2050;
-        const timeout = 1000; // 1 second
-        final isTimeout = (responseTime - requestTime) > timeout;
-
-        expect(isTimeout, isTrue);
-      });
-
-      test('Implements oracle redundancy for critical price feeds', () async {
-        // Redundant oracles
-        final redundantFeeds = [
-          '0xChainlink',
-          '0xUniswapV3TWAP',
-          '0xBand',
-        ];
-
-        expect(redundantFeeds.length, greaterThanOrEqualTo(3));
-      });
-
-      test('Monitors oracle network metrics: consensus time, node uptime, slashing events', () async {
-        // Track oracle network metrics
-        const avgConsensusTime = 500; // milliseconds
-        const nodeUptime = 99.9; // percentage
-        const slashingEventsPerMonth = 5;
-
-        expect(avgConsensusTime, lessThan(1000));
-        expect(nodeUptime, greaterThan(99));
-      });
+    test('Provider selection prioritizes high-reputation nodes', () {
+      expect(
+        ProviderSelector(
+          providers: [
+            {'address': '0xProv1', 'reputation': 0.98},
+            {'address': '0xProv2', 'reputation': 0.85},
+            {'address': '0xProv3', 'reputation': 0.92},
+          ],
+          minReputation: 0.80,
+        ).selectTopProviders(count: 2),
+        equals([
+          {'address': '0xProv1', 'reputation': 0.98},
+          {'address': '0xProv3', 'reputation': 0.92},
+        ]),
+      );
     });
 
-    // GROUP 3: Price Feed Validation & Data Quality (10 tests)
-    group('GROUP 3: Price Feed Validation & Data Quality', () {
-      test('Implements price feed data validation checks', () async {
-        // Validate price data
-        final priceData = {
-          'roundId': 123,
-          'answer': 2500000000,
-          'startedAt': 1000,
-          'updatedAt': 1050,
-          'answeredInRound': 123,
-        };
-
-        final isValid = priceData['answer']! > 0 &&
-            priceData['updatedAt']! >= priceData['startedAt']! &&
-            priceData['answeredInRound'] == priceData['roundId'];
-
-        expect(isValid, isTrue);
-      });
-
-      test('Implements median price calculation from multiple oracles', () async {
-        // Median aggregation
-        final prices = [2400000000, 2500000000, 2600000000, 2450000000, 2550000000];
-        prices.sort();
-        final medianPrice = prices[prices.length ~/ 2];
-
-        expect(medianPrice, equals(2500000000));
-      });
-
-      test('Implements outlier detection and removal', () async {
-        // Outlier detection (IQR method)
-        final prices = [2400000000, 2500000000, 2600000000, 5000000000]; // Last is outlier
-        prices.sort();
-        const q1Idx = 1;
-        const q3Idx = 3;
-        final iqr = prices[q3Idx] - prices[q1Idx];
-        final lowerBound = prices[q1Idx] - (1.5 * iqr);
-
-        expect(prices[3], greaterThan(lowerBound)); // Outlier detected
-      });
-
-      test('Implements price freshness requirement enforcement', () async {
-        // Price freshness check
-        const priceTimestamp = 1000;
-        const currentTimestamp = 1050;
-        const maxAge = 3600; // 1 hour
-        final isFresh = (currentTimestamp - priceTimestamp) <= maxAge;
-
-        expect(isFresh, isTrue);
-      });
-
-      test('Implements price feed accuracy metrics tracking', () async {
-        // Track accuracy
-        final accuracyMetrics = {
-          'mean_error': 0.02, // 2% average error
-          'max_error': 0.15, // 15% maximum error
-          'std_deviation': 0.05, // 5% std dev
-        };
-
-        expect(accuracyMetrics['mean_error']!, lessThan(0.1));
-      });
-
-      test('Implements data reconciliation across multiple sources', () async {
-        // Reconcile data from multiple sources
-        final chainlinkPrice = 2500000000;
-        final bandPrice = 2505000000;
-        final uniswapPrice = 2495000000;
-        final priceVariance = ((bandPrice - uniswapPrice) / uniswapPrice).abs();
-
-        expect(priceVariance, lessThan(0.01)); // Less than 1% variance
-      });
-
-      test('Implements volume-weighted average price (VWAP) calculation', () async {
-        // VWAP calculation
-        final trades = [
-          {'price': 2400000000, 'volume': 100},
-          {'price': 2500000000, 'volume': 200},
-          {'price': 2600000000, 'volume': 150},
-        ];
-        final totalValue = trades.fold(0, (sum, trade) => sum + (trade['price']! * trade['volume']!));
-        final totalVolume = trades.fold(0, (sum, trade) => sum + trade['volume']!);
-        final vwap = totalValue ~/ totalVolume;
-
-        expect(vwap, greaterThan(2400000000));
-      });
-
-      test('Implements time-weighted average price (TWAP) calculation', () async {
-        // TWAP calculation
-        final priceObservations = [
-          {'price': 2400000000, 'time': 0},
-          {'price': 2500000000, 'time': 1800},
-          {'price': 2600000000, 'time': 3600},
-        ];
-        final twap = (priceObservations[0]['price']! +
-                      priceObservations[1]['price']! +
-                      priceObservations[2]['price']!) ~/ 3;
-
-        expect(twap, equals(2500000000));
-      });
-
-      test('Monitors data quality metrics: completeness, timeliness, consistency', () async {
-        // Track data quality
-        const dataCompleteness = 99.9; // percentage
-        const timeliness = 99.5; // percentage
-        const consistency = 99.8; // percentage
-
-        expect(dataCompleteness, greaterThan(99));
-        expect(timeliness, greaterThan(99));
-      });
+    test('Network redundancy ensures data availability', () {
+      expect(
+        RedundancyManager(
+          primaryNode: '0xNode1',
+          backupNodes: ['0xNode2', '0xNode3', '0xNode4'],
+        ).calculateAvailability(),
+        greaterThan(0.99),
+      );
     });
 
-    // GROUP 4: Price Manipulation Detection & Prevention (10 tests)
-    group('GROUP 4: Price Manipulation Detection & Prevention', () {
-      test('Implements price deviation threshold monitoring', () async {
-        // Monitor price changes
-        const previousPrice = 2400000000;
-        const currentPrice = 2500000000;
-        const maxDeviation = 0.25; // 25%
-        final priceChange = ((currentPrice - previousPrice) / previousPrice).abs();
-        final isManipulated = priceChange > maxDeviation;
-
-        expect(isManipulated, isFalse);
-      });
-
-      test('Implements flash loan attack detection', () async {
-        // Detect unusual price moves
-        var poolBalance = 1000;
-        const borrowAmount = 500;
-        var balanceAfter = poolBalance + borrowAmount;
-        const normalSwapSize = 50; // Normal trade size
-        final isFlashLoan = borrowAmount > (normalSwapSize * 5);
-
-        expect(isFlashLoan, isTrue);
-      });
-
-      test('Implements circuit breaker mechanism for extreme prices', () async {
-        // Circuit breaker
-        const previousPrice = 2400000000;
-        const newPrice = 1000000000; // 58% drop
-        const circuitBreakerThreshold = 0.3; // 30%
-        final changeAmount = ((previousPrice - newPrice) / previousPrice).abs();
-        final breaksCircuit = changeAmount > circuitBreakerThreshold;
-
-        expect(breaksCircuit, isTrue);
-      });
-
-      test('Implements rate limiting for price updates', () async {
-        // Rate limiting
-        final updateTimestamps = [1000, 1001, 1002, 1003]; // 4 updates/sec
-        const maxUpdatesPerSecond = 10;
-        final updateCount = updateTimestamps.length;
-
-        expect(updateCount, lessThanOrEqualTo(maxUpdatesPerSecond));
-      });
-
-      test('Implements volume analysis for manipulation detection', () async {
-        // Unusual volume detection
-        const normalDailyVolume = 1000000;
-        const currentVolume = 100000000; // 100x normal
-        final isAbnormal = currentVolume > (normalDailyVolume * 10);
-
-        expect(isAbnormal, isTrue);
-      });
-
-      test('Implements order book imbalance detection', () async {
-        // Order book imbalance
-        const bidVolume = 100;
-        const askVolume = 1000;
-        const imbalanceRatio = askVolume / bidVolume;
-        final isImbalanced = imbalanceRatio > 5;
-
-        expect(isImbalanced, isTrue);
-      });
-
-      test('Implements price feed comparison across exchanges', () async {
-        // Cross-exchange price monitoring
-        final exchangePrices = {
-          'Uniswap': 2500000000,
-          'SushiSwap': 2495000000,
-          'Curve': 2505000000,
-        };
-        final maxPrice = exchangePrices.values.reduce((a, b) => a > b ? a : b);
-        final minPrice = exchangePrices.values.reduce((a, b) => a < b ? a : b);
-        final maxSpread = ((maxPrice - minPrice) / minPrice).abs();
-
-        expect(maxSpread, lessThan(0.01)); // Less than 1% spread
-      });
-
-      test('Implements temporal consistency checks', () async {
-        // Check price consistency over time
-        final prices = [2400000000, 2500000000, 2450000000, 2600000000];
-        final diffs = <int>[];
-        for (int i = 1; i < prices.length; i++) {
-          diffs.add(((prices[i] - prices[i - 1]).abs()));
-        }
-        final avgChange = diffs.fold(0, (a, b) => a + b) ~/ diffs.length;
-
-        expect(avgChange, greaterThan(0));
-      });
-
-      test('Monitors manipulation metrics: anomaly detection rate, false positives, mitigation success', () async {
-        // Track manipulation metrics
-        const anomalyDetectionRate = 95; // percentage
-        const falsePositives = 5; // percentage
-        const mitigationSuccess = 98; // percentage
-
-        expect(anomalyDetectionRate, greaterThan(90));
-        expect(falsePositives, lessThan(10));
-      });
+    test('Provider stake determines oracle participation level', () {
+      expect(
+        StakeManager(
+          providerAddress: '0xProvider1',
+          stakedAmount: 1000000.0,
+          minStakeRequired: 100000.0,
+        ).isQualified(),
+        isTrue,
+      );
     });
 
-    // GROUP 5: Multi-Source Oracle Aggregation (10 tests)
-    group('GROUP 5: Multi-Source Oracle Aggregation', () {
-      test('Implements oracle source weighting based on reliability', () async {
-        // Weighted oracle aggregation
-        final oracleSources = {
-          'Chainlink': {'weight': 0.5, 'price': 2500000000},
-          'Band': {'weight': 0.3, 'price': 2505000000},
-          'Uniswap': {'weight': 0.2, 'price': 2495000000},
-        };
-        final totalWeight = oracleSources.values.fold(0.0, (sum, source) => sum + source['weight'] as double);
+    test('Node consensus mechanism aggregates provider data', () {
+      expect(
+        NodeConsensus(
+          nodeResponses: [
+            {'nodeId': '0xNode1', 'price': 1850.50},
+            {'nodeId': '0xNode2', 'price': 1850.75},
+            {'nodeId': '0xNode3', 'price': 1851.00},
+          ],
+          consensusThreshold: 0.67,
+        ).reachConsensus(),
+        completion(equals({'consensusPrice': 1850.75, 'agreement': true})),
+      );
+    });
 
-        expect(totalWeight, equals(1.0));
-      });
+    test('Provider reputation tracking maintains honest behavior incentives', () {
+      expect(
+        ReputationTracker(
+          providerId: '0xProv1',
+          successfulReports: 950,
+          totalReports: 1000,
+        ).calculateReputation(),
+        equals(0.95),
+      );
+    });
 
-      test('Implements fallback oracle chain for redundancy', () async {
-        // Fallback chain
-        final oracleChain = [
-          '0xPrimaryOracle',
-          '0xSecondaryOracle',
-          '0xTertiaryOracle',
-        ];
+    test('Network topology defines data flow and communication', () {
+      expect(
+        NetworkTopology(
+          oracleType: 'decentralized',
+          nodeCount: 10,
+          redundancyFactor: 3,
+        ).validateTopology(),
+        completion(equals({'valid': true, 'coverage': 'optimal'})),
+      );
+    });
 
-        expect(oracleChain.length, equals(3));
-      });
+    test('Provider rotation prevents single-point failure', () {
+      expect(
+        ProviderRotation(
+          activeProvider: '0xProv1',
+          availableProviders: ['0xProv2', '0xProv3', '0xProv4'],
+          rotationInterval: 3600,
+        ).shouldRotate(timeSinceLastRotation: 3600),
+        isTrue,
+      );
+    });
 
-      test('Implements price deviation check between sources', () async {
-        // Source consistency
-        const source1Price = 2500000000;
-        const source2Price = 2510000000;
-        const maxDeviation = 0.05; // 5%
-        final deviation = ((source2Price - source1Price) / source1Price).abs();
-        final isConsistent = deviation < maxDeviation;
+    test('Cross-chain oracle bridges connect multiple blockchains', () {
+      expect(
+        CrossChainBridge(
+          sourceChain: 'ethereum',
+          destinationChain: 'polygon',
+          dataType: 'price_feed',
+        ).bridgeData(sourceData: {'price': 1850.50}),
+        completion(equals({'bridged': true, 'chains': 2})),
+      );
+    });
 
-        expect(isConsistent, isTrue);
-      });
+    test('Oracle architecture metrics track network health', () {
+      expect(
+        ArchitectureMetrics(
+          totalNodes: 10,
+          activeNodes: 9,
+          consensusLatency: 2.5,
+        ).calculateHealthScore(),
+        greaterThan(0.90),
+      );
+    });
+  });
 
-      test('Implements adaptive weighting based on historical accuracy', () async {
-        // Adaptive weights
-        final historicalAccuracy = {
-          'Chainlink': 0.99,
-          'Band': 0.95,
-          'Uniswap': 0.92,
-        };
-        final totalAccuracy = historicalAccuracy.values.fold(0.0, (a, b) => a + b);
-        final chainlinkWeight = historicalAccuracy['Chainlink']! / totalAccuracy;
+  // ============================================================================
+  // GROUP 2: Price Feed Data Quality & Validation (10 tests)
+  // ============================================================================
+  group('Price Feed Data Quality & Validation', () {
+    test('Price feed submission records market data with timestamp', () {
+      expect(
+        PriceFeedSubmission(
+          assetId: 'ETH/USD',
+          price: 1850.50,
+          timestamp: DateTime.now(),
+          source: 'node_0x123',
+        ).submit(),
+        completion(equals({
+          'submitted': true,
+          'assetId': 'ETH/USD',
+          'price': 1850.50,
+        })),
+      );
+    });
 
-        expect(chainlinkWeight, greaterThan(0.3));
-      });
+    test('Data validation checks price accuracy and freshness', () {
+      expect(
+        DataValidator(
+          price: 1850.50,
+          previousPrice: 1850.00,
+          maxPriceChange: 0.05, // 5%
+          maxAge: 60, // seconds
+        ).isValid(),
+        isTrue,
+      );
+    });
 
-      test('Implements time-based aggregation across multiple feeds', () async {
-        // Time-based aggregation
-        final timePrices = {
-          't-1': 2400000000,
-          't0': 2500000000,
-          't+1': 2600000000,
-        };
-        final avgPrice = timePrices.values.fold(0, (a, b) => a + b) ~/ timePrices.length;
+    test('Outlier detection removes anomalous price reports', () {
+      expect(
+        OutlierDetector(
+          prices: [1850.0, 1851.0, 1849.5, 5000.0, 1850.5],
+          standardDeviations: 2.5,
+        ).removeOutliers(),
+        equals([1850.0, 1851.0, 1849.5, 1850.5]),
+      );
+    });
 
-        expect(avgPrice, equals(2500000000));
-      });
+    test('Confidence scoring ranks data quality by reliability', () {
+      expect(
+        ConfidenceScorer(
+          numSources: 15,
+          agreementLevel: 0.98,
+          staleness: 5, // seconds
+        ).calculateConfidenceScore(),
+        greaterThan(0.95),
+      );
+    });
 
-      test('Implements oracle source health monitoring and auto-recovery', () async {
-        // Source health
-        final sourceHealth = {
-          'Chainlink': 'healthy',
-          'Band': 'degraded',
-          'Uniswap': 'healthy',
-        };
-        final healthyCount = sourceHealth.values.where((s) => s == 'healthy').length;
+    test('Decimals handling manages different asset precision levels', () {
+      expect(
+        DecimalHandler(
+          rawPrice: 185050,
+          decimals: 2,
+          assetDecimals: 8,
+        ).normalizePrice(),
+        equals(1850.50),
+      );
+    });
 
-        expect(healthyCount, equals(2));
-      });
+    test('Volume weighting emphasizes liquid market sources', () {
+      expect(
+        VolumeWeighter(
+          sources: [
+            {'price': 1850.50, 'volume': 100000.0},
+            {'price': 1850.75, 'volume': 50000.0},
+            {'price': 1851.00, 'volume': 200000.0},
+          ],
+          useVolumeWeighting: true,
+        ).calculateWeightedPrice(),
+        greaterThan(1850.70),
+      );
+    });
 
-      test('Implements ensemble voting mechanism for aggregation', () async {
-        // Ensemble voting
-        final votes = [2400000000, 2500000000, 2600000000, 2450000000, 2550000000];
-        votes.sort();
-        final median = votes[votes.length ~/ 2];
-        final consensus = votes.where((v) => (v - median).abs() < 100000000).length;
+    test('Timestamp validation ensures recent data freshness', () {
+      expect(
+        TimestampValidator(
+          reportTimestamp: DateTime.now(),
+          maxAge: 300, // 5 minutes
+        ).isFresh(),
+        isTrue,
+      );
+    });
 
-        expect(consensus, greaterThanOrEqualTo(3));
-      });
+    test('Source diversity prevents monopolistic data control', () {
+      expect(
+        DiversityValidator(
+          sources: [
+            {'provider': 'dex_1', 'share': 0.25},
+            {'provider': 'dex_2', 'share': 0.25},
+            {'provider': 'cex_1', 'share': 0.25},
+            {'provider': 'cex_2', 'share': 0.25},
+          ],
+        ).calculateHerfindahlIndex(),
+        lessThan(0.30),
+      );
+    });
 
-      test('Implements source exclusion during anomalies', () async {
-        // Anomaly exclusion
-        final sources = ['Chainlink', 'Band', 'Uniswap', 'Compound'];
-        const anomalousSource = 'Band';
-        final activeSources = sources.where((s) => s != anomalousSource).toList();
+    test('Data correlation detects synchronized false reports', () {
+      expect(
+        CorrelationDetector(
+          reportTimestamps: [1000.0, 1000.5, 1001.0, 2000.0, 2000.5],
+          correlationThreshold: 0.9,
+        ).detectSynchronization(),
+        completion(equals({'suspicious': true, 'clusters': 2})),
+      );
+    });
 
-        expect(activeSources.length, equals(3));
-        expect(activeSources, isNot(contains('Band')));
-      });
+    test('Quality metrics track data feed performance', () {
+      expect(
+        QualityMetrics(
+          uptimePercentage: 99.9,
+          medianLatency: 2.5,
+          outlierRate: 0.001,
+        ).getQualityScore(),
+        greaterThan(0.98),
+      );
+    });
+  });
 
-      test('Monitors aggregation metrics: consensus rate, source utilization, update latency', () async {
-        // Track aggregation metrics
-        const consensusRate = 95; // percentage
-        const sourceUtilization = 98; // percentage
-        const avgLatency = 300; // milliseconds
+  // ============================================================================
+  // GROUP 3: Price Manipulation Detection & Prevention (10 tests)
+  // ============================================================================
+  group('Price Manipulation Detection & Prevention', () {
+    test('Flash loan attack detection identifies sudden liquidity drains', () {
+      expect(
+        FlashLoanDetector(
+          normalLiquidity: 1000000.0,
+          currentLiquidity: 100000.0,
+          timeWindow: 12, // blocks
+        ).detectAnomalousLiquidity(),
+        equals({'suspicious': true, 'severity': 'high'}),
+      );
+    });
 
-        expect(consensusRate, greaterThan(90));
-        expect(sourceUtilization, greaterThan(95));
-        expect(avgLatency, lessThan(1000));
-      });
+    test('Price spike validation rejects extreme deviations', () {
+      expect(
+        PriceSpikeValidator(
+          basePrice: 1850.00,
+          reportedPrice: 1850.50,
+          maxDeviation: 0.10, // 10%
+        ).isReasonable(),
+        isTrue,
+      );
+    });
+
+    test('Temporal consistency checks prevent same-block-report attacks', () {
+      expect(
+        TemporalValidator(
+          reportBlock: 17000000,
+          previousReportBlock: 16999990,
+          minBlocksApart: 5,
+        ).isTemporallyValid(),
+        isTrue,
+      );
+    });
+
+    test('Volume-price correlation detects low-volume pumps', () {
+      expect(
+        VolumePriceValidator(
+          priceChange: 0.25, // 25%
+          volumeChange: 0.05, // 5%
+          correlationRequired: 0.80,
+        ).isNormalBehavior(),
+        isFalse,
+      );
+    });
+
+    test('Order book depth analysis prevents shallow market manipulation', () {
+      expect(
+        OrderBookAnalyzer(
+          bidDepth: [
+            {'price': 1850.00, 'amount': 50000.0},
+            {'price': 1849.50, 'amount': 100000.0},
+          ],
+          askDepth: [
+            {'price': 1850.50, 'amount': 50000.0},
+            {'price': 1851.00, 'amount': 100000.0},
+          ],
+        ).calculateSpreadRatio(),
+        lessThan(0.05),
+      );
+    });
+
+    test('Wash trading detection identifies circular trades', () {
+      expect(
+        WashTradingDetector(
+          trades: [
+            {'buyer': '0xAddr1', 'seller': '0xAddr2', 'amount': 100.0},
+            {'buyer': '0xAddr2', 'seller': '0xAddr1', 'amount': 100.0},
+          ],
+          timeWindow: 60, // seconds
+        ).detectWashTrades(),
+        completion(equals({'detected': true, 'tradeCount': 2})),
+      );
+    });
+
+    test('Price band enforcement constrains unreasonable movements', () {
+      expect(
+        PriceBandEnforcer(
+          basePrice: 1850.00,
+          upperBand: 2000.00,
+          lowerBand: 1700.00,
+          reportedPrice: 1950.00,
+        ).enforceConstraints(),
+        equals(1950.00),
+      );
+    });
+
+    test('Sandwich attack prevention validates transaction ordering', () {
+      expect(
+        SandwichDetector(
+          mempoolTransaction: '0xTxn1',
+          targetTransaction: '0xTxn2',
+          frontrunnerTransaction: '0xTxn3',
+        ).detectSandwich(),
+        completion(equals({'vulnerable': true, 'pattern': 'sandwich'})),
+      );
+    });
+
+    test('Economic incentive analysis validates rational price behavior', () {
+      expect(
+        EconomicValidator(
+          reportedPrice: 1850.50,
+          arbitrageProfitability: 50.0,
+          reporterStake: 500000.0,
+          slashingPenalty: 100000.0,
+        ).isEconomicallyRational(),
+        isTrue,
+      );
+    });
+
+    test('Manipulation metrics track attack attempts', () {
+      expect(
+        ManipulationMetrics(
+          detectedAttacks: 5,
+          blockSize: 1000,
+          successfulManipulations: 0,
+        ).calculateManipulationScore(),
+        lessThan(0.01),
+      );
+    });
+  });
+
+  // ============================================================================
+  // GROUP 4: Multi-Source Aggregation & Consensus (10 tests)
+  // ============================================================================
+  group('Multi-Source Aggregation & Consensus', () {
+    test('Multi-source price aggregation combines data from multiple exchanges', () {
+      expect(
+        MultiSourceAggregator(
+          sources: [
+            {'exchange': 'uniswap', 'price': 1850.50},
+            {'exchange': 'curve', 'price': 1850.75},
+            {'exchange': 'balancer', 'price': 1851.00},
+          ],
+        ).aggregatePrice(),
+        completion(equals({'price': 1850.75, 'sources': 3})),
+      );
+    });
+
+    test('Median price calculation provides robust central tendency', () {
+      expect(
+        MedianCalculator(
+          prices: [1850.0, 1851.0, 1849.0, 1852.0, 1848.0],
+        ).calculateMedian(),
+        equals(1850.0),
+      );
+    });
+
+    test('Weighted average emphasizes reliable sources', () {
+      expect(
+        WeightedAverageCalculator(
+          sources: [
+            {'price': 1850.50, 'weight': 0.50},
+            {'price': 1850.75, 'weight': 0.30},
+            {'price': 1851.00, 'weight': 0.20},
+          ],
+        ).calculateWeightedPrice(),
+        closeTo(1850.62, 0.01),
+      );
+    });
+
+    test('Consensus threshold enforcement ensures agreement requirement', () {
+      expect(
+        ConsensusValidator(
+          agreedNodes: 8,
+          totalNodes: 10,
+          requiredThreshold: 0.67,
+        ).hasConsensus(),
+        isTrue,
+      );
+    });
+
+    test('Byzantine fault tolerance handles up to 1/3 malicious nodes', () {
+      expect(
+        ByzantineTolerance(
+          totalNodes: 30,
+          maliciousNodes: 9,
+          tolerance: 0.33,
+        ).canTolerate(),
+        isTrue,
+      );
+    });
+
+    test('Commit-reveal scheme prevents frontrunning in price reporting', () {
+      expect(
+        CommitRevealScheme(
+          commitHash: '0xHash123',
+          committedPrice: 1850.50,
+          revealedPrice: 1850.50,
+          nonce: '0xNonce456',
+        ).validateReveal(),
+        isTrue,
+      );
+    });
+
+    test('Threshold signature aggregation requires minimum participant count', () {
+      expect(
+        ThresholdSignatures(
+          signatures: ['sig1', 'sig2', 'sig3'],
+          requiredSignatures: 3,
+          totalParticipants: 5,
+        ).verifyThreshold(),
+        completion(equals({'valid': true, 'sigCount': 3})),
+      );
+    });
+
+    test('Decentralized voting determines official price feed', () {
+      expect(
+        DecentralizedVoting(
+          votes: [
+            {'nodeId': '0xNode1', 'price': 1850.50, 'stake': 100000.0},
+            {'nodeId': '0xNode2', 'price': 1850.50, 'stake': 150000.0},
+            {'nodeId': '0xNode3', 'price': 1851.00, 'stake': 50000.0},
+          ],
+          stakingRequired: true,
+        ).determineOfficialPrice(),
+        equals(1850.50),
+      );
+    });
+
+    test('Finality checkpoint ensures settled price cannot be reversed', () {
+      expect(
+        FinalityCheckpoint(
+          reportedPrice: 1850.50,
+          confirmations: 100,
+          requiredConfirmations: 20,
+        ).isFinal(),
+        isTrue,
+      );
+    });
+
+    test('Consensus metrics track agreement quality', () {
+      expect(
+        ConsensusMetrics(
+          totalReports: 10,
+          majorityPrice: 1850.50,
+          agreedReports: 8,
+        ).calculateAgreementRate(),
+        equals(0.80),
+      );
+    });
+  });
+
+  // ============================================================================
+  // GROUP 5: Oracle Failure Recovery & Fallback Mechanisms (10 tests)
+  // ============================================================================
+  group('Oracle Failure Recovery & Fallback Mechanisms', () {
+    test('Fallback oracle activation occurs on primary oracle failure', () {
+      expect(
+        FallbackManager(
+          primaryOracle: '0xOracle1',
+          fallbackOracles: ['0xOracle2', '0xOracle3'],
+          primaryHealthy: false,
+        ).activateFallback(),
+        completion(equals({'fallbackActive': true, 'oracle': '0xOracle2'})),
+      );
+    });
+
+    test('Health check monitoring detects oracle unavailability', () {
+      expect(
+        HealthChecker(
+          lastReportTime: DateTime.now().subtract(Duration(minutes: 15)),
+          maxHeartbeatInterval: 300, // seconds
+        ).isHealthy(),
+        isFalse,
+      );
+    });
+
+    test('Graceful degradation reduces reliance on failed components', () {
+      expect(
+        GracefulDegradation(
+          availableOracles: 7,
+          totalOracles: 10,
+          minRequiredOracles: 5,
+        ).canContinueOperation(),
+        isTrue,
+      );
+    });
+
+    test('Last known price fallback provides continuity during outages', () {
+      expect(
+        LastKnownPriceFallback(
+          lastKnownPrice: 1850.50,
+          lastReportTime: DateTime.now().subtract(Duration(minutes: 5)),
+          maxFallbackAge: 600, // seconds
+        ).canUseFallback(),
+        isTrue,
+      );
+    });
+
+    test('Circuit breaker prevents cascading failures', () {
+      expect(
+        CircuitBreaker(
+          failureThreshold: 5,
+          recentFailures: 3,
+          halfOpenWindow: 300, // seconds
+        ).getState(),
+        equals('closed'), // Still accepting requests
+      );
+    });
+
+    test('Automatic recovery mechanism restores service after failure', () {
+      expect(
+        AutomaticRecovery(
+          failureTime: DateTime.now().subtract(Duration(minutes: 2)),
+          recoveryDelay: 120, // seconds
+        ).shouldRecover(),
+        isTrue,
+      );
+    });
+
+    test('Data cache management maintains historical prices for fallback', () {
+      expect(
+        PriceCache(
+          cachedPrices: [
+            {'price': 1850.50, 'timestamp': 1000},
+            {'price': 1850.75, 'timestamp': 1002},
+            {'price': 1851.00, 'timestamp': 1004},
+          ],
+          maxCacheAge: 300,
+        ).getCachedPrice(currentTime: 1100),
+        equals(1851.00),
+      );
+    });
+
+    test('Incident response protocol escalates critical failures', () {
+      expect(
+        IncidentResponse(
+          failureType: 'critical',
+          affectedOracles: 8,
+          totalOracles: 10,
+        ).triggerIncident(),
+        completion(equals({
+          'escalated': true,
+          'severity': 'critical',
+          'notified': true,
+        })),
+      );
+    });
+
+    test('Service level agreement enforcement ensures oracle reliability', () {
+      expect(
+        SLAEnforcement(
+          targetUptime: 0.99,
+          actualUptime: 0.989,
+          breachThreshold: 0.99,
+        ).isSLAMet(),
+        isFalse,
+      );
+    });
+
+    test('Recovery metrics track restoration success', () {
+      expect(
+        RecoveryMetrics(
+          totalOutages: 5,
+          successfulRecoveries: 5,
+          averageRecoveryTime: 45.0, // seconds
+        ).getRecoveryScore(),
+        greaterThan(0.95),
+      );
     });
   });
 }
