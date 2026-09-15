@@ -184,7 +184,7 @@ class _GamePresetManagerScreenState
                               ),
                               child: Text(
                                 '置碁${preset.handicap!.handicapStones}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.orange[300],
                                   fontSize: 12,
                                 ),
@@ -245,7 +245,7 @@ class _GamePresetManagerScreenState
       ),
       child: Text(
         '$emoji ${boardSize}×$boardSize',
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.purple[300],
           fontSize: 12,
         ),
