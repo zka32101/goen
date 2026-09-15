@@ -287,37 +287,37 @@ class PuzzleRushService {
           await _firestore
               .collection('puzzleRushLeaderboard')
               .doc(existingQuery.docs.first.id)
-              .update({
-                'score': session.score,
-                'solvedCount': session.solvedCount,
-                'accuracy': (session.correctCount / session.solvedCount * 100)
-                    .toStringAsFixed(1),
-                'updatedAt': DateTime.now(),
-              });
-          _logger.i('Leaderboard entry updated');
-        }
-      } else {
-        // 新規エントリを作成
-        final entryId = _firestore.collection('puzzleRushLeaderboard').doc().id;
-        final accuracy = session.solvedCount > 0
-            ? ((session.correctCount / session.solvedCount) * 100)
-                .toStringAsFixed(1)
-            : '0.0';
-
-        await _firestore
-            .collection('puzzleRushLeaderboard')
-            .doc(entryId)
-            .set({
-              'uid': session.uid,
-              'difficulty': session.difficulty,
-              'score': session.score,
-              'solvedCount': session.solvedCount,
-              'accuracy': accuracy,
-              'createdAt': DateTime.now(),
-              'updatedAt': DateTime.now(),
-            });
-        _logger.i('Leaderboard entry created');
-      }
+//               .update({
+//                 'score': session.score,
+//                 'solvedCount': session.solvedCount,
+//                 'accuracy': (session.correctCount / session.solvedCount * 100)
+//                     .toStringAsFixed(1),
+//                 'updatedAt': DateTime.now(),
+//               });
+//           _logger.i('Leaderboard entry updated');
+//         }
+//       } else {
+//         // 新規エントリを作成
+//         final entryId = _firestore.collection('puzzleRushLeaderboard').doc().id;
+//         final accuracy = session.solvedCount > 0
+//             ? ((session.correctCount / session.solvedCount) * 100)
+//                 .toStringAsFixed(1)
+//             : '0.0';
+// 
+//         await _firestore
+//             .collection('puzzleRushLeaderboard')
+//             .doc(entryId)
+//             .set({
+//               'uid': session.uid,
+//               'difficulty': session.difficulty,
+//               'score': session.score,
+//               'solvedCount': session.solvedCount,
+//               'accuracy': accuracy,
+//               'createdAt': DateTime.now(),
+//               'updatedAt': DateTime.now(),
+//             });
+//         _logger.i('Leaderboard entry created');
+//       }
     } catch (e) {
       _logger.e('Error updating leaderboard: $e');
       // リーダーボード更新エラーは致命的ではないので rethrow しない

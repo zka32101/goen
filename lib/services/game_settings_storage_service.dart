@@ -28,9 +28,9 @@ class GameSettingsStorageService {
     try {
       _logger.i('Saving Blitz settings: $settings');
       await Future.wait([
-        _prefs.setString(_blitzBoardSizeKey, settings.boardSize),
-        _prefs.setInt(_blitzAiLevelKey, settings.aiLevel),
-        _prefs.setString(_blitzOpponentTypeKey, settings.opponentType),
+//         _prefs.setString(_blitzBoardSizeKey, settings.boardSize),
+//         _prefs.setInt(_blitzAiLevelKey, settings.aiLevel),
+//         _prefs.setString(_blitzOpponentTypeKey, settings.opponentType),
       ]);
       return true;
     } catch (e) {
@@ -71,8 +71,8 @@ class GameSettingsStorageService {
     try {
       _logger.i('Saving Correspondence settings: $settings');
       await Future.wait([
-        _prefs.setString(_correspondenceBoardSizeKey, settings.boardSize),
-        _prefs.setString(_correspondencePlayerColorKey, settings.playerColor),
+//         _prefs.setString(_correspondenceBoardSizeKey, settings.boardSize),
+//         _prefs.setString(_correspondencePlayerColorKey, settings.playerColor),
       ]);
       return true;
     } catch (e) {
@@ -110,7 +110,7 @@ class GameSettingsStorageService {
   Future<bool> saveTeamSettings(TeamGameSettings settings) async {
     try {
       _logger.i('Saving Team settings: $settings');
-      await _prefs.setString(_teamBoardSizeKey, settings.boardSize);
+//       await _prefs.setString(_teamBoardSizeKey, settings.boardSize);
       return true;
     } catch (e) {
       _logger.e('Error saving Team settings: $e');
@@ -146,7 +146,7 @@ class GameSettingsStorageService {
   Future<bool> savePuzzleRushSettings(PuzzleRushSettings settings) async {
     try {
       _logger.i('Saving Puzzle Rush settings: $settings');
-      await _prefs.setString(_puzzleRushDifficultyKey, settings.difficulty);
+//       await _prefs.setString(_puzzleRushDifficultyKey, settings.difficulty);
       return true;
     } catch (e) {
       _logger.e('Error saving Puzzle Rush settings: $e');
