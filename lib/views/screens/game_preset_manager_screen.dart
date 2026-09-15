@@ -165,7 +165,7 @@ class _GamePresetManagerScreenState
                             ),
                             child: Text(
                               'Level ${preset.aiLevel}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.blue[300],
                                 fontSize: 12,
                               ),
