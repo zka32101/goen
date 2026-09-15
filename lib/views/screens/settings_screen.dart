@@ -204,13 +204,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: () => _handleShareProfile(context, user),
-            child: const Text('Share Profile'),
-          ),
-        ),
+        // Phase 58 WIP - Share Profile button disabled
+        // SizedBox(
+        //   width: double.infinity,
+        //   child: OutlinedButton(
+        //     onPressed: () => _handleShareProfile(context, user),
+        //     child: const Text('Share Profile'),
+        //   ),
+        // ),
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,

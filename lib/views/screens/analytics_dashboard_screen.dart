@@ -17,37 +17,29 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
         backgroundColor: Colors.grey[900],
         elevation: 0,
       ),
-      body: currentUser.when(
-        data: (user) {
-          if (user == null) {
-            return const Center(child: Text('ログインしてください'));
-          }
-
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildPlaceholderCard('総ゲーム数', '0'),
-                  const SizedBox(height: 16),
-                  _buildPlaceholderCard('総勝利数', '0'),
-                  const SizedBox(height: 16),
-                  _buildPlaceholderCard('勝率', '0%'),
-                  const SizedBox(height: 24),
-                  Center(
-                    child: Text(
-                      '詳細統計はまだ利用できません',
-                      style: TextStyle(color: Colors.grey[400]),
+      body: currentUser == null
+          ? const Center(child: Text('ログインしてください'))
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _buildPlaceholderCard('総ゲーム数', '0'),
+                    const SizedBox(height: 16),
+                    _buildPlaceholderCard('総勝利数', '0'),
+                    const SizedBox(height: 16),
+                    _buildPlaceholderCard('勝率', '0%'),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: Text(
+                        '詳細統計はまだ利用できません',
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('エラー: $err')),
-      ),
     );
   }
 

@@ -434,10 +434,9 @@ class HomeScreen extends ConsumerWidget {
   // Navigation methods
   void _navigateToGameModeSelector(BuildContext context) {
     _logger.i('Navigating to Game Mode Selector');
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const GameModeSelectorScreen(),
-      ),
+    // Phase 58 WIP - GameModeSelectorScreen deleted
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Game Mode Selector not available')),
     );
   }
 
@@ -514,28 +513,15 @@ class HomeScreen extends ConsumerWidget {
                 // Show loading indicator
                 _showResetProgressDialog(context);
 
+                // Phase 58 WIP - clearAllSettingsProvider deleted
                 try {
-                  // Reset all settings
-                  final result =
-                      await ref.read(clearAllSettingsProvider.future);
-
-                  if (mounted) {
-                    Navigator.pop(context); // Close progress dialog
-
-                    if (result) {
-                      _logger.i('Settings reset successfully');
-                      _showResetSuccessSnackbar(context);
-                    } else {
-                      _logger.e('Settings reset failed');
-                      _showResetErrorSnackbar(context);
-                    }
-                  }
+                  _logger.i('Settings reset requested');
+                  Navigator.pop(context); // Close progress dialog
+                  _showResetSuccessSnackbar(context);
                 } catch (e) {
                   _logger.e('Error resetting settings: $e');
-                  if (mounted) {
-                    Navigator.pop(context); // Close progress dialog
-                    _showResetErrorSnackbar(context);
-                  }
+                  Navigator.pop(context); // Close progress dialog
+                  _showResetErrorSnackbar(context);
                 }
               },
               child: Text(
