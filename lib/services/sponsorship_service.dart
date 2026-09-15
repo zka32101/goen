@@ -102,7 +102,7 @@ class SponsorshipService {
   }
 
   /// スポンサーシップをアップグレード
-  Future<bool> upgradeSponsor ship(
+  Future<bool> upgradeSponsorShip(
     String sponsorshipId,
     String newTierId,
   ) async {

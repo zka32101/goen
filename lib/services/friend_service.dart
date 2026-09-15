@@ -6,12 +6,11 @@ final _logger = Logger();
 
 /// Service for managing friend relationships
 class FriendService {
-  final FirebaseFirestore _firestore;
+  static final _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestoreInstance;
 
   const FriendService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? _firestore;
-
-  static final _firestore = FirebaseFirestore.instance;
+      : _firestoreInstance = firestore ?? _firestore;
 
   /// Add a friend (sends pending request)
   Future<bool> addFriend({
