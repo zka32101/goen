@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/index.dart';
-import '../../viewmodels/index.dart';
-import '../widgets/index.dart';
 
 /// Global leaderboard screen
 class LeaderboardScreen extends ConsumerWidget {
@@ -29,51 +26,34 @@ class LeaderboardScreen extends ConsumerWidget {
         ),
         body: TabBarView(
           children: [
-            _buildLeaderboardList(ref, 'allTime'),
-            _buildLeaderboardList(ref, 'monthly'),
-            _buildLeaderboardList(ref, 'weekly'),
-            _buildLeaderboardList(ref, 'daily'),
+            _buildPlaceholder('全期間ランキング'),
+            _buildPlaceholder('月間ランキング'),
+            _buildPlaceholder('週間ランキング'),
+            _buildPlaceholder('日間ランキング'),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLeaderboardList(WidgetRef ref, String period) {
-    final leaderboardAsync = ref.watch(
-      leaderboardStreamProvider((period, 100)),
-    );
-
-    return leaderboardAsync.when(
-      data: (entries) {
-        if (entries.isEmpty) {
-          return Center(
-            child: Text('ランキングデータはまだありません',
-                style: TextStyle(color: Colors.grey[400])),
-          );
-        }
-
-        return ListView.separated(
-          separatorBuilder: (context, index) =>
-              Divider(color: Colors.grey[800], height: 1),
-          itemCount: entries.length,
-          itemBuilder: (context, index) {
-            final entry = entries[index];
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: CompactRankCardWidget(
-                entry: entry,
-                onTap: () {
-                  // Future: Navigate to player profile
-                },
-              ),
-            );
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('エラー: $err')),
+  Widget _buildPlaceholder(String title) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.emoji_events, size: 64, color: Colors.amber[600]),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ランキングデータはまだありません',
+            style: TextStyle(color: Colors.grey[400]),
+          ),
+        ],
+      ),
     );
   }
-
 }

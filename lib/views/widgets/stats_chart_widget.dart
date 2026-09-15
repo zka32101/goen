@@ -362,7 +362,7 @@ class GameDistributionPieChartWidget extends StatelessWidget {
                   flex: 1,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: data.entries.asMap().entries.map((entry) {
+                    children: data.entries.toList().asMap().entries.map((entry) {
                       final index = entry.key;
                       final mode = entry.value.key;
                       final count = entry.value.value;
@@ -429,7 +429,7 @@ class PieChartPainter extends CustomPainter {
 
     var startAngle = -3.14159 / 2; // Start from top
 
-    data.entries.asMap().entries.forEach((entry) {
+    data.entries.toList().asMap().entries.forEach((entry) {
       final index = entry.key;
       final count = entry.value.value;
       final sliceAngle = (count / total) * 3.14159 * 2;
