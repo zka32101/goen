@@ -4,12 +4,12 @@ export 'go_engine_service.dart';
 export 'firestore_service.dart';
 export 'auth_service.dart';
 export 'ai_explanation_service.dart';
-export 'social_share_service.dart';
-// export 'sns_api_service.dart'; // Phase 58 WIP
+// export 'social_share_service.dart'; // Phase 58 WIP - deleted
+// export 'sns_api_service.dart'; // Phase 58 WIP - deleted
 // Phase 58 WIP - commented out until implementation complete
 // export 'game_mode_service.dart';
 // export 'social_features_service.dart';
-// export 'youtube_share_service.dart'; // Phase 58 WIP
+// export 'youtube_share_service.dart';
 // export 'twitch_share_service.dart';
 // export 'sponsorship_service.dart';
 // export 'blitz_game_service.dart';
@@ -20,5 +20,5 @@ export 'social_share_service.dart';
 export 'friend_service.dart';
 export 'game_invitation_service.dart';
 export 'leaderboard_service.dart';
-export 'game_preset_service.dart';
+// export 'game_preset_service.dart'; // Phase 58 WIP - deleted
 export 'analytics_service.dart';

@@ -577,54 +577,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _handleShareProfile(BuildContext context, User user) {
-    _logger.i('Opening share dialog for user profile');
-    final profileShareData = ProfileShareData(
-      userId: user.uid,
-      displayName: user.displayName ?? 'GoEn Player',
-      totalGamesPlayed: 0, // TODO: Fetch from gameProvider
-      winCount: 0, // TODO: Fetch from gameProvider
-      currentPuzzleStreak: 0, // TODO: Fetch from puzzleProvider
-      totalPuzzlesSolved: 0, // TODO: Fetch from puzzleProvider
-    );
-
-    final profileContent = _generateProfileShareContent(profileShareData);
-
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => ShareDialog(
-        content: profileContent,
-        onShare: (platform) async {
-          _logger.i('Sharing profile via $platform');
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Profile shared via $platform!')),
-          );
-        },
-      ),
-    );
-  }
-
-  ShareContent _generateProfileShareContent(ProfileShareData data) {
-    final winRate = data.totalGamesPlayed > 0
-        ? ((data.winCount / data.totalGamesPlayed) * 100).toStringAsFixed(1)
-        : '0.0';
-
-    final text = '''🎓 碁縁でのプログレス報告
-
-👤 ${data.displayName}
-🎮 対局数: ${data.totalGamesPlayed}
-🏆 勝利数: ${data.winCount} (勝率: $winRate%)
-💯 詰碁: ${data.totalPuzzlesSolved}問
-🔥 連続成功: ${data.currentPuzzleStreak}問
-
-AI解説で碁を上達しよう！''';
-
-    return ShareContent(
-      text: text,
-      hashtags: '#碁 #碁縁 #Go学習 #AI解説',
-    );
-  }
+  // Phase 58 WIP - Share profile feature commented out
+  // void _handleShareProfile(BuildContext context, User user) {
+  //   // TODO: Implement when ShareDialog and ProfileShareData are available
+  // }
 
   void _handleUpgrade(BuildContext context) {
     _logger.i('Opening paywall for upgrade');

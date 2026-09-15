@@ -111,7 +111,7 @@ class HomeScreen extends ConsumerWidget {
                     context,
                     title: 'Play AI Game',
                     subtitle: 'Challenge the Go engine',
-                    icon: Icons.gaming_esports,
+                    icon: Icons.videogame_asset,
                     color: Colors.amber[500]!,
                     onTap: () => _navigateToAiGame(context, ref),
                   ),
