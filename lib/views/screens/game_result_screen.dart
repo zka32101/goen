@@ -43,26 +43,12 @@ class GameResultScreen extends ConsumerWidget {
       whiteScore ?? 0,
     );
 
-    // Prepare game share data
-    final gameShareData = GameShareData(
-      gameId: '${boardState.gameId ?? DateTime.now().millisecondsSinceEpoch}',
-      result: winner == 'player' ? 'win' : winner == 'ai' ? 'loss' : 'draw',
-      blackScore: blackScore ?? 0,
-      whiteScore: whiteScore ?? 0,
-      boardSize: boardState.boardSize,
-      aiLevel: aiLevel,
-    );
+    // Phase 58 WIP - Game share feature disabled
+    // final gameShareData = GameShareData(...);
 
     return Scaffold(
       backgroundColor: Colors.black87,
-      floatingActionButton: GameShareButton(
-        gameData: gameShareData,
-        onShared: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Game shared successfully!')),
-          );
-        },
-      ),
+      // floatingActionButton: GameShareButton(...), // Phase 58 WIP - deleted
       body: SingleChildScrollView(
         child: SafeArea(
           child: Column(

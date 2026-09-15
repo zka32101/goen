@@ -58,30 +58,16 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           ),
         ],
       ),
-      floatingActionButton: todaysPuzzle.maybeWhen(
-        data: (puzzle) {
-          if (puzzle != null && isPuzzleSolved) {
-            final puzzleShareData = PuzzleShareData(
-              puzzleId: puzzle.id,
-              difficulty: _getDifficultyLabel(puzzle.difficulty),
-              attemptCount: attemptCount,
-              solvingTime: Duration(seconds: 300), // Placeholder
-              isSolved: true,
-              currentStreak: ref.watch(puzzleStreakProvider) ?? 0,
-            );
-            return PuzzleShareButton(
-              puzzleData: puzzleShareData,
-              onShared: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Puzzle shared successfully!')),
-                );
-              },
-            );
-          }
-          return null;
-        },
-        orElse: () => null,
-      ),
+      // Phase 58 WIP - Puzzle share feature disabled
+      // floatingActionButton: todaysPuzzle.maybeWhen(
+      //   data: (puzzle) {
+      //     if (puzzle != null && isPuzzleSolved) {
+      //       // PuzzleShareData, PuzzleShareButton deleted
+      //     }
+      //     return null;
+      //   },
+      //   orElse: () => null,
+      // ),
       body: todaysPuzzle.when(
         loading: () => _buildLoadingState(context),
         error: (error, stack) => _buildErrorState(context, error),
