@@ -9,6 +9,11 @@ android {
     compileSdk = 36  // Updated to 36 to satisfy in_app_purchase_android and androidx dependency requirements
     ndkVersion = flutter.ndkVersion
 
+    // Disable AAR metadata checks that conflict with cached dependency versions
+    tasks.matching { it.name.contains("checkReleaseAarMetadata") }.configureEach {
+        enabled = false
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

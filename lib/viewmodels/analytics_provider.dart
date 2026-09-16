@@ -437,7 +437,7 @@ final logCustomEventProvider = Provider<
 
   return ({
     required String eventName,
-    Map<String, Object?>? parameters,
+    Map<String, String>? parameters,
   }) async {
     try {
       _logger.i('Logging custom event: $eventName');
