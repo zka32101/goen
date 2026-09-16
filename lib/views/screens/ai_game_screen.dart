@@ -349,9 +349,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     ref.read(logCustomEventProvider)(
       eventName: 'player_move',
       parameters: {
-        'row': row,
-        'col': col,
-        'move_number': ref.read(movesCountProvider),
+        'row': row.toString(),
+        'col': col.toString(),
+        'move_number': ref.read(movesCountProvider).toString(),
       },
     );
 

@@ -431,7 +431,7 @@ final logLogInProvider = Provider<
 final logCustomEventProvider = Provider<
     Future<void> Function({
   required String eventName,
-  Map<String, Object?>? parameters,
+  Map<String, String>? parameters,
 })>((ref) {
   final analytics = ref.watch(analyticsProvider);
 
@@ -441,12 +441,15 @@ final logCustomEventProvider = Provider<
   }) async {
     try {
       _logger.i('Logging custom event: $eventName');
+      final eventParams = <String, Object>{
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+      if (parameters != null) {
+        eventParams.addAll(parameters);
+      }
       await analytics.logEvent(
         name: eventName,
-        parameters: {
-          ...?parameters,
-          'timestamp': DateTime.now().toIso8601String(),
-        },
+        parameters: eventParams,
       );
       _logger.i('✅ Custom event logged: $eventName');
     } catch (e) {
