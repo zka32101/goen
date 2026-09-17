@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// App color palette - premium Japanese aesthetic
+/// App color palette - premium Japanese aesthetic (和風)
 class AppColors {
-  // Primary colors
-  static const Color primary = Color(0xFF1a1a1a); // Deep black (和紙基調)
-  static const Color primaryLight = Color(0xFF2d2d2d);
-  static const Color primaryDark = Color(0xFF0d0d0d);
+  // Primary colors - Japanese ink (墨)
+  static const Color primary = Color(0xFF2B2B2B); // 墨色 (sumi-iro)
+  static const Color primaryLight = Color(0xFF3D3D3D);
+  static const Color primaryDark = Color(0xFF1a1a1a);
 
-  // Accent colors
-  static const Color accent = Color(0xFFD4AF37); // Gold (碁盤の象徴)
+  // Accent colors - Japanese gold (金) + bamboo (竹)
+  static const Color accent = Color(0xFFD4AF37); // 金 (kin) - Gold
+  static const Color bambooGreen = Color(0xFF008000); // 竹色 (takeniro) - Bamboo green
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFFA726);
   static const Color error = Color(0xFFEF5350);
@@ -44,37 +46,37 @@ class AppTheme {
         error: AppColors.error,
       ),
 
-      // Typography
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(
+      // Typography - Japanese serif fonts via Google Fonts
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.notoSerifJp(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: AppColors.white,
         ),
-        displayMedium: TextStyle(
+        displayMedium: GoogleFonts.notoSerifJp(
           fontSize: 28,
           fontWeight: FontWeight.bold,
           color: AppColors.white,
         ),
-        titleLarge: TextStyle(
+        titleLarge: GoogleFonts.notoSerifJp(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: AppColors.white,
         ),
-        titleMedium: TextStyle(
+        titleMedium: GoogleFonts.notoSerifJp(
           fontSize: 18,
           fontWeight: FontWeight.w500,
           color: AppColors.white,
         ),
-        bodyLarge: TextStyle(
+        bodyLarge: GoogleFonts.notoSerifJp(
           fontSize: 16,
           color: AppColors.white,
         ),
-        bodyMedium: TextStyle(
+        bodyMedium: GoogleFonts.notoSerifJp(
           fontSize: 14,
           color: AppColors.grey300,
         ),
-        labelLarge: TextStyle(
+        labelLarge: GoogleFonts.notoSerifJp(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: AppColors.white,
@@ -130,16 +132,16 @@ class AppTheme {
       ),
 
       // App bar
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.bgDark,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(
+        titleTextStyle: GoogleFonts.notoSerifJp(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: AppColors.white,
         ),
-        iconTheme: IconThemeData(color: AppColors.white),
+        iconTheme: const IconThemeData(color: AppColors.white),
       ),
     );
   }
@@ -159,13 +161,13 @@ class AppTheme {
         error: AppColors.error,
       ),
 
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.notoSerifJp(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: AppColors.primary,
         ),
-        bodyMedium: TextStyle(
+        bodyMedium: GoogleFonts.notoSerifJp(
           fontSize: 14,
           color: AppColors.grey700,
         ),

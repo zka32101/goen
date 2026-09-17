@@ -224,11 +224,11 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
             // Legal move indicator
             if (_selectedRow >= 0 && _selectedCol >= 0)
               Positioned(
-                left: _selectedCol * cellSize + cellSize / 2 - 8,
-                top: _selectedRow * cellSize + cellSize / 2 - 8,
+                left: _selectedCol * cellSize + cellSize / 2 - cellSize * 0.15,
+                top: _selectedRow * cellSize + cellSize / 2 - cellSize * 0.15,
                 child: Container(
-                  width: 16,
-                  height: 16,
+                  width: cellSize * 0.3,
+                  height: cellSize * 0.3,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.amber[600]?.withOpacity(0.5),
@@ -252,6 +252,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     List<List<int>> stones,
   ) {
     final stoneWidgets = <Widget>[];
+    final stoneRadius = cellSize * 0.4;
 
     for (int row = 0; row < boardSize; row++) {
       for (int col = 0; col < boardSize; col++) {
@@ -266,11 +267,11 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
           stoneWidgets.add(
             Positioned(
-              left: col * cellSize + cellSize / 2 - 14,
-              top: row * cellSize + cellSize / 2 - 14,
+              left: col * cellSize + cellSize / 2 - stoneRadius,
+              top: row * cellSize + cellSize / 2 - stoneRadius,
               child: Container(
-                width: 28,
-                height: 28,
+                width: stoneRadius * 2,
+                height: stoneRadius * 2,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: color,

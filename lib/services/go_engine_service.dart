@@ -110,6 +110,10 @@ class GoEngineService {
   static const int _maxRetries = 2;
   static const String _regionDefault = 'us-central1';
 
+  GoEngineService() {
+    _logger.i('GoEngineService initialized. Region: $_regionDefault, Max retries: $_maxRetries');
+  }
+
   /// Request AI move from GNU Go engine
   ///
   /// Parameters:
@@ -127,7 +131,7 @@ class GoEngineService {
   }) async {
     assert(aiLevel >= 1 && aiLevel <= 10, 'aiLevel must be 1-10');
 
-    _logger.i('Requesting AI move: level=$aiLevel, boardSize=$boardSize');
+    _logger.i('🎯 Requesting AI move: level=$aiLevel, boardSize=$boardSize, movesCount=$movesCount');
 
     final boardState = _EngineBoardState(
       boardSize: boardSize,
@@ -137,41 +141,52 @@ class GoEngineService {
 
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
-        final callable = _functions
-            .httpsCallable('requestAiMove');
+        _logger.d('📡 Attempt ${attempt + 1}/$_maxRetries: Calling requestAiMove function...');
 
-        final result = await callable.call({
+        final callable = _functions.httpsCallable('requestAiMove');
+        _logger.d('✓ Cloud Functions callable initialized');
+
+        final payload = {
           'boardState': _encodeBoardState(boardState),
           'aiLevel': aiLevel,
           'movesCount': movesCount,
           'boardSize': boardState.boardSize,
           'timeout': _timeout.inSeconds,
-        }).timeout(_timeout);
+        };
+        _logger.d('📦 Payload prepared: ${payload.keys.toList()}');
 
-        _logger.i('✅ AI move received: $result');
+        final result = await callable.call(payload).timeout(_timeout);
+
+        _logger.i('✅ AI move received successfully: row=${result.data['row']}, col=${result.data['col']}, confidence=${result.data['confidence']}');
         return AIMove.fromJson(result.data as Map<String, dynamic>);
       } on FirebaseFunctionsException catch (e) {
-        _logger.w('❌ Cloud Function error (attempt ${attempt + 1}/$_maxRetries): ${e.message}');
+        _logger.e('❌ Cloud Function error (attempt ${attempt + 1}/$_maxRetries)');
+        _logger.e('  Code: ${e.code}');
+        _logger.e('  Message: ${e.message}');
+        _logger.e('  Details: ${e.details}');
 
         if (attempt < _maxRetries) {
-          // Exponential backoff: 1s, 2s, 4s
-          final delayMs = Duration(milliseconds: 1000 * (1 << attempt));
-          await Future.delayed(delayMs);
+          final delayMs = 1000 * (1 << attempt);
+          _logger.i('⏳ Retrying in ${delayMs}ms...');
+          await Future.delayed(Duration(milliseconds: delayMs));
           continue;
         }
 
         rethrow;
       } on TimeoutException catch (e) {
-        _logger.w('⏱️ Request timeout (attempt ${attempt + 1}/$_maxRetries): $e');
+        _logger.w('⏱️ Request timeout (attempt ${attempt + 1}/$_maxRetries): ${_timeout.inSeconds}s exceeded');
 
         if (attempt < _maxRetries) {
-          await Future.delayed(Duration(milliseconds: 1000 * (1 << attempt)));
+          final delayMs = 1000 * (1 << attempt);
+          _logger.i('⏳ Retrying in ${delayMs}ms...');
+          await Future.delayed(Duration(milliseconds: delayMs));
           continue;
         }
 
         throw GoEngineException('AI move request timed out after $_maxRetries retries', e);
       } catch (e) {
-        _logger.e('🔥 Unexpected error: $e');
+        _logger.e('🔥 Unexpected error: ${e.runtimeType}');
+        _logger.e('   Message: $e');
         rethrow;
       }
     }
@@ -197,7 +212,7 @@ class GoEngineService {
     required bool isPlayerBlack,
     required bool lastPlayerPassed,
   }) async {
-    _logger.i('Judging game end: boardSize=$boardSize, lastPassed=$lastPlayerPassed');
+    _logger.i('🏁 Judging game end: boardSize=$boardSize, lastPassed=$lastPlayerPassed');
 
     final boardState = _EngineBoardState(
       boardSize: boardSize,
@@ -207,39 +222,52 @@ class GoEngineService {
 
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
-        final callable = _functions
-            .httpsCallable('judgeGameEnd');
+        _logger.d('📡 Attempt ${attempt + 1}/$_maxRetries: Calling judgeGameEnd function...');
 
-        final result = await callable.call({
+        final callable = _functions.httpsCallable('judgeGameEnd');
+        _logger.d('✓ Cloud Functions callable initialized');
+
+        final payload = {
           'boardState': _encodeBoardState(boardState),
           'lastPlayerPassed': lastPlayerPassed,
           'boardSize': boardState.boardSize,
-          'scoringMethod': 'chinese', // Always use Chinese rules
+          'scoringMethod': 'chinese',
           'timeout': _timeout.inSeconds,
-        }).timeout(_timeout);
+        };
+        _logger.d('📦 Payload prepared for game judgment');
 
-        _logger.i('✅ Game judgment received: $result');
+        final result = await callable.call(payload).timeout(_timeout);
+
+        _logger.i('✅ Game judgment received: ended=${result.data['gameEnded']}, black=${result.data['blackScore']}, white=${result.data['whiteScore']}, winner=${result.data['winner']}');
         return GameEndResult.fromJson(result.data as Map<String, dynamic>);
       } on FirebaseFunctionsException catch (e) {
-        _logger.w('❌ Cloud Function error (attempt ${attempt + 1}/$_maxRetries): ${e.message}');
+        _logger.e('❌ Cloud Function error (attempt ${attempt + 1}/$_maxRetries)');
+        _logger.e('  Code: ${e.code}');
+        _logger.e('  Message: ${e.message}');
+        _logger.e('  Details: ${e.details}');
 
         if (attempt < _maxRetries) {
-          await Future.delayed(Duration(milliseconds: 1000 * (1 << attempt)));
+          final delayMs = 1000 * (1 << attempt);
+          _logger.i('⏳ Retrying in ${delayMs}ms...');
+          await Future.delayed(Duration(milliseconds: delayMs));
           continue;
         }
 
         rethrow;
       } on TimeoutException catch (e) {
-        _logger.w('⏱️ Request timeout (attempt ${attempt + 1}/$_maxRetries): $e');
+        _logger.w('⏱️ Request timeout (attempt ${attempt + 1}/$_maxRetries): ${_timeout.inSeconds}s exceeded');
 
         if (attempt < _maxRetries) {
-          await Future.delayed(Duration(milliseconds: 1000 * (1 << attempt)));
+          final delayMs = 1000 * (1 << attempt);
+          _logger.i('⏳ Retrying in ${delayMs}ms...');
+          await Future.delayed(Duration(milliseconds: delayMs));
           continue;
         }
 
         throw GoEngineException('Game judgment timed out after $_maxRetries retries', e);
       } catch (e) {
-        _logger.e('🔥 Unexpected error: $e');
+        _logger.e('🔥 Unexpected error: ${e.runtimeType}');
+        _logger.e('   Message: $e');
         rethrow;
       }
     }
