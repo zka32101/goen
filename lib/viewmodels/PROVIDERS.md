@@ -82,8 +82,9 @@ Future<void> handleSignIn(WidgetRef ref, String email, String password) async {
 - `gameResultProvider` - Game end result (mutable)
 
 #### Game Logic Providers
-- `aiMoveProvider` - Request AI move (auto-disposes, cached)
-- `validateMoveProvider` - Validate move legality (client-side)
+- `aiMoveProvider` - Request AI move; returns null until it's actually the AI's turn (auto-disposes)
+- `validateMoveProvider` - Non-mutating legality check: occupancy, suicide, simple ko
+- `applyMoveProvider` - `bool Function(row, col)`; applies a move (captures, turn, ko) for whichever side's turn it is
 - `judgeGameEndProvider` - Judge game end & score (auto-disposes)
 
 #### Move History
@@ -116,19 +117,20 @@ class AIGameScreen extends ConsumerWidget {
         // Display board...
         GoBoard(stones: boardState.stones),
         
-        // Watch for AI move
+        // Watch for AI move (null until it's actually the AI's turn)
         ref.watch(aiMoveProvider).whenData((aiMove) {
-          // Display AI move...
-          ref.read(addMoveProvider)('white', aiMove.row, aiMove.col);
+          if (aiMove != null) {
+            ref.read(applyMoveProvider)(aiMove.row, aiMove.col);
+          }
         }),
       ],
     );
   }
 }
 
-// Trigger AI move request
+// Trigger AI move request after a legal player move
 void requestAiMove(WidgetRef ref) {
-  ref.refresh(aiMoveProvider); // Requests new AI move
+  ref.invalidate(aiMoveProvider); // Requests new AI move
 }
 
 // Save game when finished

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/services/fuego_engine_service.dart';
+import 'package:goen/services/go_rules.dart';
 
 void main() {
   group('Fuego Engine Service', () {
@@ -72,6 +73,7 @@ void main() {
           stones: stones,
           row: 4,
           col: 4,
+          player: 1,
         ),
         isTrue,
       );
@@ -84,6 +86,7 @@ void main() {
           stones: stones,
           row: 3,
           col: 3,
+          player: 2,
         ),
         isFalse,
       );
@@ -95,6 +98,7 @@ void main() {
           stones: stones,
           row: -1,
           col: 4,
+          player: 1,
         ),
         isFalse,
       );
@@ -105,9 +109,102 @@ void main() {
           stones: stones,
           row: 9,
           col: 4,
+          player: 1,
         ),
         isFalse,
       );
+    });
+
+    test('FuegoEngineService.validateMove should reject suicide moves', () {
+      final boardSize = 9;
+      final stones = List.generate(
+        boardSize,
+        (_) => List.filled(boardSize, 0),
+      );
+      // Surround (4,4) with black stones so white cannot play there.
+      stones[3][4] = 1;
+      stones[5][4] = 1;
+      stones[4][3] = 1;
+      stones[4][5] = 1;
+
+      expect(
+        engineService.validateMove(
+          boardSize: boardSize,
+          stones: stones,
+          row: 4,
+          col: 4,
+          player: 2,
+        ),
+        isFalse,
+        reason: 'White playing into a fully-surrounded point is suicide',
+      );
+    });
+
+    test('GoRules.applyMove should capture a surrounded group', () {
+      final boardSize = 9;
+      final stones = List.generate(
+        boardSize,
+        (_) => List.filled(boardSize, 0),
+      );
+      // White stone at (4,4) surrounded on three sides by black; black
+      // plays the fourth liberty to capture it.
+      stones[3][4] = 1;
+      stones[5][4] = 1;
+      stones[4][3] = 1;
+      stones[4][4] = 2;
+
+      final result = GoRules.applyMove(
+        stones: stones,
+        boardSize: boardSize,
+        row: 4,
+        col: 5,
+        player: 1,
+      );
+
+      expect(result, isNotNull);
+      expect(result!.capturedCount, equals(1));
+      expect(result.stones[4][4], equals(0));
+      expect(result.stones[4][5], equals(1));
+    });
+
+    test('GoRules.applyMove should enforce the simple ko rule', () {
+      final boardSize = 9;
+      // Lone white stone at (1,1) with a single liberty at (2,1); black
+      // fills it to capture, creating a ko at (1,1).
+      final stones = List.generate(
+        boardSize,
+        (_) => List.filled(boardSize, 0),
+      );
+      stones[0][1] = 1; // black
+      stones[1][0] = 1; // black
+      stones[1][2] = 1; // black
+      stones[1][1] = 2; // white, one liberty at (2,1)
+
+      final capture = GoRules.applyMove(
+        stones: stones,
+        boardSize: boardSize,
+        row: 2,
+        col: 1,
+        player: 1,
+      );
+      expect(capture, isNotNull);
+      expect(capture!.capturedCount, equals(1));
+      expect(capture.stones[1][1], equals(0));
+      expect(capture.koRow, equals(1));
+      expect(capture.koCol, equals(1));
+
+      // White immediately trying to recapture at (1,1) is forbidden by
+      // the simple ko rule.
+      final recapture = GoRules.applyMove(
+        stones: capture.stones,
+        boardSize: boardSize,
+        row: 1,
+        col: 1,
+        player: 2,
+        koRow: capture.koRow,
+        koCol: capture.koCol,
+      );
+      expect(recapture, isNull);
     });
 
     test('GameEndResult.fromJson should parse correctly', () {
@@ -144,6 +241,7 @@ void main() {
               stones: stones,
               row: row,
               col: col,
+              player: 1,
             ),
             isTrue,
             reason: 'Empty board position ($row, $col) should be legal',

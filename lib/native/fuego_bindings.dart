@@ -59,7 +59,10 @@ class FuegoNative {
       _getMove = _lib.lookupFunction<NativeGetMove, DartGetMove>('fuego_get_move');
       _getMoveCoord = _lib.lookupFunction<NativeGetMoveCoord, DartGetMoveCoord>('fuego_get_move_coord');
       _cleanup = _lib.lookupFunction<NativeCleanup, DartCleanup>('fuego_cleanup');
-    } on Exception catch (e) {
+    } catch (e) {
+      // Catches both Exception (e.g. missing symbol) and Error subclasses
+      // (e.g. UnsupportedError from an unsupported platform above), so
+      // callers always see a consistent, wrapped failure.
       throw Exception('Failed to load Fuego library: $e');
     }
   }

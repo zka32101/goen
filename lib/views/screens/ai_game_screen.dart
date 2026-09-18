@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
+import 'package:goen/services/index.dart';
 import 'package:goen/viewmodels/index.dart';
 
 final _logger = Logger();
@@ -41,6 +42,28 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     final isGameActive = ref.watch(isGameActiveProvider);
     final aiLevel = ref.watch(aiLevelProvider);
     final movesCount = ref.watch(movesCountProvider);
+
+    // React to the AI's move once Fuego resolves it: apply it to the board
+    // (captures included) the same way a human move is applied.
+    ref.listen<AsyncValue<AIMove?>>(aiMoveProvider, (previous, next) {
+      final aiMove = next.valueOrNull;
+      if (aiMove == null) return;
+
+      final applied = ref.read(applyMoveProvider)(aiMove.row, aiMove.col);
+      if (!applied) {
+        _logger.e('❌ AI returned an illegal move: [${aiMove.row},${aiMove.col}]');
+        return;
+      }
+
+      ref.read(logCustomEventProvider)(
+        eventName: 'ai_move',
+        parameters: {
+          'row': aiMove.row,
+          'col': aiMove.col,
+          'move_number': ref.read(movesCountProvider),
+        },
+      );
+    });
 
     return Scaffold(
       backgroundColor: Colors.black87,
@@ -195,6 +218,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     return GestureDetector(
       onTapDown: (details) {
         if (!ref.read(isGameActiveProvider)) return;
+        // Human always plays black; ignore taps while the AI is thinking.
+        if (!ref.read(gameBoardStateProvider).isBlackTurn) return;
 
         // Convert tap position to board coordinates
         final localPosition = details.localPosition;
@@ -203,7 +228,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
         // Validate position
         if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
-          _handleBoardTap(context, ref, row, col, boardState);
+          _handleBoardTap(context, ref, row, col);
         }
       },
       child: Container(
@@ -305,52 +330,25 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     WidgetRef ref,
     int row,
     int col,
-    BoardState boardState,
   ) {
     _logger.i('Board tapped: row=$row, col=$col');
 
-    // Validate move
-    final isLegal = ref.read(
-      validateMoveProvider((row: row, col: col)),
-    );
+    // Applies the move (occupancy/suicide/ko checked internally) and, on
+    // success, updates stones, captures, turn and the ko point.
+    final applied = ref.read(applyMoveProvider)(row, col);
 
-    if (!isLegal) {
+    if (!applied) {
       _logger.w('Illegal move attempt: [$row,$col]');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('That position is already occupied'),
+          content: Text('That move is illegal (occupied, suicide, or ko)'),
           duration: Duration(seconds: 2),
         ),
       );
       return;
     }
 
-    _logger.i('Legal move: [$row,$col]');
-
-    // Update board and add to history
-    final currentBoard = ref.read(gameBoardStateProvider);
-    final newStones = List.generate(
-      currentBoard.boardSize,
-      (i) => i == row
-          ? [
-              ...currentBoard.stones[i]
-                  .sublist(0, col),
-              1, // Black stone (player) - 0=empty, 1=black, 2=white
-              ...currentBoard.stones[i].sublist(col + 1),
-            ]
-          : currentBoard.stones[i],
-    );
-
-    ref.read(gameBoardStateProvider.notifier).state = BoardState(
-      boardSize: currentBoard.boardSize,
-      stones: newStones,
-      capturedBlack: currentBoard.capturedBlack,
-      capturedWhite: currentBoard.capturedWhite,
-      isBlackTurn: currentBoard.isBlackTurn,
-    );
-
-    // Add move to history
-    ref.read(addMoveProvider)(row, col, 'black');
+    _logger.i('Legal move applied: [$row,$col]');
 
     // Log move
     ref.read(logCustomEventProvider)(
@@ -362,13 +360,16 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       },
     );
 
-    // Refresh position evaluation
-    ref.refresh(positionEvaluationProvider);
+    // positionEvaluationProvider watches board state directly and
+    // recomputes on its own; no manual refresh needed here.
 
-    // Request AI move after a short delay
+    // Request AI move after a short delay so the player can see their
+    // stone land before the AI responds. `aiMoveProvider` itself checks
+    // whose turn it is, so an invalidate here is a no-op if this move
+    // somehow didn't flip the turn.
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        ref.refresh(aiMoveProvider);
+        ref.invalidate(aiMoveProvider);
       }
     });
   }
@@ -440,9 +441,6 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
             : scoreDiff < 0
                 ? Colors.orange[400]! // White winning
                 : Colors.amber[600]!; // Even
-
-        // Create evaluation bar (0-100 for win probability display)
-        final barValue = (blackWinProb * 100).clamp(0, 100).toDouble();
 
         return Container(
           padding: const EdgeInsets.all(12),

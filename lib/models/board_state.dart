@@ -1,3 +1,7 @@
+/// Sentinel used by [BoardState.copyWith] to distinguish "argument omitted"
+/// from "explicitly set to null" for nullable fields.
+const Object _unset = Object();
+
 /// Represents the state of a Go board
 class BoardState {
   /// Board size (9, 13, or 19)
@@ -14,6 +18,10 @@ class BoardState {
   final int? lastMoveRow;
   /// Last move position (col)
   final int? lastMoveCol;
+  /// Point forbidden by the simple ko rule for the next move (row)
+  final int? koRow;
+  /// Point forbidden by the simple ko rule for the next move (col)
+  final int? koCol;
 
   const BoardState({
     required this.boardSize,
@@ -23,6 +31,8 @@ class BoardState {
     required this.isBlackTurn,
     this.lastMoveRow,
     this.lastMoveCol,
+    this.koRow,
+    this.koCol,
   });
 
   /// Create an empty board
@@ -36,15 +46,20 @@ class BoardState {
     );
   }
 
-  /// Create a copy with optional overrides
+  /// Create a copy with optional overrides.
+  ///
+  /// Nullable fields accept an explicit `null` to clear them (as opposed to
+  /// omitting the argument, which keeps the current value).
   BoardState copyWith({
     int? boardSize,
     List<List<int>>? stones,
     int? capturedBlack,
     int? capturedWhite,
     bool? isBlackTurn,
-    int? lastMoveRow,
-    int? lastMoveCol,
+    Object? lastMoveRow = _unset,
+    Object? lastMoveCol = _unset,
+    Object? koRow = _unset,
+    Object? koCol = _unset,
   }) {
     return BoardState(
       boardSize: boardSize ?? this.boardSize,
@@ -52,8 +67,12 @@ class BoardState {
       capturedBlack: capturedBlack ?? this.capturedBlack,
       capturedWhite: capturedWhite ?? this.capturedWhite,
       isBlackTurn: isBlackTurn ?? this.isBlackTurn,
-      lastMoveRow: lastMoveRow ?? this.lastMoveRow,
-      lastMoveCol: lastMoveCol ?? this.lastMoveCol,
+      lastMoveRow:
+          identical(lastMoveRow, _unset) ? this.lastMoveRow : lastMoveRow as int?,
+      lastMoveCol:
+          identical(lastMoveCol, _unset) ? this.lastMoveCol : lastMoveCol as int?,
+      koRow: identical(koRow, _unset) ? this.koRow : koRow as int?,
+      koCol: identical(koCol, _unset) ? this.koCol : koCol as int?,
     );
   }
 
@@ -75,7 +94,11 @@ class BoardState {
   }
 
   String _coordToSgf(int coord) {
-    // SGF uses letters: a-s for 19x19
-    return String.fromCharCode(97 + coord);
+    // SGF coordinates: 'a'-'z' (0-25), then 'A'-'Z' (26-51), covering
+    // every board size Go is actually played on (up to 25x25/52-point SGF).
+    if (coord < 26) {
+      return String.fromCharCode(97 + coord);
+    }
+    return String.fromCharCode(65 + (coord - 26));
   }
 }

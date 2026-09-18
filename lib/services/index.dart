@@ -1,7 +1,12 @@
 // Barrel file for all services - enables: `import 'package:goen/services/index.dart';`
 
-export 'go_engine_service.dart';
+// go_engine_service.dart is the legacy Cloud Functions engine, kept only
+// for reference; AIMove/GameEndResult are hidden here so the actively used
+// Fuego (on-device) versions from fuego_engine_service.dart are the ones
+// resolved by `import 'package:goen/services/index.dart'`.
+export 'go_engine_service.dart' hide AIMove, GameEndResult;
 export 'fuego_engine_service.dart';
+export 'go_rules.dart';
 export 'firestore_service.dart';
 export 'auth_service.dart';
 export 'ai_explanation_service.dart';

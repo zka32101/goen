@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart';
 import 'package:goen/services/fuego_engine_service.dart';
+import 'package:goen/services/go_rules.dart';
 
 final _logger = Logger();
 
@@ -61,20 +62,33 @@ final gameResultProvider = StateProvider<GameEndResult?>((ref) {
 // ================== AI MOVE REQUESTS ==================
 
 /// Request AI move from Fuego engine (On-device)
-/// Fast (~200-400ms), offline-capable
-final aiMoveProvider = FutureProvider.autoDispose<AIMove>((ref) async {
-  final boardState = ref.watch(gameBoardStateProvider);
-  final aiLevel = ref.watch(aiLevelProvider);
-  final movesCount = ref.watch(movesCountProvider);
+/// Fast (~200-400ms), offline-capable.
+///
+/// Returns null when it isn't the AI's turn yet. Reads (rather than
+/// watches) board/level/move-count so this only recomputes when explicitly
+/// invalidated by the caller after a legal player move — otherwise every
+/// board mutation (including the AI's own move) would re-trigger a new
+/// request and risk the AI racing against itself.
+final aiMoveProvider = FutureProvider.autoDispose<AIMove?>((ref) async {
+  final boardState = ref.read(gameBoardStateProvider);
+
+  // The human always plays black in this screen; nothing to compute
+  // until it's white's (the AI's) turn.
+  if (boardState.isBlackTurn) {
+    return null;
+  }
+
+  final aiLevel = ref.read(aiLevelProvider);
+  final movesCount = ref.read(movesCountProvider);
 
   _logger.i('🎯 Fuego: AI move request (level=$aiLevel, size=${boardState.boardSize})');
 
-  final aiEngine = ref.watch(aiEngineServiceProvider);
+  final aiEngine = ref.read(aiEngineServiceProvider);
   try {
     final aiMove = await aiEngine.requestAiMove(
       boardSize: boardState.boardSize,
       stones: boardState.stones,
-      isPlayerBlack: boardState.isBlackTurn,
+      isPlayerBlack: true,
       aiLevel: aiLevel,
       movesCount: movesCount,
     );
@@ -88,33 +102,85 @@ final aiMoveProvider = FutureProvider.autoDispose<AIMove>((ref) async {
 
 // ================== GAME LOGIC ==================
 
-/// Validate if a move is legal (client-side check)
+/// Validate if a move is legal (client-side check): occupancy, suicide,
+/// and simple ko, for whichever color's turn it currently is.
 final validateMoveProvider = Provider.family<bool, ({int row, int col})>(
   (ref, params) {
     final boardState = ref.watch(gameBoardStateProvider);
     final aiEngine = ref.watch(aiEngineServiceProvider);
+    final player = boardState.isBlackTurn ? 1 : 2;
     return aiEngine.validateMove(
       boardSize: boardState.boardSize,
       stones: boardState.stones,
       row: params.row,
       col: params.col,
+      player: player,
+      koRow: boardState.koRow,
+      koCol: boardState.koCol,
     );
   },
 );
 
-/// Judge if game has ended and calculate score (Fuego)
+/// Attempts to play a stone at (row, col) for whichever color's turn it
+/// currently is. On success, applies captures, flips the turn, updates the
+/// ko point, records history, and returns true. Returns false (without any
+/// state change) if the move is illegal.
+final applyMoveProvider = Provider<bool Function(int row, int col)>((ref) {
+  return (row, col) {
+    final board = ref.read(gameBoardStateProvider);
+    final player = board.isBlackTurn ? 1 : 2;
+
+    final result = GoRules.applyMove(
+      stones: board.stones,
+      boardSize: board.boardSize,
+      row: row,
+      col: col,
+      player: player,
+      koRow: board.koRow,
+      koCol: board.koCol,
+    );
+
+    if (result == null) {
+      _logger.w('Illegal move rejected: player=$player [$row,$col]');
+      return false;
+    }
+
+    ref.read(gameBoardStateProvider.notifier).state = board.copyWith(
+      stones: result.stones,
+      capturedBlack: player == 2 ? board.capturedBlack + result.capturedCount : null,
+      capturedWhite: player == 1 ? board.capturedWhite + result.capturedCount : null,
+      isBlackTurn: !board.isBlackTurn,
+      lastMoveRow: row,
+      lastMoveCol: col,
+      koRow: result.koRow,
+      koCol: result.koCol,
+    );
+
+    ref.read(addMoveProvider)(row, col, player == 1 ? 'black' : 'white');
+
+    _logger.i(
+      '✅ Move applied: player=$player [$row,$col] captured=${result.capturedCount}',
+    );
+    return true;
+  };
+});
+
+/// Judge if game has ended and calculate score (Fuego).
+/// Only runs when explicitly read/invalidated (e.g. after both players
+/// pass) — it does not watch board state, since that would re-run scoring
+/// on every single stone placed.
 final judgeGameEndProvider = FutureProvider.autoDispose<GameEndResult>((ref) async {
-  final boardState = ref.watch(gameBoardStateProvider);
-  final lastPlayerPassed = ref.watch(lastPlayerPassedProvider);
+  final boardState = ref.read(gameBoardStateProvider);
+  final lastPlayerPassed = ref.read(lastPlayerPassedProvider);
 
   _logger.i('🏁 Fuego: Game end judgment (size=${boardState.boardSize})');
 
-  final aiEngine = ref.watch(aiEngineServiceProvider);
+  final aiEngine = ref.read(aiEngineServiceProvider);
   try {
     final result = await aiEngine.judgeGameEnd(
       boardSize: boardState.boardSize,
       stones: boardState.stones,
-      isPlayerBlack: boardState.isBlackTurn,
+      isPlayerBlack: true,
       lastPlayerPassed: lastPlayerPassed,
     );
     _logger.i('✅ Fuego judgment: $result');

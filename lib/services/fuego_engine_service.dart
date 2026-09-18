@@ -1,5 +1,7 @@
+import 'dart:collection';
 import 'package:logger/logger.dart';
 import 'package:goen/native/fuego_bindings.dart';
+import 'package:goen/services/go_rules.dart';
 import 'dart:math' as math;
 
 /// AI move response (Fuego version)
@@ -176,19 +178,25 @@ class FuegoEngineService {
     }
   }
 
-  /// 着手が合法か検証
+  /// 着手が合法か検証（石取り・自殺手禁止・コウを考慮）
   bool validateMove({
     required int boardSize,
     required List<List<int>> stones,
     required int row,
     required int col,
+    required int player,
+    int? koRow,
+    int? koCol,
   }) {
-    if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) {
-      return false;
-    }
-
-    // 空いているか確認
-    return stones[row][col] == 0;
+    return GoRules.isLegalMove(
+      stones: stones,
+      boardSize: boardSize,
+      row: row,
+      col: col,
+      player: player,
+      koRow: koRow,
+      koCol: koCol,
+    );
   }
 
   /// 盤面の形勢を評価 (簡易版)
@@ -289,7 +297,7 @@ class FuegoEngineService {
     int startCol,
     int boardSize,
   ) {
-    final queue = <(int, int)>[];
+    final queue = Queue<(int, int)>();
     queue.add((startRow, startCol));
     visited[startRow][startCol] = true;
 
@@ -297,7 +305,7 @@ class FuegoEngineService {
     final adjacentOwners = <int>{};
 
     while (queue.isNotEmpty) {
-      final (row, col) = queue.removeAt(0);
+      final (row, col) = queue.removeFirst();
       emptyCount++;
 
       // 隣接セルを調査
