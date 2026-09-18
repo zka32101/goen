@@ -57,6 +57,26 @@ void main() {
       expect(result.gameEnded, isTrue);
       expect(result.blackScore, equals(30.0));
       expect(result.winner, equals('black'));
+      expect(result.deadStoneCount, equals(0));
+    });
+
+    test('GameEndResult should carry the dead stone count', () {
+      final result = GameEndResult(
+        gameEnded: true,
+        blackScore: 34.0,
+        whiteScore: 27.75,
+        winner: 'black',
+        deadStoneCount: 3,
+      );
+
+      expect(result.deadStoneCount, equals(3));
+      expect(result.toString(), contains('deadStones: 3'));
+    });
+
+    test('AIMove.isPass should detect the native pass signal', () {
+      expect(AIMove(row: -1, col: -1).isPass, isTrue);
+      expect(AIMove(row: -1, col: 4).isPass, isTrue);
+      expect(AIMove(row: 4, col: 4).isPass, isFalse);
     });
 
     test('FuegoEngineService.validateMove should verify legal positions', () {

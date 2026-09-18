@@ -33,6 +33,20 @@ typedef DartGetMoveCoord = void Function(
 typedef NativeCleanup = ffi.Void Function();
 typedef DartCleanup = void Function();
 
+// 死石判定: 盤面を渡し、同サイズの出力配列に 1=死石 / 0=生存 を書き込む。
+// Fuego 側は内部の安全性読み (GoSafetySolver 等) を使って判定する想定。
+// 戻り値は判定できた死石の数。
+typedef NativeGetDeadStones = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int32> boardState,
+  ffi.Int32 boardSize,
+  ffi.Pointer<ffi.Int32> deadStonesOut,
+);
+typedef DartGetDeadStones = int Function(
+  ffi.Pointer<ffi.Int32> boardState,
+  int boardSize,
+  ffi.Pointer<ffi.Int32> deadStonesOut,
+);
+
 /// Fuego Go エンジン FFI ラッパー
 class FuegoNative {
   late ffi.DynamicLibrary _lib;
@@ -40,6 +54,11 @@ class FuegoNative {
   late DartGetMove _getMove;
   late DartGetMoveCoord _getMoveCoord;
   late DartCleanup _cleanup;
+
+  // 死石判定はネイティブ側の対応が任意（未実装のビルドでも他機能は
+  // 動作させたいため）、他のシンボルとは別に、失敗しても許容するルック
+  // アップにしている。
+  DartGetDeadStones? _getDeadStones;
 
   FuegoNative() {
     _loadLibrary();
@@ -65,7 +84,20 @@ class FuegoNative {
       // callers always see a consistent, wrapped failure.
       throw Exception('Failed to load Fuego library: $e');
     }
+
+    try {
+      _getDeadStones = _lib.lookupFunction<NativeGetDeadStones, DartGetDeadStones>(
+        'fuego_get_dead_stones',
+      );
+    } catch (e) {
+      // Older/simpler native builds may not export this yet — the rest of
+      // the engine still works, dead-stone detection just falls back.
+      _getDeadStones = null;
+    }
   }
+
+  /// ネイティブ側が死石判定 API を実装しているか
+  bool get supportsDeadStoneDetection => _getDeadStones != null;
 
   /// Fuego エンジンを初期化
   int initialize() {
@@ -103,6 +135,31 @@ class FuegoNative {
     } finally {
       malloc.free(row);
       malloc.free(col);
+    }
+  }
+
+  /// 死石を判定する（Fuego の安全性読みを使用）
+  /// boardState: 1D 配列 (row-major order, 0=empty, 1=black, 2=white)
+  /// 戻り値: boardState と同じ長さの配列。1=死石, 0=生存/空点
+  /// throws StateError: ネイティブ側が未対応の場合
+  List<int> getDeadStones(List<int> boardState, int boardSize) {
+    final getDeadStones = _getDeadStones;
+    if (getDeadStones == null) {
+      throw StateError('fuego_get_dead_stones is not implemented by this native build');
+    }
+
+    final nativeBoard = malloc<ffi.Int32>(boardState.length);
+    final deadStonesOut = malloc<ffi.Int32>(boardState.length);
+
+    try {
+      for (int i = 0; i < boardState.length; i++) {
+        nativeBoard[i] = boardState[i];
+      }
+      getDeadStones(nativeBoard, boardSize, deadStonesOut);
+      return List.generate(boardState.length, (i) => deadStonesOut[i]);
+    } finally {
+      malloc.free(nativeBoard);
+      malloc.free(deadStonesOut);
     }
   }
 
