@@ -34,6 +34,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.initState();
     _logger.i('SettingsScreen initialized');
     _displayNameController = TextEditingController();
+
+    // Initialize board size and AI level from game settings
+    Future.microtask(() {
+      final blitzSize = ref.read(blitzBoardSizeProvider);
+      final blitzLevel = ref.read(blitzAiLevelProvider);
+      if (mounted) {
+        setState(() {
+          _selectedBoardSize = int.tryParse(blitzSize) ?? 9;
+          _selectedAiLevel = blitzLevel;
+        });
+      }
+    });
   }
 
   @override
@@ -307,6 +319,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onSelected: (selected) {
                 if (selected) {
                   setState(() => _selectedBoardSize = size);
+                  ref.read(blitzBoardSizeProvider.notifier).state = size.toString();
                   _logger.i('Board size preference changed to $size');
                 }
               },
@@ -333,6 +346,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               activeColor: Colors.amber[600],
               onChanged: (value) {
                 setState(() => _selectedAiLevel = value.toInt());
+                ref.read(blitzAiLevelProvider.notifier).state = value.toInt();
                 _logger.i('AI difficulty preference changed to $value');
               },
             ),
@@ -570,11 +584,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _handleSaveProfile(BuildContext context) {
+  void _handleSaveProfile(BuildContext context) async {
     _logger.i('Saving profile changes');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated!')),
-    );
+
+    if (_displayNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Display name cannot be empty')),
+      );
+      return;
+    }
+
+    try {
+      await ref.read(updateDisplayNameProvider(_displayNameController.text));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated!')),
+        );
+      }
+    } catch (e) {
+      _logger.e('Failed to save profile: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile: $e')),
+        );
+      }
+    }
   }
 
   void _handleShareProfile(BuildContext context, User user) {
@@ -644,14 +678,20 @@ AI解説で碁を上達しよう！''';
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
               _logger.i('User signed out');
-              ref.read(signOutProvider);
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                '/splash',
-                (route) => false,
-              );
+              try {
+                await ref.read(signOutProvider)();
+              } catch (e) {
+                _logger.e('Sign out error: $e');
+              }
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/splash',
+                  (route) => false,
+                );
+              }
             },
             child: const Text('Sign Out'),
           ),
@@ -675,14 +715,20 @@ AI解説で碁を上達しよう！''';
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
               _logger.w('User deleted account');
-              ref.read(deleteAccountProvider);
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                '/splash',
-                (route) => false,
-              );
+              try {
+                await ref.read(deleteAccountProvider)();
+              } catch (e) {
+                _logger.e('Delete account error: $e');
+              }
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/splash',
+                  (route) => false,
+                );
+              }
             },
             child: Text(
               'Delete',

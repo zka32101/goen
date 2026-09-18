@@ -1,29 +1,40 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
+import 'package:goen/services/firestore_service.dart';
 
 /// Service for Firebase Authentication
 /// Handles user signup, signin, signout, and session management
 class AuthService {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  final FirestoreService _firestore = FirestoreService();
   final Logger _logger = Logger();
 
   /// Get current user stream (reactive)
   Stream<User?> get authStateChanges {
-    return _auth.authStateChanges().map((firebaseUser) {
+    return _auth.authStateChanges().asyncMap((firebaseUser) async {
       if (firebaseUser == null) {
         _logger.i('User signed out');
         return null;
+      }
+
+      try {
+        final firestoreUser = await _firestore.getUser(firebaseUser.uid);
+        if (firestoreUser != null) {
+          return firestoreUser;
+        }
+      } catch (e) {
+        _logger.w('Failed to fetch Firestore user, using fallback: $e');
       }
 
       return User(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
         displayName: firebaseUser.displayName,
-        subscriptionActive: false, // TBD: fetch from Firestore
-        subscriptionStartDate: DateTime.now(), // TBD: fetch from Firestore
-        tutorialCompleted: false, // TBD: fetch from Firestore
-        gamesPlayedCount: 0, // TBD: fetch from Firestore
+        subscriptionActive: false,
+        subscriptionStartDate: DateTime.now(),
+        tutorialCompleted: false,
+        gamesPlayedCount: 0,
         createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -74,9 +85,7 @@ class AuthService {
 
       final firebaseUser = userCredential.user!;
 
-      _logger.i('✅ User signed up: ${firebaseUser.uid}');
-
-      return User(
+      final newUser = User(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
         displayName: null,
@@ -87,6 +96,16 @@ class AuthService {
         createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
+
+      try {
+        await _firestore.saveUser(newUser);
+        _logger.i('✅ User document created in Firestore');
+      } catch (e) {
+        _logger.w('Failed to create Firestore user document: $e');
+      }
+
+      _logger.i('✅ User signed up: ${firebaseUser.uid}');
+      return newUser;
     } on firebase_auth.FirebaseAuthException catch (e) {
       _logger.e('Auth error during signup: ${e.code}');
       throw AuthServiceException(_parseAuthError(e));
@@ -120,16 +139,25 @@ class AuthService {
 
       final firebaseUser = userCredential.user!;
 
-      _logger.i('✅ User signed in: ${firebaseUser.uid}');
+      try {
+        final firestoreUser = await _firestore.getUser(firebaseUser.uid);
+        if (firestoreUser != null) {
+          _logger.i('✅ User signed in: ${firebaseUser.uid}');
+          return firestoreUser;
+        }
+      } catch (e) {
+        _logger.w('Failed to fetch Firestore user: $e');
+      }
 
+      _logger.i('✅ User signed in: ${firebaseUser.uid}');
       return User(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
         displayName: firebaseUser.displayName,
-        subscriptionActive: false, // TBD: fetch from Firestore
+        subscriptionActive: false,
         subscriptionStartDate: DateTime.now(),
-        tutorialCompleted: false, // TBD: fetch from Firestore
-        gamesPlayedCount: 0, // TBD: fetch from Firestore
+        tutorialCompleted: false,
+        gamesPlayedCount: 0,
         createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -152,9 +180,7 @@ class AuthService {
       final userCredential = await _auth.signInAnonymously();
       final firebaseUser = userCredential.user!;
 
-      _logger.i('✅ Anonymous user signed in: ${firebaseUser.uid}');
-
-      return User(
+      final anonUser = User(
         uid: firebaseUser.uid,
         email: 'anonymous@goen.local',
         displayName: 'Guest Player',
@@ -165,6 +191,16 @@ class AuthService {
         createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
+
+      try {
+        await _firestore.saveUser(anonUser);
+        _logger.i('✅ Anonymous user document created in Firestore');
+      } catch (e) {
+        _logger.w('Failed to create anonymous user document: $e');
+      }
+
+      _logger.i('✅ Anonymous user signed in: ${firebaseUser.uid}');
+      return anonUser;
     } on firebase_auth.FirebaseAuthException catch (e) {
       _logger.e('Auth error during anonymous signin: ${e.code}');
       throw AuthServiceException(_parseAuthError(e));

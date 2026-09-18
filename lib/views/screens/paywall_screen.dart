@@ -517,16 +517,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     );
   }
 
-  void _handlePurchase(BuildContext context) {
+  void _handlePurchase(BuildContext context) async {
     _logger.i('Processing purchase');
 
     final plan = _showAnnual ? 'annual' : 'monthly';
     final price = plan == 'annual' ? 79.99 : 9.99;
-    ref.read(logPaywallConvertedProvider)(
-      plan: plan,
-      price: price,
-      currency: 'USD',
-    );
 
     // Show loading
     showDialog(
@@ -539,18 +534,43 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       ),
     );
 
-    // Simulate purchase processing
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context); // Close loading
+    try {
+      // Simulate purchase processing (RevenueCat integration coming in Phase 58)
+      await Future.delayed(const Duration(seconds: 2));
 
-      if (mounted) {
+      // Log successful conversion after purchase completes
+      await ref.read(logPaywallConvertedProvider)(
+        plan: plan,
+        price: price,
+        currency: 'USD',
+      );
+
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Purchase processing - RevenueCat integration (Phase 5.5)'),
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: Text('Subscription activated! $plan plan'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        // Navigate to home after successful purchase
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/home',
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      _logger.e('Purchase failed: $e');
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Purchase failed: $e'),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
-    });
+    }
   }
 }

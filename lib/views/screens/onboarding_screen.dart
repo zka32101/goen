@@ -414,9 +414,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _navigateToHome();
   }
 
-  void _handleCompleteTutorial() {
+  void _handleCompleteTutorial() async {
     _logger.i('Tutorial completed');
-    ref.read(logTutorialCompletedProvider)();
+    try {
+      await ref.read(logTutorialCompletedProvider)();
+      await ref.read(completeTutorialProvider)();
+    } catch (e) {
+      _logger.e('Error completing tutorial: $e');
+    }
     _navigateToHome();
   }
 

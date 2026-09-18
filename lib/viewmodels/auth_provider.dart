@@ -116,17 +116,19 @@ final linkAnonymousProvider = FutureProvider.family<void, ({String email, String
   },
 );
 
-/// Sign out current user
-final signOutProvider = FutureProvider<void>((ref) async {
-  _logger.i('Sign out initiated');
-  final authService = ref.watch(authServiceProvider);
-  try {
-    await authService.signOut();
-    _logger.i('✅ Sign out successful');
-  } catch (e) {
-    _logger.e('❌ Sign out failed: $e');
-    rethrow;
-  }
+/// Sign out current user (action provider to allow multiple invocations)
+final signOutProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    _logger.i('Sign out initiated');
+    final authService = ref.read(authServiceProvider);
+    try {
+      await authService.signOut();
+      _logger.i('✅ Sign out successful');
+    } catch (e) {
+      _logger.e('❌ Sign out failed: $e');
+      rethrow;
+    }
+  };
 });
 
 /// Send password reset email
@@ -159,17 +161,19 @@ final updateDisplayNameProvider = FutureProvider.family<void, String>(
   },
 );
 
-/// Delete user account (irreversible)
-final deleteAccountProvider = FutureProvider<void>((ref) async {
-  _logger.w('Account deletion initiated');
-  final authService = ref.watch(authServiceProvider);
-  try {
-    await authService.deleteAccount();
-    _logger.i('✅ Account deleted');
-  } catch (e) {
-    _logger.e('❌ Account deletion failed: $e');
-    rethrow;
-  }
+/// Delete user account (irreversible, action provider to allow invocation)
+final deleteAccountProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    _logger.w('Account deletion initiated');
+    final authService = ref.read(authServiceProvider);
+    try {
+      await authService.deleteAccount();
+      _logger.i('✅ Account deleted');
+    } catch (e) {
+      _logger.e('❌ Account deletion failed: $e');
+      rethrow;
+    }
+  };
 });
 
 /// Get Firebase ID token (for debugging)
@@ -184,3 +188,24 @@ final getIdTokenProvider = FutureProvider.family<String?, bool>(
     }
   },
 );
+
+/// Mark tutorial as completed in Firestore
+final completeTutorialProvider = Provider<Future<void> Function()>((ref) {
+  final firestoreService = FirestoreService();
+
+  return () async {
+    _logger.i('Marking tutorial as completed');
+    try {
+      final user = ref.read(currentUserProvider);
+      if (user == null) {
+        throw Exception('No user logged in');
+      }
+
+      await firestoreService.saveUser(user.copyWith(tutorialCompleted: true));
+      _logger.i('✅ Tutorial marked as completed in Firestore');
+    } catch (e) {
+      _logger.e('❌ Failed to mark tutorial as completed: $e');
+      rethrow;
+    }
+  };
+});
