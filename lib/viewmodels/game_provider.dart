@@ -2,14 +2,16 @@ import 'package:riverpod/riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart';
+import 'package:goen/services/fuego_engine_service.dart';
 
 final _logger = Logger();
 
 // ================== SERVICE PROVIDERS ==================
 
-/// Singleton instance of GoEngineService
-final goEngineServiceProvider = Provider<GoEngineService>((ref) {
-  return GoEngineService();
+/// Singleton instance of Fuego AI Engine (On-device)
+/// Lightweight, fast, offline-capable Go engine
+final aiEngineServiceProvider = Provider<FuegoEngineService>((ref) {
+  return FuegoEngineService();
 });
 
 /// Singleton instance of FirestoreService
@@ -58,28 +60,28 @@ final gameResultProvider = StateProvider<GameEndResult?>((ref) {
 
 // ================== AI MOVE REQUESTS ==================
 
-/// Request AI move from Go engine
-/// Depends on current board state and AI level
+/// Request AI move from Fuego engine (On-device)
+/// Fast (~200-400ms), offline-capable
 final aiMoveProvider = FutureProvider.autoDispose<AIMove>((ref) async {
   final boardState = ref.watch(gameBoardStateProvider);
   final aiLevel = ref.watch(aiLevelProvider);
   final movesCount = ref.watch(movesCountProvider);
 
-  _logger.i('Requesting AI move: level=$aiLevel, boardSize=${boardState.boardSize}');
+  _logger.i('🎯 Fuego: AI move request (level=$aiLevel, size=${boardState.boardSize})');
 
-  final goEngineService = ref.watch(goEngineServiceProvider);
+  final aiEngine = ref.watch(aiEngineServiceProvider);
   try {
-    final aiMove = await goEngineService.requestAiMove(
+    final aiMove = await aiEngine.requestAiMove(
       boardSize: boardState.boardSize,
       stones: boardState.stones,
       isPlayerBlack: boardState.isBlackTurn,
       aiLevel: aiLevel,
       movesCount: movesCount,
     );
-    _logger.i('✅ AI move received: $aiMove');
+    _logger.i('✅ Fuego response: $aiMove');
     return aiMove;
   } catch (e) {
-    _logger.e('❌ AI move request failed: $e');
+    _logger.e('❌ Fuego request failed: $e');
     rethrow;
   }
 });
@@ -90,8 +92,8 @@ final aiMoveProvider = FutureProvider.autoDispose<AIMove>((ref) async {
 final validateMoveProvider = Provider.family<bool, ({int row, int col})>(
   (ref, params) {
     final boardState = ref.watch(gameBoardStateProvider);
-    final goEngineService = ref.watch(goEngineServiceProvider);
-    return goEngineService.validateMove(
+    final aiEngine = ref.watch(aiEngineServiceProvider);
+    return aiEngine.validateMove(
       boardSize: boardState.boardSize,
       stones: boardState.stones,
       row: params.row,
@@ -100,25 +102,25 @@ final validateMoveProvider = Provider.family<bool, ({int row, int col})>(
   },
 );
 
-/// Judge if game has ended and calculate score
+/// Judge if game has ended and calculate score (Fuego)
 final judgeGameEndProvider = FutureProvider.autoDispose<GameEndResult>((ref) async {
   final boardState = ref.watch(gameBoardStateProvider);
   final lastPlayerPassed = ref.watch(lastPlayerPassedProvider);
 
-  _logger.i('Judging game end: boardSize=${boardState.boardSize}');
+  _logger.i('🏁 Fuego: Game end judgment (size=${boardState.boardSize})');
 
-  final goEngineService = ref.watch(goEngineServiceProvider);
+  final aiEngine = ref.watch(aiEngineServiceProvider);
   try {
-    final result = await goEngineService.judgeGameEnd(
+    final result = await aiEngine.judgeGameEnd(
       boardSize: boardState.boardSize,
       stones: boardState.stones,
       isPlayerBlack: boardState.isBlackTurn,
       lastPlayerPassed: lastPlayerPassed,
     );
-    _logger.i('✅ Game judgment received: $result');
+    _logger.i('✅ Fuego judgment: $result');
     return result;
   } catch (e) {
-    _logger.e('❌ Game judgment failed: $e');
+    _logger.e('❌ Fuego judgment failed: $e');
     rethrow;
   }
 });
