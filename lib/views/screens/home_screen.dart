@@ -444,6 +444,10 @@ class HomeScreen extends ConsumerWidget {
   void _navigateToAiGame(BuildContext context, WidgetRef ref) {
     _logger.i('Navigating to AI Game');
     ref.read(logPaywallTriggeredProvider)(gameNumber: 1);
+    // gameBoardStateProvider etc. are plain globals that outlive this
+    // screen; without resetting them here, a previous game's finished
+    // board would still be showing (see startNewGameProvider's doc).
+    ref.read(startNewGameProvider)();
     Navigator.of(context).pushNamed('/ai-game');
   }
 
@@ -519,7 +523,7 @@ class HomeScreen extends ConsumerWidget {
                   final result =
                       await ref.read(clearAllSettingsProvider.future);
 
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.pop(context); // Close progress dialog
 
                     if (result) {
@@ -532,7 +536,7 @@ class HomeScreen extends ConsumerWidget {
                   }
                 } catch (e) {
                   _logger.e('Error resetting settings: $e');
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.pop(context); // Close progress dialog
                     _showResetErrorSnackbar(context);
                   }

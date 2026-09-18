@@ -6,6 +6,23 @@ import 'package:goen/viewmodels/index.dart';
 
 final _logger = Logger();
 
+/// Maps a GameRecord's result to the 3-way bucket ('win'/'loss'/'draw')
+/// this screen filters and displays by. GameResult.resignation only ever
+/// comes from the player in this app (the AI never resigns), so it's a
+/// loss; GameResult.unknown falls back to 'draw' as a neutral default.
+String _resultCategory(GameResult result) {
+  switch (result) {
+    case GameResult.playerWin:
+      return 'win';
+    case GameResult.aiWin:
+    case GameResult.resignation:
+      return 'loss';
+    case GameResult.draw:
+    case GameResult.unknown:
+      return 'draw';
+  }
+}
+
 /// GameHistoryScreen - Browse and replay past AI games
 ///
 /// Features:
@@ -69,10 +86,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           var filteredGames = games;
           if (_filterResult != 'all') {
             filteredGames = filteredGames
-                .where((g) {
-                  final resultStr = g.result.toString().split('.').last.toLowerCase();
-                  return resultStr == _filterResult;
-                })
+                .where((g) => _resultCategory(g.result) == _filterResult)
                 .toList();
           }
 
@@ -95,8 +109,10 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                   .sort((a, b) => b.playedAt.compareTo(a.playedAt));
           }
 
-          // If no game selected, show list
-          if (_selectedGameId == null) {
+          // The current filter may have excluded every game (or the
+          // previously selected one); fall back to the list view instead
+          // of crashing when there's nothing left to show details for.
+          if (_selectedGameId == null || filteredGames.isEmpty) {
             return _buildGameList(context, filteredGames);
           }
 
@@ -257,12 +273,27 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStat(context, 'Wins',
-                    games.where((g) => g.result == 'win').length.toString()),
-                _buildStat(context, 'Losses',
-                    games.where((g) => g.result == 'loss').length.toString()),
-                _buildStat(context, 'Draws',
-                    games.where((g) => g.result == 'draw').length.toString()),
+                _buildStat(
+                    context,
+                    'Wins',
+                    games
+                        .where((g) => _resultCategory(g.result) == 'win')
+                        .length
+                        .toString()),
+                _buildStat(
+                    context,
+                    'Losses',
+                    games
+                        .where((g) => _resultCategory(g.result) == 'loss')
+                        .length
+                        .toString()),
+                _buildStat(
+                    context,
+                    'Draws',
+                    games
+                        .where((g) => _resultCategory(g.result) == 'draw')
+                        .length
+                        .toString()),
               ],
             ),
           ),
@@ -307,8 +338,9 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildGameCard(BuildContext context, GameRecord game) {
-    final isWin = game.result == 'win';
-    final isDraw = game.result == 'draw';
+    final category = _resultCategory(game.result);
+    final isWin = category == 'win';
+    final isDraw = category == 'draw';
     final borderColor = isWin
         ? Colors.green[400]
         : isDraw
@@ -421,9 +453,9 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          game.result == 'win'
+                          _resultCategory(game.result) == 'win'
                               ? 'Victory'
-                              : game.result == 'draw'
+                              : _resultCategory(game.result) == 'draw'
                               ? 'Draw'
                               : 'Defeat',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
