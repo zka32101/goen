@@ -28,3 +28,4 @@ export 'leaderboard_service.dart';
 export 'tournament_service.dart';
 export 'game_preset_service.dart';
 export 'analytics_service.dart';
+export 'notification_service.dart';
