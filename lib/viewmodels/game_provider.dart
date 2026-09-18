@@ -253,32 +253,43 @@ final addMoveProvider = Provider<void Function(int, int, String)>((ref) {
 
 // ================== GAME RECORD SAVING ==================
 
-/// Save completed game to Firestore
-final saveGameRecordProvider = FutureProvider.family<String, ({String uid, int boardSize, String result})>(
-  (ref, params) async {
-    _logger.i('Saving game record for user: ${params.uid}');
+/// Save the just-finished game to Firestore.
+///
+/// This is a plain action (like [applyMoveProvider]/[applyPassProvider]),
+/// not a `FutureProvider.family` — a family provider caches by its
+/// argument value, so two different games with the same
+/// (uid, boardSize, result) tuple (e.g. two 9x9 wins in a row) would
+/// collide and the second "Save Game" tap would silently return the
+/// first game's cached result instead of writing the new one.
+final saveGameRecordProvider = Provider<
+    Future<String> Function({
+      required String uid,
+      required int boardSize,
+      required String result,
+    })>((ref) {
+  return ({required uid, required boardSize, required result}) async {
+    _logger.i('Saving game record for user: $uid');
 
-    final boardState = ref.watch(gameBoardStateProvider);
-    final aiLevel = ref.watch(aiLevelProvider);
-    final movesCount = ref.watch(movesCountProvider);
-    final moveHistory = ref.watch(moveHistoryProvider);
+    final boardState = ref.read(gameBoardStateProvider);
+    final aiLevel = ref.read(aiLevelProvider);
+    final movesCount = ref.read(movesCountProvider);
 
     // Generate SGF from board state
     final sgfData = boardState.toSgf();
 
     final gameRecord = GameRecord(
       id: '', // Firestore will auto-generate
-      uid: params.uid,
-      boardSize: params.boardSize,
+      uid: uid,
+      boardSize: boardSize,
       sgfData: sgfData,
-      result: _parseResult(params.result),
+      result: _parseResult(result),
       aiLevel: aiLevel,
       playedAt: DateTime.now(),
       movesCount: movesCount,
       gameDuration: Duration.zero, // TBD: track actual duration
     );
 
-    final firestoreService = ref.watch(firestoreServiceProvider);
+    final firestoreService = ref.read(firestoreServiceProvider);
     try {
       final gameId = await firestoreService.saveGameRecord(gameRecord);
       _logger.i('✅ Game record saved: $gameId');
@@ -287,8 +298,8 @@ final saveGameRecordProvider = FutureProvider.family<String, ({String uid, int b
       _logger.e('❌ Game record save failed: $e');
       rethrow;
     }
-  },
-);
+  };
+});
 
 /// Helper: parse result string to GameResult enum
 GameResult _parseResult(String result) {
@@ -301,6 +312,7 @@ GameResult _parseResult(String result) {
       return GameResult.aiWin;
     case 'draw':
       return GameResult.draw;
+    case 'resign':
     case 'resignation':
       return GameResult.resignation;
     default:

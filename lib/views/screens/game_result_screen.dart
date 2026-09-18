@@ -460,7 +460,11 @@ class GameResultScreen extends ConsumerWidget {
     return 'draw';
   }
 
-  void _handleSaveGame(BuildContext context, WidgetRef ref, User? currentUser) {
+  Future<void> _handleSaveGame(
+    BuildContext context,
+    WidgetRef ref,
+    User? currentUser,
+  ) async {
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please log in to save games')),
@@ -469,10 +473,27 @@ class GameResultScreen extends ConsumerWidget {
     }
 
     _logger.i('Saving game...');
-    // Game save will be done through GameRecord provider
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Game saved!')),
-    );
+    final boardState = ref.read(gameBoardStateProvider);
+
+    try {
+      final gameId = await ref.read(saveGameRecordProvider)(
+        uid: currentUser.uid,
+        boardSize: boardState.boardSize,
+        result: result,
+      );
+      _logger.i('✅ Game saved: $gameId');
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Game saved!')),
+      );
+    } catch (e) {
+      _logger.e('❌ Failed to save game: $e');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save game: $e')),
+      );
+    }
   }
 
   void _handlePlayAgain(BuildContext context, WidgetRef ref) {

@@ -133,14 +133,13 @@ void requestAiMove(WidgetRef ref) {
   ref.invalidate(aiMoveProvider); // Requests new AI move
 }
 
-// Save game when finished
+// Save game when finished (plain action provider, not a family — see
+// its doc comment for why a FutureProvider.family would collide here)
 void completeGame(WidgetRef ref, String uid) async {
-  final gameId = await ref.read(
-    saveGameRecordProvider(
-      uid: uid,
-      boardSize: 9,
-      result: 'win',
-    ).future
+  final gameId = await ref.read(saveGameRecordProvider)(
+    uid: uid,
+    boardSize: 9,
+    result: 'win',
   );
 }
 ```

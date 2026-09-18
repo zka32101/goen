@@ -461,6 +461,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       if (!context.mounted) return;
       Navigator.of(context).pushReplacementNamed('/game-result', arguments: {
         'result': resultLabel,
+        'blackScore': result.blackScore,
+        'whiteScore': result.whiteScore,
       });
     } catch (e) {
       _logger.e('❌ Failed to judge game end: $e');
