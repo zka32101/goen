@@ -244,6 +244,34 @@ final gameRecordProvider = FutureProvider.family<GameRecord?, String>(
   },
 );
 
+// ================== POSITION EVALUATION ==================
+
+/// Evaluate current board position (形勢評価)
+/// Returns score difference and assessment
+final positionEvaluationProvider = FutureProvider.autoDispose<({double scoreDiff, String assessment, double blackWinProb})>((ref) async {
+  final boardState = ref.watch(gameBoardStateProvider);
+
+  _logger.i('📊 Position evaluation request (size=${boardState.boardSize})');
+
+  final aiEngine = ref.watch(aiEngineServiceProvider);
+  try {
+    final evaluation = await aiEngine.evaluatePosition(
+      stones: boardState.stones,
+      boardSize: boardState.boardSize,
+    );
+    _logger.i('✅ Evaluation: ${evaluation.assessment}');
+
+    return (
+      scoreDiff: evaluation.scoreDiff,
+      assessment: evaluation.assessment,
+      blackWinProb: evaluation.blackWinProbability,
+    );
+  } catch (e) {
+    _logger.e('❌ Evaluation failed: $e');
+    rethrow;
+  }
+});
+
 // ================== AI OPPONENT CONFIG ==================
 
 /// Selected AI opponent configuration

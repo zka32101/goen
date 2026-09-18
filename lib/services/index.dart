@@ -1,6 +1,7 @@
 // Barrel file for all services - enables: `import 'package:goen/services/index.dart';`
 
 export 'go_engine_service.dart';
+export 'fuego_engine_service.dart';
 export 'firestore_service.dart';
 export 'auth_service.dart';
 export 'ai_explanation_service.dart';

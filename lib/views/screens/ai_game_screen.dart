@@ -108,6 +108,12 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
             ),
           ),
 
+          // Position evaluation display
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: _buildPositionEvaluation(context, ref),
+          ),
+
           // Game controls
           Padding(
             padding: const EdgeInsets.all(16),
@@ -356,6 +362,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       },
     );
 
+    // Refresh position evaluation
+    ref.refresh(positionEvaluationProvider);
+
     // Request AI move after a short delay
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -413,6 +422,124 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     ref.invalidate(movesCountProvider);
     ref.invalidate(gameResultProvider);
     ref.read(isGameActiveProvider.notifier).state = true;
+  }
+
+  /// Build position evaluation widget
+  Widget _buildPositionEvaluation(BuildContext context, WidgetRef ref) {
+    final evaluation = ref.watch(positionEvaluationProvider);
+
+    return evaluation.when(
+      data: (eval) {
+        final scoreDiff = eval.scoreDiff;
+        final assessment = eval.assessment;
+        final blackWinProb = eval.blackWinProb;
+
+        // Determine color based on score difference
+        final evalColor = scoreDiff > 0
+            ? Colors.blue[400]! // Black winning
+            : scoreDiff < 0
+                ? Colors.orange[400]! // White winning
+                : Colors.amber[600]!; // Even
+
+        // Create evaluation bar (0-100 for win probability display)
+        final barValue = (blackWinProb * 100).clamp(0, 100).toDouble();
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border.all(color: evalColor, width: 1),
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.grey[850]?.withOpacity(0.5),
+          ),
+          child: Column(
+            children: [
+              // Assessment text
+              Text(
+                assessment,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: evalColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Score difference display
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Score Diff: ${scoreDiff.toStringAsFixed(1)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                  Text(
+                    '黒勝率: ${(blackWinProb * 100).toStringAsFixed(1)}%',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // Win probability bar
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: blackWinProb,
+                  minHeight: 8,
+                  backgroundColor: Colors.white30,
+                  valueColor: AlwaysStoppedAnimation(evalColor),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white30, width: 1),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.grey[850]?.withOpacity(0.5),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation(Colors.amber[600]!),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '形勢を計算中...',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (error, stack) => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.red[400]!, width: 1),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.red[900]?.withOpacity(0.2),
+        ),
+        child: Text(
+          '形勢評価エラー',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.red[400],
+          ),
+        ),
+      ),
+    );
   }
 }
 
