@@ -491,6 +491,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 boardSize: ref.read(gameBoardStateProvider).boardSize,
                 movesCount: ref.read(movesCountProvider),
               );
+              // Mark inactive so the board/buttons freeze immediately;
+              // startNewGameProvider (via New Game / Play Again) is what
+              // actually resets state for the next game.
+              ref.read(isGameActiveProvider.notifier).state = false;
               Navigator.of(context).pushReplacementNamed('/game-result', arguments: {
                 'result': 'resign',
               });
@@ -504,12 +508,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
   void _handleNewGame(BuildContext context, WidgetRef ref) {
     _logger.i('Starting new game');
-    ref.invalidate(gameBoardStateProvider);
-    ref.invalidate(movesCountProvider);
-    ref.invalidate(gameResultProvider);
-    ref.invalidate(consecutivePassesProvider);
-    ref.invalidate(lastPlayerPassedProvider);
-    ref.read(isGameActiveProvider.notifier).state = true;
+    ref.read(startNewGameProvider)();
   }
 
   /// Build position evaluation widget

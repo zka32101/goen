@@ -498,6 +498,10 @@ class GameResultScreen extends ConsumerWidget {
 
   void _handlePlayAgain(BuildContext context, WidgetRef ref) {
     _logger.i('Playing again...');
+    // gameBoardStateProvider etc. are plain globals, not scoped to
+    // AIGameScreen's lifecycle — without this, the new game would start
+    // by showing the just-finished board instead of an empty one.
+    ref.read(startNewGameProvider)();
     Navigator.of(context).pushReplacementNamed('/ai-game');
   }
 

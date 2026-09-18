@@ -65,6 +65,25 @@ final gameResultProvider = StateProvider<GameEndResult?>((ref) {
   return null;
 });
 
+/// Resets all per-game state and marks the game active. This is the only
+/// correct way to start a fresh game: the game state providers above are
+/// plain (non-autoDispose) globals, so simply navigating to a new
+/// AIGameScreen instance does **not** reset them — the previous game's
+/// finished board, move count and pass counters would otherwise leak into
+/// the next game (this is what "Play Again" used to do wrong).
+final startNewGameProvider = Provider<void Function()>((ref) {
+  return () {
+    ref.invalidate(gameBoardStateProvider);
+    ref.invalidate(movesCountProvider);
+    ref.invalidate(moveHistoryProvider);
+    ref.invalidate(gameResultProvider);
+    ref.invalidate(consecutivePassesProvider);
+    ref.invalidate(lastPlayerPassedProvider);
+    ref.read(isGameActiveProvider.notifier).state = true;
+    _logger.i('🆕 New game started');
+  };
+});
+
 // ================== AI MOVE REQUESTS ==================
 
 /// Request AI move from Fuego engine (On-device)
