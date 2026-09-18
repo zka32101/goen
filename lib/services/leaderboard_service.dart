@@ -1,300 +1,196 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
-import '../models/extended_game_models.dart';
+import 'package:goen/models/leaderboard.dart';
 
 final _logger = Logger();
 
-/// Service for managing leaderboards and rankings
+/// Leaderboard データベース操作サービス
 class LeaderboardService {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  const LeaderboardService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? _firestoreInstance;
+  static const String leaderboardCollection = 'leaderboards';
 
-  static final _firestoreInstance = FirebaseFirestore.instance;
-
-  /// Update leaderboard entry
-  Future<bool> updateLeaderboardEntry({
-    required String userId,
-    required String displayName,
-    required double rating,
-    required int wins,
-    required int losses,
-    required int totalGames,
-    required String period,
-    String? avatarUrl,
+  /// ランキングを取得（期間・タイプ別）
+  Future<List<LeaderboardEntry>> getLeaderboard({
+    required LeaderboardPeriod period,
+    required LeaderboardType type,
+    int limit = 100,
   }) async {
     try {
-      _logger.i('Updating leaderboard entry for: $userId in period: $period');
+      _logger.i('Fetching leaderboard: period=$period, type=$type');
 
-      final winRate = totalGames > 0 ? (wins / totalGames) * 100 : 0.0;
+      final query = _firestore
+          .collection(leaderboardCollection)
+          .doc(period.toShortString())
+          .collection(type.toShortString())
+          .orderBy('rank')
+          .limit(limit);
 
-      await _firestore
-          .collection('leaderboards')
-          .doc(period)
-          .collection('entries')
-          .doc(userId)
-          .set({
-        'userId': userId,
-        'displayName': displayName,
-        'rating': rating,
-        'wins': wins,
-        'losses': losses,
-        'totalGames': totalGames,
-        'winRate': winRate,
-        'avatarUrl': avatarUrl ?? '',
-        'updatedAt': DateTime.now(),
-      }, SetOptions(merge: true));
+      final snapshot = await query.get();
+      final entries = snapshot.docs
+          .map((doc) => LeaderboardEntry.fromFirestore(
+              doc as DocumentSnapshot<Map<String, dynamic>>))
+          .toList();
 
-      return true;
-    } catch (e) {
-      _logger.e('Failed to update leaderboard entry: $e');
-      return false;
-    }
-  }
-
-  /// Get top players
-  Future<List<LeaderboardEntry>> getTopPlayers({
-    required String period,
-    int limit = 50,
-  }) async {
-    try {
-      _logger.i('Getting top $limit players for period: $period');
-
-      final querySnapshot = await _firestore
-          .collection('leaderboards')
-          .doc(period)
-          .collection('entries')
-          .orderBy('rating', descending: true)
-          .limit(limit)
-          .get();
-
-      var rank = 1;
-      final entries = querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        return LeaderboardEntry(
-          userId: data['userId'] as String,
-          displayName: data['displayName'] as String,
-          rank: rank++,
-          rating: (data['rating'] as num).toDouble(),
-          wins: data['wins'] as int,
-          losses: data['losses'] as int,
-          totalGames: data['totalGames'] as int,
-          period: period,
-          winRate: (data['winRate'] as num).toDouble(),
-          avatarUrl: data['avatarUrl'] as String?,
-        );
-      }).toList();
-
+      _logger.i('✅ Leaderboard fetched: ${entries.length} entries');
       return entries;
     } catch (e) {
-      _logger.e('Failed to get top players: $e');
-      return [];
+      _logger.e('Error fetching leaderboard: $e');
+      rethrow;
     }
   }
 
-  /// Get player rank
-  Future<LeaderboardEntry?> getPlayerRank({
-    required String userId,
-    required String period,
+  /// ユーザーのランキングを取得
+  Future<LeaderboardEntry?> getUserRank({
+    required String uid,
+    required LeaderboardPeriod period,
+    required LeaderboardType type,
   }) async {
     try {
-      _logger.i('Getting rank for user: $userId in period: $period');
+      _logger.i('Fetching user rank: uid=$uid, period=$period, type=$type');
 
       final doc = await _firestore
-          .collection('leaderboards')
-          .doc(period)
-          .collection('entries')
-          .doc(userId)
+          .collection(leaderboardCollection)
+          .doc(period.toShortString())
+          .collection(type.toShortString())
+          .doc(uid)
           .get();
 
       if (!doc.exists) {
         return null;
       }
 
-      final data = doc.data()!;
+      return LeaderboardEntry.fromFirestore(
+          doc as DocumentSnapshot<Map<String, dynamic>>);
+    } catch (e) {
+      _logger.e('Error fetching user rank: $e');
+      rethrow;
+    }
+  }
 
-      // Get rank
-      final higherRatings = await _firestore
-          .collection('leaderboards')
-          .doc(period)
-          .collection('entries')
-          .where('rating', isGreaterThan: data['rating'])
-          .count()
-          .get();
+  /// ランキングを更新（自動計算・バッチ更新）
+  Future<void> updateLeaderboard({
+    required LeaderboardPeriod period,
+    required LeaderboardType type,
+    required List<LeaderboardEntry> entries,
+  }) async {
+    try {
+      _logger.i('Updating leaderboard: period=$period, type=$type');
 
-      final rank = higherRatings.count + 1;
+      final batch = _firestore.batch();
+      final collectionRef = _firestore
+          .collection(leaderboardCollection)
+          .doc(period.toShortString())
+          .collection(type.toShortString());
 
-      return LeaderboardEntry(
-        userId: data['userId'] as String,
-        displayName: data['displayName'] as String,
-        rank: rank,
-        rating: (data['rating'] as num).toDouble(),
-        wins: data['wins'] as int,
-        losses: data['losses'] as int,
-        totalGames: data['totalGames'] as int,
-        period: period,
-        winRate: (data['winRate'] as num).toDouble(),
-        avatarUrl: data['avatarUrl'] as String?,
+      // ランク順にソート
+      entries.sort((a, b) => a.rank.compareTo(b.rank));
+
+      for (var i = 0; i < entries.length; i++) {
+        final entry = entries[i].copyWith(rank: i + 1);
+        batch.set(collectionRef.doc(entry.uid), entry.toFirestore());
+      }
+
+      await batch.commit();
+      _logger.i('✅ Leaderboard updated');
+    } catch (e) {
+      _logger.e('Error updating leaderboard: $e');
+      rethrow;
+    }
+  }
+
+  /// ユーザーのスコアを更新
+  Future<void> updateUserScore({
+    required String uid,
+    required String displayName,
+    required LeaderboardPeriod period,
+    required LeaderboardType type,
+    required int rating,
+    required int gamesPlayed,
+    required int wins,
+    required int puzzlesSolved,
+  }) async {
+    try {
+      _logger.i('Updating user score: uid=$uid, rating=$rating');
+
+      final winRate = gamesPlayed > 0 ? wins / gamesPlayed : 0.0;
+
+      final entry = LeaderboardEntry(
+        uid: uid,
+        displayName: displayName,
+        rank: 0, // Will be recalculated by batch process
+        rating: rating,
+        gamesPlayed: gamesPlayed,
+        wins: wins,
+        winRate: winRate,
+        puzzlesSolved: puzzlesSolved,
+        lastUpdated: DateTime.now(),
       );
+
+      await _firestore
+          .collection(leaderboardCollection)
+          .doc(period.toShortString())
+          .collection(type.toShortString())
+          .doc(uid)
+          .set(entry.toFirestore(), SetOptions(merge: true));
+
+      _logger.i('✅ User score updated');
     } catch (e) {
-      _logger.e('Failed to get player rank: $e');
-      return null;
+      _logger.e('Error updating user score: $e');
+      rethrow;
     }
   }
 
-  /// Get players in rating range
-  Future<List<LeaderboardEntry>> getPlayersInRange({
-    required String period,
-    required double minRating,
-    required double maxRating,
-    int limit = 50,
+  /// 期間別ランキングをリセット
+  Future<void> resetLeaderboard({
+    required LeaderboardPeriod period,
+    required LeaderboardType type,
   }) async {
     try {
-      _logger.i('Getting players between $minRating-$maxRating for $period');
+      _logger.w('Resetting leaderboard: period=$period, type=$type');
 
-      final querySnapshot = await _firestore
-          .collection('leaderboards')
-          .doc(period)
-          .collection('entries')
-          .where('rating', isGreaterThanOrEqualTo: minRating)
-          .where('rating', isLessThanOrEqualTo: maxRating)
-          .orderBy('rating', descending: true)
-          .limit(limit)
+      final snapshot = await _firestore
+          .collection(leaderboardCollection)
+          .doc(period.toShortString())
+          .collection(type.toShortString())
           .get();
 
-      var rank = 1;
-      final entries = querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        return LeaderboardEntry(
-          userId: data['userId'] as String,
-          displayName: data['displayName'] as String,
-          rank: rank++,
-          rating: (data['rating'] as num).toDouble(),
-          wins: data['wins'] as int,
-          losses: data['losses'] as int,
-          totalGames: data['totalGames'] as int,
-          period: period,
-          winRate: (data['winRate'] as num).toDouble(),
-          avatarUrl: data['avatarUrl'] as String?,
-        );
-      }).toList();
+      final batch = _firestore.batch();
+      for (var doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
 
-      return entries;
+      await batch.commit();
+      _logger.i('✅ Leaderboard reset');
     } catch (e) {
-      _logger.e('Failed to get players in range: $e');
-      return [];
+      _logger.e('Error resetting leaderboard: $e');
+      rethrow;
     }
   }
+}
 
-  /// Stream leaderboard (real-time)
-  Stream<List<LeaderboardEntry>> streamLeaderboard({
-    required String period,
-    int limit = 50,
+extension on LeaderboardEntry {
+  LeaderboardEntry copyWith({
+    String? uid,
+    String? displayName,
+    int? rank,
+    int? rating,
+    int? gamesPlayed,
+    int? wins,
+    double? winRate,
+    int? puzzlesSolved,
+    DateTime? lastUpdated,
   }) {
-    return _firestore
-        .collection('leaderboards')
-        .doc(period)
-        .collection('entries')
-        .orderBy('rating', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map((snapshot) {
-      var rank = 1;
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return LeaderboardEntry(
-          userId: data['userId'] as String,
-          displayName: data['displayName'] as String,
-          rank: rank++,
-          rating: (data['rating'] as num).toDouble(),
-          wins: data['wins'] as int,
-          losses: data['losses'] as int,
-          totalGames: data['totalGames'] as int,
-          period: period,
-          winRate: (data['winRate'] as num).toDouble(),
-          avatarUrl: data['avatarUrl'] as String?,
-        );
-      }).toList();
-    });
-  }
-
-  /// Get available periods
-  Future<List<String>> getAvailablePeriods() async {
-    try {
-      _logger.i('Getting available leaderboard periods');
-
-      final querySnapshot =
-          await _firestore.collection('leaderboards').get();
-
-      return querySnapshot.docs.map((doc) => doc.id).toList();
-    } catch (e) {
-      _logger.e('Failed to get periods: $e');
-      return ['allTime', 'monthly', 'weekly', 'daily'];
-    }
-  }
-
-  /// Get leaderboard statistics
-  Future<Map<String, dynamic>> getLeaderboardStats({
-    required String period,
-  }) async {
-    try {
-      _logger.i('Getting leaderboard stats for: $period');
-
-      final count = await _firestore
-          .collection('leaderboards')
-          .doc(period)
-          .collection('entries')
-          .count()
-          .get();
-
-      final topPlayer = await _firestore
-          .collection('leaderboards')
-          .doc(period)
-          .collection('entries')
-          .orderBy('rating', descending: true)
-          .limit(1)
-          .get();
-
-      if (topPlayer.docs.isEmpty) {
-        return {
-          'totalPlayers': 0,
-          'topRating': 0.0,
-        };
-      }
-
-      final topData = topPlayer.docs.first.data();
-
-      return {
-        'totalPlayers': count.count,
-        'topRating': (topData['rating'] as num).toDouble(),
-      };
-    } catch (e) {
-      _logger.e('Failed to get leaderboard stats: $e');
-      return {};
-    }
-  }
-
-  /// Reset leaderboard for a period
-  Future<bool> resetLeaderboard({required String period}) async {
-    try {
-      _logger.w('Resetting leaderboard for period: $period');
-
-      final querySnapshot = await _firestore
-          .collection('leaderboards')
-          .doc(period)
-          .collection('entries')
-          .get();
-
-      for (final doc in querySnapshot.docs) {
-        await doc.reference.delete();
-      }
-
-      _logger.i('Leaderboard reset completed for: $period');
-      return true;
-    } catch (e) {
-      _logger.e('Failed to reset leaderboard: $e');
-      return false;
-    }
+    return LeaderboardEntry(
+      uid: uid ?? this.uid,
+      displayName: displayName ?? this.displayName,
+      rank: rank ?? this.rank,
+      rating: rating ?? this.rating,
+      gamesPlayed: gamesPlayed ?? this.gamesPlayed,
+      wins: wins ?? this.wins,
+      winRate: winRate ?? this.winRate,
+      puzzlesSolved: puzzlesSolved ?? this.puzzlesSolved,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
   }
 }

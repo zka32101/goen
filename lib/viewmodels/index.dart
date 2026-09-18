@@ -13,3 +13,5 @@ export 'streaming_provider.dart';
 export 'game_result_share_provider.dart';
 export 'social_features_provider.dart';
 export 'game_modes_analytics_provider.dart';
+export 'leaderboard_provider.dart';
+export 'friend_provider.dart';
