@@ -18,3 +18,4 @@ export 'leaderboard.dart';
 export 'friend.dart';
 export 'tournament.dart';
 export 'notification.dart';
+export 'spectator.dart';

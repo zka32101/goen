@@ -17,3 +17,4 @@ export 'leaderboard_provider.dart';
 export 'friend_provider.dart';
 export 'tournament_provider.dart';
 export 'notification_provider.dart';
+export 'spectator_provider.dart';
