@@ -42,7 +42,9 @@ class KifuLibrary {
       isPremium: data['isPremium'] ?? false,
       source: data['source'] ?? '',
       gameDate: data['gameDate'] != null ? (data['gameDate'] as Timestamp).toDate() : null,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 

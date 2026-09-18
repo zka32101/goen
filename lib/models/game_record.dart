@@ -38,7 +38,9 @@ class GameRecord {
       sgfData: data['sgfData'] ?? '',
       result: GameResult.fromString(data['result'] ?? 'draw'),
       aiLevel: data['aiLevel'] ?? 1,
-      playedAt: (data['playedAt'] as Timestamp).toDate(),
+      playedAt: data['playedAt'] is Timestamp
+          ? (data['playedAt'] as Timestamp).toDate()
+          : DateTime.now(),
       movesCount: data['movesCount'],
       gameDuration: data['gameDuration'] != null
           ? Duration(seconds: data['gameDuration'] as int)

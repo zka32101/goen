@@ -35,7 +35,9 @@ class TsumeGoProblem {
       explanation: data['explanation'] ?? '',
       source: data['source'] ?? '',
       version: data['version'] ?? 1,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
       expectedMoves: data['expectedMoves'],
     );
   }

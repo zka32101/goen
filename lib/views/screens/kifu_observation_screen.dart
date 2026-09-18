@@ -551,6 +551,25 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
 
   void _handleBackToLibrary() {
     _logger.i('Returning to library');
+
+    final currentUser = ref.read(currentUserProvider);
+    final gameId = _selectedGameId;
+    if (currentUser != null && gameId != null) {
+      // 150 matches the placeholder move-count used by the slider below
+      // until real SGF move parsing lands.
+      final completedRate = _currentMoveIndex / 150;
+      ref
+          .read(saveObservationLogProvider)(
+            uid: currentUser.uid,
+            kifuId: gameId,
+            completedRate: completedRate,
+          )
+          .catchError((e) {
+            _logger.e('❌ Failed to save observation log: $e');
+            return '';
+          });
+    }
+
     setState(() {
       _selectedGameId = null;
       _currentMoveIndex = 0;

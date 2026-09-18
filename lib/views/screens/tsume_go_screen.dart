@@ -67,7 +67,10 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
               attemptCount: attemptCount,
               solvingTime: Duration(seconds: 300), // Placeholder
               isSolved: true,
-              currentStreak: ref.watch(puzzleStreakProvider) ?? 0,
+              currentStreak: currentUser != null
+                  ? (ref.watch(tsumeGoStreakProvider(currentUser.uid)).value ??
+                      0)
+                  : 0,
             );
             return PuzzleShareButton(
               puzzleData: puzzleShareData,
@@ -210,7 +213,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _buildPuzzleBoard(context, puzzle),
+                    child: _buildPuzzleBoard(context, ref, puzzle, isPuzzleSolved),
                   ),
                 ),
 
@@ -382,36 +385,93 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
     );
   }
 
-  Widget _buildPuzzleBoard(BuildContext context, TsumeGoProblem puzzle) {
-    return Container(
-      width: 300,
-      height: 300,
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.amber[600]!,
-          width: 2,
+  Widget _buildPuzzleBoard(
+    BuildContext context,
+    WidgetRef ref,
+    TsumeGoProblem puzzle,
+    bool isPuzzleSolved,
+  ) {
+    final boardState = ref.watch(currentPuzzleBoardProvider);
+    final boardSize = boardState.boardSize;
+    final cellSize = 300 / boardSize;
+
+    return GestureDetector(
+      onTapDown: (details) {
+        if (isPuzzleSolved) return;
+        final localPosition = details.localPosition;
+        final row = (localPosition.dy / cellSize).floor();
+        final col = (localPosition.dx / cellSize).floor();
+        if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
+          ref.read(applyPuzzleMoveProvider)(row, col);
+        }
+      },
+      child: Container(
+        width: 300,
+        height: 300,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.amber[600]!,
+            width: 2,
+          ),
+          color: Colors.amber[100]?.withOpacity(0.1),
         ),
-        color: Colors.amber[100]?.withOpacity(0.1),
-      ),
-      child: Stack(
-        children: [
-          CustomPaint(
-            painter: _GoGridPainter(boardSize: 9),
-            size: const Size(300, 300),
-          ),
-          // TODO: Render puzzle board from SGF data
-          Center(
-            child: Text(
-              'Puzzle Board\n(SGF Parser - Phase 5.1)',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white70,
-              ),
+        child: Stack(
+          children: [
+            CustomPaint(
+              painter: _GoGridPainter(boardSize: boardSize),
+              size: const Size(300, 300),
             ),
-          ),
-        ],
+            ..._buildStones(boardSize, cellSize, boardState.stones),
+          ],
+        ),
       ),
     );
+  }
+
+  List<Widget> _buildStones(
+    int boardSize,
+    double cellSize,
+    List<List<int>> stones,
+  ) {
+    final stoneWidgets = <Widget>[];
+    final stoneRadius = cellSize * 0.4;
+
+    for (int row = 0; row < boardSize; row++) {
+      for (int col = 0; col < boardSize; col++) {
+        final stone = stones[row][col];
+        if (stone != 0) {
+          final color = stone == 1 ? Colors.black : Colors.white;
+          final border = stone == 1
+              ? null
+              : Border.all(color: Colors.black, width: 1);
+
+          stoneWidgets.add(
+            Positioned(
+              left: col * cellSize + cellSize / 2 - stoneRadius,
+              top: row * cellSize + cellSize / 2 - stoneRadius,
+              child: Container(
+                width: stoneRadius * 2,
+                height: stoneRadius * 2,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                  border: border,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black38,
+                      blurRadius: 4,
+                      offset: Offset(2, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+      }
+    }
+
+    return stoneWidgets;
   }
 
   Widget _buildDifficultySelector(BuildContext context, WidgetRef ref) {
@@ -477,17 +537,45 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
     );
   }
 
-  void _handleSubmitSolution(
+  Future<void> _handleSubmitSolution(
     BuildContext context,
     WidgetRef ref,
     TsumeGoProblem puzzle,
     User currentUser,
-  ) {
+  ) async {
     _logger.i('Submitting solution for puzzle ${puzzle.id}');
-    // TODO: Validate solution and record attempt
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Solution checking - Phase 5.1')),
-    );
+
+    final userSolutionSgf = ref.read(currentPuzzleBoardProvider).toSgf();
+    final isCorrect = ref.read(checkPuzzleSolutionProvider(userSolutionSgf));
+
+    try {
+      await ref.read(recordPuzzleAttemptProvider)(
+        uid: currentUser.uid,
+        isCorrect: isCorrect,
+        userSolutionSgf: userSolutionSgf,
+      );
+
+      if (!isCorrect) {
+        // Reset to the initial setup so the next attempt starts clean
+        // instead of stacking more stones on top of the wrong ones.
+        ref.read(resetPuzzleBoardProvider)();
+      }
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isCorrect ? 'Correct! Well done.' : 'Not quite — try again.',
+          ),
+        ),
+      );
+    } catch (e) {
+      _logger.e('❌ Failed to record puzzle attempt: $e');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to check solution: $e')),
+      );
+    }
   }
 
   void _handleSkipPuzzle(BuildContext context) {

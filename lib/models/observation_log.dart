@@ -25,7 +25,9 @@ class ObservationLog {
       id: doc.id,
       uid: data['uid'] ?? '',
       kifuId: data['kifuId'] ?? '',
-      watchedAt: (data['watchedAt'] as Timestamp).toDate(),
+      watchedAt: data['watchedAt'] is Timestamp
+          ? (data['watchedAt'] as Timestamp).toDate()
+          : DateTime.now(),
       completedRate: (data['completedRate'] ?? 0.0).toDouble(),
       watchDuration: data['watchDuration'] != null
           ? Duration(seconds: data['watchDuration'] as int)

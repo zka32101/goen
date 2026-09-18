@@ -34,14 +34,20 @@ class User {
       email: data['email'] ?? '',
       displayName: data['displayName'],
       subscriptionActive: data['subscriptionActive'] ?? false,
-      subscriptionStartDate: (data['subscriptionStartDate'] as Timestamp).toDate(),
-      subscriptionEndDate: data['subscriptionEndDate'] != null
+      subscriptionStartDate: data['subscriptionStartDate'] is Timestamp
+          ? (data['subscriptionStartDate'] as Timestamp).toDate()
+          : DateTime.now(),
+      subscriptionEndDate: data['subscriptionEndDate'] is Timestamp
           ? (data['subscriptionEndDate'] as Timestamp).toDate()
           : null,
       tutorialCompleted: data['tutorialCompleted'] ?? false,
       gamesPlayedCount: data['gamesPlayedCount'] ?? 0,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      createdAt: data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      updatedAt: data['updatedAt'] is Timestamp
+          ? (data['updatedAt'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 

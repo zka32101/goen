@@ -47,3 +47,36 @@ final selectedKifuProvider = StateProvider<KifuLibrary?>((ref) {
 final kifuObservationProgressProvider = StateProvider<Map<String, int>>((ref) {
   return {}; // game_id -> move_number
 });
+
+/// Records how far the user watched into a kifu. Plain action (same
+/// reasoning as saveGameRecordProvider/recordPuzzleAttemptProvider) so
+/// repeated calls always write, rather than a FutureProvider.family
+/// silently returning a cached result for a previous game/rate.
+final saveObservationLogProvider = Provider<
+    Future<String> Function({
+      required String uid,
+      required String kifuId,
+      required double completedRate,
+    })>((ref) {
+  return ({required uid, required kifuId, required completedRate}) async {
+    _logger.i('Saving observation log: uid=$uid, kifuId=$kifuId, rate=$completedRate');
+
+    final firestoreService = ref.read(kifuFirestoreProvider);
+    final log = ObservationLog(
+      id: '', // Firestore will auto-generate
+      uid: uid,
+      kifuId: kifuId,
+      watchedAt: DateTime.now(),
+      completedRate: completedRate.clamp(0.0, 1.0),
+    );
+
+    try {
+      final logId = await firestoreService.saveObservationLog(log);
+      _logger.i('✅ Observation log saved: $logId');
+      return logId;
+    } catch (e) {
+      _logger.e('❌ Failed to save observation log: $e');
+      rethrow;
+    }
+  };
+});

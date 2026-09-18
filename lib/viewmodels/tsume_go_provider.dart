@@ -2,6 +2,7 @@ import 'package:riverpod/riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart';
+import 'package:goen/services/go_rules.dart';
 
 final _logger = Logger();
 
@@ -37,28 +38,14 @@ final currentTsumeProblemProvider = StateProvider<TsumeGoProblem?>((ref) {
   return todaysProblem.value;
 });
 
-/// Current puzzle solution attempt
+/// Current puzzle solution attempt, initialized from the problem's
+/// starting position (parsed from its SGF setup).
 final currentPuzzleBoardProvider = StateProvider<BoardState>((ref) {
   final problem = ref.watch(currentTsumeProblemProvider);
   if (problem == null) {
-    return BoardState(
-      boardSize: 9,
-      stones: List.generate(9, (_) => List.filled(9, 0)),
-      capturedBlack: 0,
-      capturedWhite: 0,
-      isBlackTurn: true,
-    );
+    return BoardState.empty(size: 9);
   }
-
-  // Parse SGF to board state (TBD: implement SGF parser)
-  // For now, use placeholder
-  return BoardState(
-    boardSize: 9,
-    stones: List.generate(9, (_) => List.filled(9, 0)),
-    capturedBlack: 0,
-    capturedWhite: 0,
-    isBlackTurn: true,
-  );
+  return BoardState.fromSgf(problem.sgfData);
 });
 
 /// Is current puzzle solved?
@@ -74,6 +61,43 @@ final puzzleAttemptCountProvider = StateProvider<int>((ref) {
 /// Time spent on current puzzle (in seconds)
 final puzzleSolvingTimeProvider = StateProvider<int>((ref) {
   return 0;
+});
+
+/// Attempts to place a stone on the puzzle board (the player always plays
+/// black, same convention as AI games). Reuses the live-game capture/
+/// suicide/ko rules. Returns true if the move was legal and applied.
+final applyPuzzleMoveProvider = Provider<bool Function(int row, int col)>((ref) {
+  return (row, col) {
+    final board = ref.read(currentPuzzleBoardProvider);
+    final player = board.isBlackTurn ? 1 : 2;
+
+    final result = GoRules.applyMove(
+      stones: board.stones,
+      boardSize: board.boardSize,
+      row: row,
+      col: col,
+      player: player,
+      koRow: board.koRow,
+      koCol: board.koCol,
+    );
+
+    if (result == null) return false;
+
+    ref.read(currentPuzzleBoardProvider.notifier).state = board.copyWith(
+      stones: result.stones,
+      isBlackTurn: !board.isBlackTurn,
+      lastMoveRow: row,
+      lastMoveCol: col,
+      koRow: result.koRow,
+      koCol: result.koCol,
+    );
+    return true;
+  };
+});
+
+/// Resets the puzzle board back to the problem's initial setup position.
+final resetPuzzleBoardProvider = Provider<void Function()>((ref) {
+  return () => ref.invalidate(currentPuzzleBoardProvider);
 });
 
 // ================== PUZZLE ACTIONS ==================
@@ -134,31 +158,43 @@ final checkPuzzleSolutionProvider = Provider.family<bool, String>(
   },
 );
 
-/// Record puzzle attempt
-final recordPuzzleAttemptProvider = FutureProvider.family<String, ({String uid, bool isCorrect, String userSolutionSgf})>(
-  (ref, params) async {
-    final problem = ref.watch(currentTsumeProblemProvider);
+/// Records an attempt at the current puzzle.
+///
+/// This is a plain action (like [applyPuzzleMoveProvider]), not a
+/// `FutureProvider.family` — a family provider caches by its argument
+/// value, so two attempts with the same (uid, isCorrect, sgf) tuple would
+/// collide and the second call would return the first attempt's cached
+/// Firestore write instead of actually recording the new one (same class
+/// of bug fixed earlier in saveGameRecordProvider).
+final recordPuzzleAttemptProvider = Provider<
+    Future<String> Function({
+      required String uid,
+      required bool isCorrect,
+      required String userSolutionSgf,
+    })>((ref) {
+  return ({required uid, required isCorrect, required userSolutionSgf}) async {
+    final problem = ref.read(currentTsumeProblemProvider);
     if (problem == null) {
       throw Exception('No current puzzle selected');
     }
 
-    _logger.i('Recording puzzle attempt: uid=${params.uid}, correct=${params.isCorrect}');
+    _logger.i('Recording puzzle attempt: uid=$uid, correct=$isCorrect');
 
-    final firestoreService = ref.watch(tsumeGoFirestoreProvider);
+    final firestoreService = ref.read(tsumeGoFirestoreProvider);
     final log = UserTsumeGoLog(
       id: '', // Firestore will auto-generate
-      uid: params.uid,
+      uid: uid,
       problemId: problem.id,
-      isCorrect: params.isCorrect,
+      isCorrect: isCorrect,
       solvedAt: DateTime.now(),
-      attemptCount: ref.watch(puzzleAttemptCountProvider),
-      solvingTime: Duration(seconds: ref.watch(puzzleSolvingTimeProvider)),
-      userSolutionSgf: params.userSolutionSgf,
+      attemptCount: ref.read(puzzleAttemptCountProvider),
+      solvingTime: Duration(seconds: ref.read(puzzleSolvingTimeProvider)),
+      userSolutionSgf: userSolutionSgf,
     );
 
     try {
       final logId = await firestoreService.saveTsumeGoLog(log);
-      if (params.isCorrect) {
+      if (isCorrect) {
         ref.read(isPuzzleSolvedProvider.notifier).state = true;
       } else {
         ref.read(puzzleAttemptCountProvider.notifier).state += 1;
@@ -169,8 +205,8 @@ final recordPuzzleAttemptProvider = FutureProvider.family<String, ({String uid, 
       _logger.e('❌ Failed to record puzzle attempt: $e');
       rethrow;
     }
-  },
-);
+  };
+});
 
 // ================== STREAK TRACKING ==================
 

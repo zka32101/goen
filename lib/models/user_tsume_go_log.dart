@@ -30,7 +30,9 @@ class UserTsumeGoLog {
       uid: data['uid'] ?? '',
       problemId: data['problemId'] ?? '',
       isCorrect: data['isCorrect'] ?? false,
-      solvedAt: (data['solvedAt'] as Timestamp).toDate(),
+      solvedAt: data['solvedAt'] is Timestamp
+          ? (data['solvedAt'] as Timestamp).toDate()
+          : DateTime.now(),
       attemptCount: data['attemptCount'] ?? 1,
       solvingTime: data['solvingTime'] != null
           ? Duration(seconds: data['solvingTime'] as int)

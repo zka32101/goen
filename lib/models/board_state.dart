@@ -76,6 +76,39 @@ class BoardState {
     );
   }
 
+  /// Parse the app's own SGF dialect (as written by [toSgf]: `SZ[n]`
+  /// plus `;B[col,row]`/`;W[col,row]` per stone) into a starting position.
+  /// Used to load a tsume-go problem's initial setup.
+  factory BoardState.fromSgf(String sgf) {
+    final sizeMatch = RegExp(r'SZ\[(\d+)\]').firstMatch(sgf);
+    final boardSize = sizeMatch != null ? int.parse(sizeMatch.group(1)!) : 9;
+
+    final stones = List.generate(boardSize, (_) => List.filled(boardSize, 0));
+
+    final moveMatches = RegExp(r'([BW])\[([a-zA-Z]),([a-zA-Z])\]').allMatches(sgf);
+    for (final match in moveMatches) {
+      final col = _sgfCharToCoord(match.group(2)!);
+      final row = _sgfCharToCoord(match.group(3)!);
+      if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
+        stones[row][col] = match.group(1) == 'B' ? 1 : 2;
+      }
+    }
+
+    return BoardState(
+      boardSize: boardSize,
+      stones: stones,
+      capturedBlack: 0,
+      capturedWhite: 0,
+      isBlackTurn: true,
+    );
+  }
+
+  static int _sgfCharToCoord(String ch) {
+    final code = ch.codeUnitAt(0);
+    if (code >= 97 && code <= 122) return code - 97; // a-z
+    return 26 + (code - 65); // A-Z
+  }
+
   /// Convert to SGF (Standard Game Format) for engine
   String toSgf() {
     final buffer = StringBuffer();
