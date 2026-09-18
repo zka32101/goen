@@ -16,3 +16,4 @@ export 'game_settings.dart';
 export 'extended_game_models.dart';
 export 'leaderboard.dart';
 export 'friend.dart';
+export 'tournament.dart';
