@@ -49,6 +49,19 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       final aiMove = next.valueOrNull;
       if (aiMove == null) return;
 
+      if (aiMove.isPass) {
+        _logger.i('AI passed');
+        final gameEnded = ref.read(applyPassProvider)();
+        ref.read(logCustomEventProvider)(
+          eventName: 'ai_pass',
+          parameters: {'move_number': ref.read(movesCountProvider)},
+        );
+        if (gameEnded) {
+          _endGameByPasses(context, ref);
+        }
+        return;
+      }
+
       final applied = ref.read(applyMoveProvider)(aiMove.row, aiMove.col);
       if (!applied) {
         _logger.e('❌ AI returned an illegal move: [${aiMove.row},${aiMove.col}]');
@@ -92,6 +105,23 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     ),
                     Text(
                       '${boardState.boardSize}×${boardState.boardSize}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text(
+                      'Captures (B/W)',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white70,
+                      ),
+                    ),
+                    Text(
+                      '${boardState.capturedBlack} / ${boardState.capturedWhite}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -176,7 +206,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: isGameActive ? () => _handlePass(context) : null,
+                        onPressed: isGameActive ? () => _handlePass(context, ref) : null,
                         child: const Text('Pass'),
                       ),
                     ),
@@ -374,14 +404,67 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     });
   }
 
-  void _handlePass(BuildContext context) {
+  void _handlePass(BuildContext context, WidgetRef ref) {
+    if (!ref.read(gameBoardStateProvider).isBlackTurn) return;
+
     _logger.i('Player passed');
+    final gameEnded = ref.read(applyPassProvider)();
+
+    ref.read(logCustomEventProvider)(
+      eventName: 'player_pass',
+      parameters: {'move_number': ref.read(movesCountProvider)},
+    );
+
+    if (gameEnded) {
+      _endGameByPasses(context, ref);
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('You passed. Game will end if AI passes too.'),
         duration: Duration(seconds: 2),
       ),
     );
+
+    // Let the AI respond, same pacing as after a stone placement.
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        ref.invalidate(aiMoveProvider);
+      }
+    });
+  }
+
+  /// Two consecutive passes: score the game and move to the result screen.
+  Future<void> _endGameByPasses(BuildContext context, WidgetRef ref) async {
+    _logger.i('🏁 Game ended by two consecutive passes');
+    ref.read(isGameActiveProvider.notifier).state = false;
+
+    try {
+      final result = await ref.read(judgeGameEndProvider.future);
+      ref.read(gameResultProvider.notifier).state = result;
+
+      final resultLabel = result.winner == 'black'
+          ? 'win'
+          : result.winner == 'white'
+              ? 'lose'
+              : 'draw';
+
+      ref.read(logCustomEventProvider)(
+        eventName: 'ai_game_completed',
+        parameters: {
+          'result': resultLabel,
+          'ai_level': ref.read(aiLevelProvider),
+        },
+      );
+
+      if (!context.mounted) return;
+      Navigator.of(context).pushReplacementNamed('/game-result', arguments: {
+        'result': resultLabel,
+      });
+    } catch (e) {
+      _logger.e('❌ Failed to judge game end: $e');
+    }
   }
 
   void _handleResign(BuildContext context, WidgetRef ref) {
@@ -422,6 +505,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     ref.invalidate(gameBoardStateProvider);
     ref.invalidate(movesCountProvider);
     ref.invalidate(gameResultProvider);
+    ref.invalidate(consecutivePassesProvider);
+    ref.invalidate(lastPlayerPassedProvider);
     ref.read(isGameActiveProvider.notifier).state = true;
   }
 

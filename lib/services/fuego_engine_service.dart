@@ -18,6 +18,9 @@ class AIMove {
     this.reasoning,
   });
 
+  /// A negative coordinate is the pass signal from the native engine.
+  bool get isPass => row < 0 || col < 0;
+
   factory AIMove.fromJson(Map<String, dynamic> json) {
     return AIMove(
       row: json['row'] as int,
@@ -136,10 +139,12 @@ class FuegoEngineService {
     }
   }
 
-  /// ゲーム終局を判定 (簡易版)
+  /// ゲーム終局を判定（中国ルール: 石数 + 地）
   ///
-  /// 注: Fuego は主に手の推奨に特化しているため、
-  /// 終局判定はシンプルな実装
+  /// 注: 盤上に残る石はすべて生きているものとして数える（簡易化）。
+  /// 死石の手動マーキングは対応していない — 取られた石（captures）は
+  /// 既に applyMoveProvider 側で盤面から除去済みのため、ここでの
+  /// 集計には含まれない。
   Future<GameEndResult> judgeGameEnd({
     required int boardSize,
     required List<List<int>> stones,
@@ -149,26 +154,22 @@ class FuegoEngineService {
     _logger.i('🏁 ゲーム終了判定: lastPassed=$lastPlayerPassed');
 
     try {
-      // 簡易的な終局判定
-      final blackStones = stones.expand((row) => row).where((s) => s == 1).length;
-      final whiteStones = stones.expand((row) => row).where((s) => s == 2).length;
+      final score = _computeAreaScore(stones, boardSize);
 
-      _logger.i('📊 石数: 黒=$blackStones, 白=$whiteStones');
+      _logger.i(
+        '📊 終局スコア: 黒=${score.blackScore} 白=${score.whiteScore}',
+      );
 
-      // 中国ルール: 石数 + 陣地
-      final blackScore = blackStones.toDouble();
-      final whiteScore = whiteStones.toDouble() + 3.75; // コミ
-
-      final winner = blackScore > whiteScore
+      final winner = score.blackScore > score.whiteScore
           ? 'black'
-          : whiteScore > blackScore
+          : score.whiteScore > score.blackScore
               ? 'white'
               : 'draw';
 
       return GameEndResult(
         gameEnded: true,
-        blackScore: blackScore,
-        whiteScore: whiteScore,
+        blackScore: score.blackScore,
+        whiteScore: score.whiteScore,
         winner: winner,
         scoringMethod: 'chinese',
       );
@@ -210,45 +211,9 @@ class FuegoEngineService {
     _logger.i('📊 形勢評価開始 (boardSize=$boardSize)');
 
     try {
-      // 石数をカウント
-      int blackStones = 0;
-      int whiteStones = 0;
-      for (int row = 0; row < boardSize; row++) {
-        for (int col = 0; col < boardSize; col++) {
-          if (stones[row][col] == 1) {
-            blackStones++;
-          } else if (stones[row][col] == 2) {
-            whiteStones++;
-          }
-        }
-      }
-
-      // 領地推定（簡易版: 連結した空点をカウント）
-      final visited = List.generate(boardSize, (_) => List.filled(boardSize, false));
-      int blackTerritory = 0;
-      int whiteTerritory = 0;
-
-      for (int row = 0; row < boardSize; row++) {
-        for (int col = 0; col < boardSize; col++) {
-          if (stones[row][col] == 0 && !visited[row][col]) {
-            final territory = _evaluateTerritory(stones, visited, row, col, boardSize);
-            if (territory['owner'] == 'black') {
-              blackTerritory += territory['count'] as int;
-            } else if (territory['owner'] == 'white') {
-              whiteTerritory += territory['count'] as int;
-            }
-          }
-        }
-      }
-
-      // スコア計算（中国ルール）
-      final blackScore = blackStones.toDouble() + blackTerritory.toDouble();
-      final whiteScore = whiteStones.toDouble() + whiteTerritory.toDouble() + 3.75; // コミ
-
-      _logger.i(
-        '📈 石: 黒=$blackStones, 白=$whiteStones | 領地: 黒=$blackTerritory, 白=$whiteTerritory',
-      );
-
+      final score = _computeAreaScore(stones, boardSize);
+      final blackScore = score.blackScore;
+      final whiteScore = score.whiteScore;
       final scoreDiff = blackScore - whiteScore;
 
       // 評価テキスト
@@ -287,6 +252,52 @@ class FuegoEngineService {
       _logger.e('🔥 形勢評価エラー: $e');
       rethrow;
     }
+  }
+
+  /// 中国ルールでの地合計算（石数 + 領地 + コミ）。
+  /// 盤上の石はすべて生きているものとして数える簡易版 — 死石の手動
+  /// マーキングは対応していない。
+  ({double blackScore, double whiteScore}) _computeAreaScore(
+    List<List<int>> stones,
+    int boardSize,
+  ) {
+    int blackStones = 0;
+    int whiteStones = 0;
+    for (int row = 0; row < boardSize; row++) {
+      for (int col = 0; col < boardSize; col++) {
+        if (stones[row][col] == 1) {
+          blackStones++;
+        } else if (stones[row][col] == 2) {
+          whiteStones++;
+        }
+      }
+    }
+
+    final visited = List.generate(boardSize, (_) => List.filled(boardSize, false));
+    int blackTerritory = 0;
+    int whiteTerritory = 0;
+
+    for (int row = 0; row < boardSize; row++) {
+      for (int col = 0; col < boardSize; col++) {
+        if (stones[row][col] == 0 && !visited[row][col]) {
+          final territory = _evaluateTerritory(stones, visited, row, col, boardSize);
+          if (territory['owner'] == 'black') {
+            blackTerritory += territory['count'] as int;
+          } else if (territory['owner'] == 'white') {
+            whiteTerritory += territory['count'] as int;
+          }
+        }
+      }
+    }
+
+    _logger.i(
+      '📈 石: 黒=$blackStones, 白=$whiteStones | 領地: 黒=$blackTerritory, 白=$whiteTerritory',
+    );
+
+    return (
+      blackScore: blackStones.toDouble() + blackTerritory.toDouble(),
+      whiteScore: whiteStones.toDouble() + whiteTerritory.toDouble() + 3.75, // コミ
+    );
   }
 
   /// 連結された領地を判定

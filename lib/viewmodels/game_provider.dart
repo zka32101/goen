@@ -49,6 +49,12 @@ final lastPlayerPassedProvider = StateProvider<bool>((ref) {
   return false;
 });
 
+/// How many passes have been played in a row (resets to 0 the moment
+/// either side places a stone). Two in a row ends the game.
+final consecutivePassesProvider = StateProvider<int>((ref) {
+  return 0;
+});
+
 /// Is the game currently active?
 final isGameActiveProvider = StateProvider<bool>((ref) {
   return false;
@@ -158,10 +164,38 @@ final applyMoveProvider = Provider<bool Function(int row, int col)>((ref) {
 
     ref.read(addMoveProvider)(row, col, player == 1 ? 'black' : 'white');
 
+    // A real move breaks any run of passes.
+    ref.read(consecutivePassesProvider.notifier).state = 0;
+    ref.read(lastPlayerPassedProvider.notifier).state = false;
+
     _logger.i(
       '✅ Move applied: player=$player [$row,$col] captured=${result.capturedCount}',
     );
     return true;
+  };
+});
+
+/// Passes for whichever color's turn it currently is: flips the turn,
+/// clears any ko restriction, and increments the consecutive-pass count.
+/// Returns true when this was the second consecutive pass, meaning the
+/// game has now ended.
+final applyPassProvider = Provider<bool Function()>((ref) {
+  return () {
+    final board = ref.read(gameBoardStateProvider);
+    final player = board.isBlackTurn ? 1 : 2;
+
+    ref.read(gameBoardStateProvider.notifier).state = board.copyWith(
+      isBlackTurn: !board.isBlackTurn,
+      koRow: null,
+      koCol: null,
+    );
+
+    ref.read(lastPlayerPassedProvider.notifier).state = true;
+    final passes = ref.read(consecutivePassesProvider.notifier).state + 1;
+    ref.read(consecutivePassesProvider.notifier).state = passes;
+
+    _logger.i('Pass: player=$player consecutivePasses=$passes');
+    return passes >= 2;
   };
 });
 
