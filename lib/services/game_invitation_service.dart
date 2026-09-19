@@ -8,10 +8,8 @@ final _logger = Logger();
 class GameInvitationService {
   final FirebaseFirestore _firestore;
 
-  const GameInvitationService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? _firestoreInstance;
-
-  static final _firestoreInstance = FirebaseFirestore.instance;
+  GameInvitationService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Send game invitation
   Future<bool> sendInvitation({

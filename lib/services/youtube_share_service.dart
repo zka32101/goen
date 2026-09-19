@@ -130,7 +130,7 @@ class YouTubeShareService {
           .get();
 
       return querySnapshot.docs.map((doc) {
-        final data = doc.data;
+        final data = doc.data();
         return YouTubeUploadResult(
           videoId: doc.id,
           title: data['title'] ?? '',

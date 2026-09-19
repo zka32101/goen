@@ -73,6 +73,7 @@ class SponsorshipService {
         sponsoredUserId: sponsoredUserId,
         amountUSD: amountUSD,
         startDate: DateTime.now(),
+        endDate: null,
         status: 'active',
         message: message,
         perks: List<String>.from(tierData['benefits'] ?? []),
@@ -173,7 +174,7 @@ class SponsorshipService {
           .get();
 
       return querySnapshot.docs.map((doc) {
-        final data = doc.data;
+        final data = doc.data();
         return SponsorshipRecord(
           id: doc.id,
           sponsorUserId: data['sponsorUserId'] ?? '',
@@ -207,7 +208,7 @@ class SponsorshipService {
           .get();
 
       return querySnapshot.docs.map((doc) {
-        final data = doc.data;
+        final data = doc.data();
         return SponsorshipRecord(
           id: doc.id,
           sponsorUserId: data['sponsorUserId'] ?? '',
@@ -267,7 +268,7 @@ class SponsorshipService {
           .get();
 
       final tiers = tiersSnapshot.docs.map((doc) {
-        final data = doc.data;
+        final data = doc.data();
         return SponsorshipTier(
           id: doc.id,
           name: data['name'] ?? '',
@@ -385,7 +386,7 @@ class SponsorshipService {
           .get();
 
       return querySnapshot.docs.map((doc) {
-        final data = doc.data;
+        final data = doc.data();
         return SponsorshipNotification(
           id: doc.id,
           recipientUserId: userId,

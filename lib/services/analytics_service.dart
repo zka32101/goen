@@ -8,10 +8,8 @@ final _logger = Logger();
 class AnalyticsService {
   final FirebaseFirestore _firestore;
 
-  const AnalyticsService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? _firestoreInstance;
-
-  static final _firestoreInstance = FirebaseFirestore.instance;
+  AnalyticsService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Record a completed game
   Future<bool> recordGameResult({

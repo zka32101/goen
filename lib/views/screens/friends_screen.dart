@@ -332,19 +332,17 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
   }
 
   void _addFriend(BuildContext context, String friendUid) async {
+    // currentUserProvider is a plain Provider<User?> (not an AsyncValue).
     final currentUser = ref.read(currentUserProvider);
-    currentUser.whenData((user) async {
-      if (user != null) {
-        final success = await ref.read(
-          addFriendProvider((user.uid, friendUid, null)).future,
-        );
+    if (currentUser == null) return;
 
-        if (!mounted) return;
-        _showMessage(context,
-            success ? 'リクエストを送信しました' : 'エラーが発生しました');
-        if (success) Navigator.pop(context);
-      }
-    });
+    final success = await ref.read(
+      addFriendProvider((currentUser.uid, friendUid, null)).future,
+    );
+
+    if (!mounted) return;
+    _showMessage(context, success ? 'リクエストを送信しました' : 'エラーが発生しました');
+    if (success) Navigator.pop(context);
   }
 
   void _acceptFriendRequest(

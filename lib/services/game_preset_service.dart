@@ -8,10 +8,8 @@ final _logger = Logger();
 class GamePresetService {
   final FirebaseFirestore _firestore;
 
-  const GamePresetService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? _firestoreInstance;
-
-  static final _firestoreInstance = FirebaseFirestore.instance;
+  GamePresetService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Create a new game preset
   Future<bool> createPreset({

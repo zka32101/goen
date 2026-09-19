@@ -7,12 +7,12 @@ import '../services/analytics_service.dart';
 
 /// Game Preset Service Provider
 final gamePresetServiceProvider = Provider<GamePresetService>((ref) {
-  return const GamePresetService();
+  return GamePresetService();
 });
 
 /// Analytics Service Provider
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
-  return const AnalyticsService();
+  return AnalyticsService();
 });
 
 // ==================== Phase 70: Game Preset Providers ====================

@@ -13,7 +13,7 @@ final friendServiceProvider = Provider<FriendService>((ref) {
 
 /// Game Invitation Service Provider
 final gameInvitationServiceProvider = Provider<GameInvitationService>((ref) {
-  return const GameInvitationService();
+  return GameInvitationService();
 });
 
 // Note: leaderboard providers used to live here, backed by a
