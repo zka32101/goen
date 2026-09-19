@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/utils/go_rank.dart';
 import 'pvp_game_screen.dart';
 
 final _logger = Logger();
@@ -47,6 +48,8 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                     'レートが近い相手を探して、運命の対戦を始めましょう',
                     style: TextStyle(color: Colors.grey[400]),
                   ),
+                  const SizedBox(height: 8),
+                  _buildMyRank(uid),
                   const SizedBox(height: 16),
                   _buildBoardSizeSelector(),
                   const SizedBox(height: 20),
@@ -92,6 +95,17 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     );
   }
 
+  Widget _buildMyRank(String uid) {
+    final rankAsync = ref.watch(userLeaderboardRankProvider(
+      (uid: uid, period: LeaderboardPeriod.allTime, type: LeaderboardType.rating),
+    ));
+    final rating = rankAsync.valueOrNull?.rating ?? 1200;
+    return Text(
+      'あなたの棋力: ${formatGoRank(rating)} (レート $rating)',
+      style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+    );
+  }
+
   Widget _buildBoardSizeSelector() {
     return Row(
       children: [9, 13, 19].map((size) {
@@ -134,8 +148,8 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            '${match.player1DisplayName} (${match.player1Rating}) vs '
-            '${match.player2DisplayName} (${match.player2Rating})',
+            '${match.player1DisplayName} (${formatGoRank(match.player1Rating)}) vs '
+            '${match.player2DisplayName} (${formatGoRank(match.player2Rating)})',
             style: const TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 4),

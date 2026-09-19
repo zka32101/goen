@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
+import '../../utils/go_rank.dart';
 
 final _logger = Logger();
 
@@ -157,7 +158,7 @@ class LeaderboardScreen extends ConsumerWidget {
           ),
         ),
         subtitle: Text(
-          'レート: ${entry.rating} | ${entry.gamesPlayed}試合 (勝: ${entry.wins})',
+          'レート: ${entry.rating} (${formatGoRank(entry.rating)}) | ${entry.gamesPlayed}試合 (勝: ${entry.wins})',
           style: TextStyle(color: Colors.grey[400], fontSize: 12),
         ),
         trailing: Column(
