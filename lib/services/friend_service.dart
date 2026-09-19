@@ -88,6 +88,28 @@ class FriendService {
     }
   }
 
+  /// Unblock a friend, restoring the accepted friendship.
+  Future<bool> unblockFriend({
+    required String currentUid,
+    required String friendUid,
+  }) async {
+    try {
+      _logger.i('Unblocking friend: $friendUid');
+
+      await _firestore
+          .collection('users')
+          .doc(currentUid)
+          .collection('friends')
+          .doc(friendUid)
+          .update({'status': 'accepted'});
+
+      return true;
+    } catch (e) {
+      _logger.e('Failed to unblock friend: $e');
+      return false;
+    }
+  }
+
   /// Remove friend
   Future<bool> removeFriend({
     required String currentUid,

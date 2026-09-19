@@ -87,6 +87,15 @@ final blockFriendProvider = FutureProvider.family<bool, (String, String)>(
   },
 );
 
+/// Unblock friend provider
+final unblockFriendProvider = FutureProvider.family<bool, (String, String)>(
+  (ref, params) async {
+    final (currentUid, friendUid) = params;
+    final service = ref.watch(friendServiceProvider);
+    return service.unblockFriend(currentUid: currentUid, friendUid: friendUid);
+  },
+);
+
 /// Search users provider
 final searchUsersProvider = FutureProvider.family<List<UserProfile>, String>(
   (ref, query) async {

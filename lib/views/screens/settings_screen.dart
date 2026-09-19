@@ -611,15 +611,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  void _handleShareProfile(BuildContext context, User user) {
+  Future<void> _handleShareProfile(BuildContext context, User user) async {
     _logger.i('Opening share dialog for user profile');
+
+    // 対局/パズルの実績はレーティング用・パズル用で別々のリーダーボード
+    // ドキュメントに分かれて保存されているため、それぞれ個別に取得する。
+    // どれか失敗しても共有自体は止めず、0のままフォールバックする。
+    var winCount = 0;
+    var totalPuzzlesSolved = 0;
+    var currentPuzzleStreak = 0;
+    try {
+      final ratingEntry = await ref.read(userLeaderboardRankProvider(
+        (uid: user.uid, period: LeaderboardPeriod.allTime, type: LeaderboardType.rating),
+      ).future);
+      winCount = ratingEntry?.wins ?? 0;
+
+      final puzzleEntry = await ref.read(userLeaderboardRankProvider(
+        (uid: user.uid, period: LeaderboardPeriod.allTime, type: LeaderboardType.puzzles),
+      ).future);
+      totalPuzzlesSolved = puzzleEntry?.puzzlesSolved ?? 0;
+
+      currentPuzzleStreak = await ref.read(tsumeGoStreakProvider(user.uid).future);
+    } catch (e) {
+      _logger.e('Failed to fetch profile stats for sharing: $e');
+    }
+
+    if (!context.mounted) return;
+
     final profileShareData = ProfileShareData(
       userId: user.uid,
       displayName: user.displayName ?? 'GoEn Player',
-      totalGamesPlayed: 0, // TODO: Fetch from gameProvider
-      winCount: 0, // TODO: Fetch from gameProvider
-      currentPuzzleStreak: 0, // TODO: Fetch from puzzleProvider
-      totalPuzzlesSolved: 0, // TODO: Fetch from puzzleProvider
+      totalGamesPlayed: user.gamesPlayedCount,
+      winCount: winCount,
+      currentPuzzleStreak: currentPuzzleStreak,
+      totalPuzzlesSolved: totalPuzzlesSolved,
     );
 
     final profileContent = _generateProfileShareContent(profileShareData);

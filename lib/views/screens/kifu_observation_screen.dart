@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/utils/sgf_parser.dart';
 
 final _logger = Logger();
 
@@ -28,6 +30,8 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   late int _selectedCol;
   int _currentMoveIndex = 0;
   String? _selectedGameId;
+  int _totalMoves = 0;
+  Timer? _autoplayTimer;
 
   @override
   void initState() {
@@ -35,6 +39,12 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     _logger.i('KifuObservationScreen initialized');
     _selectedRow = -1;
     _selectedCol = -1;
+  }
+
+  @override
+  void dispose() {
+    _autoplayTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -296,6 +306,13 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildGameReplay(BuildContext context, KifuLibrary game, WidgetRef ref) {
+    final boardSize = parseSgfBoardSize(game.sgfData);
+    final moves = parseSgfMoves(game.sgfData);
+    _totalMoves = moves.length;
+    if (_currentMoveIndex > _totalMoves) {
+      _currentMoveIndex = _totalMoves;
+    }
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -353,7 +370,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildReplayBoard(context, game),
+              child: _buildReplayBoard(context, boardSize, moves),
             ),
           ),
 
@@ -362,7 +379,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           // Move controls
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildMoveControls(context, game),
+            child: _buildMoveControls(context, moves.length),
           ),
 
           const SizedBox(height: 32),
@@ -379,7 +396,10 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     );
   }
 
-  Widget _buildReplayBoard(BuildContext context, KifuLibrary game) {
+  Widget _buildReplayBoard(BuildContext context, int boardSize, List<SgfMove> moves) {
+    final stones = replaySgfMoves(moves, boardSize, _currentMoveIndex);
+    final cellSize = 300 / boardSize;
+
     return Container(
       width: 300,
       height: 300,
@@ -393,25 +413,57 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
       child: Stack(
         children: [
           CustomPaint(
-            painter: _GoGridPainter(boardSize: 19),
+            painter: _GoGridPainter(boardSize: boardSize),
             size: const Size(300, 300),
           ),
-          // TODO: Render game board from SGF data with current move
-          Center(
-            child: Text(
-              'Kifu Replay Board\n(SGF Replay Parser - Phase 5.2)',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white70,
-              ),
-            ),
-          ),
+          ..._buildReplayStones(boardSize, cellSize, stones),
         ],
       ),
     );
   }
 
-  Widget _buildMoveControls(BuildContext context, KifuLibrary game) {
+  List<Widget> _buildReplayStones(int boardSize, double cellSize, List<List<int>> stones) {
+    final stoneWidgets = <Widget>[];
+    final stoneRadius = cellSize * 0.4;
+
+    for (int row = 0; row < boardSize; row++) {
+      for (int col = 0; col < boardSize; col++) {
+        final stone = stones[row][col];
+        if (stone == 0) continue;
+        final isBlack = stone == 1;
+        stoneWidgets.add(
+          Positioned(
+            left: col * cellSize + cellSize / 2 - stoneRadius,
+            top: row * cellSize + cellSize / 2 - stoneRadius,
+            child: Container(
+              width: stoneRadius * 2,
+              height: stoneRadius * 2,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: isBlack ? null : Border.all(color: Colors.grey[400]!, width: 0.5),
+                gradient: RadialGradient(
+                  center: const Alignment(-0.35, -0.4),
+                  radius: 0.9,
+                  colors: isBlack
+                      ? [Colors.grey[700]!, Colors.black]
+                      : [Colors.white, Colors.grey[350]!],
+                ),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(1, 2)),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    return stoneWidgets;
+  }
+
+  Widget _buildMoveControls(BuildContext context, int totalMoves) {
+    final sliderMax = totalMoves > 0 ? totalMoves : 1;
+    final isPlaying = _autoplayTimer != null;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -423,7 +475,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Move $_currentMoveIndex / 150',
+            'Move $_currentMoveIndex / $totalMoves',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: Colors.white,
             ),
@@ -432,17 +484,23 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
 
           // Slider for move progress
           Slider(
+            // _currentMoveIndex is kept within [0, _totalMoves] by the guard
+            // in _buildGameReplay, so no extra clamping is needed here
+            // (num.clamp() would return num, not double, and not typecheck).
             value: _currentMoveIndex.toDouble(),
             min: 0,
-            max: 150,
-            divisions: 150,
+            max: sliderMax.toDouble(),
+            divisions: sliderMax,
             label: '$_currentMoveIndex',
             activeColor: Colors.amber[600],
-            onChanged: (value) {
-              setState(() {
-                _currentMoveIndex = value.toInt();
-              });
-            },
+            onChanged: totalMoves == 0
+                ? null
+                : (value) {
+                    _stopAutoplay();
+                    setState(() {
+                      _currentMoveIndex = value.toInt();
+                    });
+                  },
           ),
 
           const SizedBox(height: 12),
@@ -453,7 +511,10 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _currentMoveIndex > 0
-                      ? () => setState(() => _currentMoveIndex--)
+                      ? () {
+                          _stopAutoplay();
+                          setState(() => _currentMoveIndex--);
+                        }
                       : null,
                   icon: const Icon(Icons.skip_previous),
                   label: const Text('Previous'),
@@ -462,9 +523,9 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _handleAutoplay(context),
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Play'),
+                  onPressed: totalMoves == 0 ? null : () => _handleAutoplay(context, totalMoves),
+                  icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                  label: Text(isPlaying ? 'Pause' : 'Play'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber[600],
                   ),
@@ -473,8 +534,11 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _currentMoveIndex < 150
-                      ? () => setState(() => _currentMoveIndex++)
+                  onPressed: _currentMoveIndex < totalMoves
+                      ? () {
+                          _stopAutoplay();
+                          setState(() => _currentMoveIndex++);
+                        }
                       : null,
                   icon: const Icon(Icons.skip_next),
                   label: const Text('Next'),
@@ -551,13 +615,12 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
 
   void _handleBackToLibrary() {
     _logger.i('Returning to library');
+    _stopAutoplay();
 
     final currentUser = ref.read(currentUserProvider);
     final gameId = _selectedGameId;
-    if (currentUser != null && gameId != null) {
-      // 150 matches the placeholder move-count used by the slider below
-      // until real SGF move parsing lands.
-      final completedRate = _currentMoveIndex / 150;
+    if (currentUser != null && gameId != null && _totalMoves > 0) {
+      final completedRate = _currentMoveIndex / _totalMoves;
       ref
           .read(saveObservationLogProvider)(
             uid: currentUser.uid,
@@ -573,17 +636,32 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     setState(() {
       _selectedGameId = null;
       _currentMoveIndex = 0;
+      _totalMoves = 0;
     });
   }
 
-  void _handleAutoplay(BuildContext context) {
+  void _handleAutoplay(BuildContext context, int totalMoves) {
+    if (_autoplayTimer != null) {
+      _stopAutoplay();
+      return;
+    }
+
     _logger.i('Starting autoplay from move $_currentMoveIndex');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Autoplay - Phase 5.2'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    _autoplayTimer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
+      if (_currentMoveIndex >= totalMoves) {
+        _stopAutoplay();
+        return;
+      }
+      setState(() => _currentMoveIndex++);
+    });
+    setState(() {});
+  }
+
+  void _stopAutoplay() {
+    if (_autoplayTimer == null) return;
+    _autoplayTimer?.cancel();
+    _autoplayTimer = null;
+    if (mounted) setState(() {});
   }
 }
 

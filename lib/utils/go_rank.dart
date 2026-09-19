@@ -5,7 +5,7 @@
 String formatGoRank(int rating) {
   if (rating >= 2000) {
     final dan = ((rating - 2000) ~/ 100) + 1;
-    return '${_danKanji(dan.clamp(1, 9))}段';
+    return '${_danKanji(dan.clamp(1, 9).toInt())}段';
   }
   final kyu = ((2000 - rating) / 100).ceil().clamp(1, 30);
   return '$kyu級';

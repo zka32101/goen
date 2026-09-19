@@ -377,8 +377,12 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
   }
 
   void _unblockUser(BuildContext context, String uid, String friendUid) async {
-    // TODO: Implement unblock functionality in FriendService
-    _showMessage(context, 'ブロック解除機能は準備中です');
+    final success = await ref.read(
+      unblockFriendProvider((uid, friendUid)).future,
+    );
+
+    if (!mounted) return;
+    _showMessage(context, success ? 'ブロックを解除しました' : 'エラーが発生しました');
   }
 
   void _showGameInviteDialog(

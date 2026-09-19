@@ -497,24 +497,19 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                   ),
                   color: Colors.amber[100]?.withOpacity(0.1),
                 ),
-                child: Stack(
-                  children: [
-                    CustomPaint(
-                      painter: _GoGridPainter(boardSize: game.boardSize),
-                      size: const Size(300, 300),
-                    ),
-                    // TODO: Render final board state from SGF data
-                    Center(
-                      child: Text(
-                        'Final Board State\n(SGF Replay - Phase 5.3)',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                        ),
+                child: Builder(builder: (context) {
+                  final finalBoard = BoardState.fromSgf(game.sgfData);
+                  final cellSize = 300 / finalBoard.boardSize;
+                  return Stack(
+                    children: [
+                      CustomPaint(
+                        painter: _GoGridPainter(boardSize: finalBoard.boardSize),
+                        size: const Size(300, 300),
                       ),
-                    ),
-                  ],
-                ),
+                      ..._buildFinalStones(finalBoard.boardSize, cellSize, finalBoard.stones),
+                    ],
+                  );
+                }),
               ),
             ),
           ),
@@ -570,6 +565,44 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
         ],
       ),
     );
+  }
+
+  List<Widget> _buildFinalStones(int boardSize, double cellSize, List<List<int>> stones) {
+    final stoneWidgets = <Widget>[];
+    final stoneRadius = cellSize * 0.4;
+
+    for (int row = 0; row < boardSize; row++) {
+      for (int col = 0; col < boardSize; col++) {
+        final stone = stones[row][col];
+        if (stone == 0) continue;
+        final isBlack = stone == 1;
+        stoneWidgets.add(
+          Positioned(
+            left: col * cellSize + cellSize / 2 - stoneRadius,
+            top: row * cellSize + cellSize / 2 - stoneRadius,
+            child: Container(
+              width: stoneRadius * 2,
+              height: stoneRadius * 2,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: isBlack ? null : Border.all(color: Colors.grey[400]!, width: 0.5),
+                gradient: RadialGradient(
+                  center: const Alignment(-0.35, -0.4),
+                  radius: 0.9,
+                  colors: isBlack
+                      ? [Colors.grey[700]!, Colors.black]
+                      : [Colors.white, Colors.grey[350]!],
+                ),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(1, 2)),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    return stoneWidgets;
   }
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {
