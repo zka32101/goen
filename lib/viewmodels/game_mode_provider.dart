@@ -93,7 +93,7 @@ final gameModesByTypeProvider =
 // ================== ACTION PROVIDERS ==================
 
 /// Select a game mode and navigate to it
-final selectGameModeProvider = Provider<(GameMode mode) -> void>((ref) {
+final selectGameModeProvider = Provider<void Function(GameMode mode)>((ref) {
   return (GameMode mode) {
     _logger.i('Selected game mode: ${mode.name} (${mode.type})');
     ref.read(selectedGameModeProvider.notifier).state = mode;
@@ -106,7 +106,7 @@ final selectGameModeProvider = Provider<(GameMode mode) -> void>((ref) {
 });
 
 /// Clear the current game mode selection
-final clearGameModeProvider = Provider<() -> void>((ref) {
+final clearGameModeProvider = Provider<void Function()>((ref) {
   return () {
     _logger.d('Clearing game mode selection');
     ref.read(selectedGameModeProvider.notifier).state = null;

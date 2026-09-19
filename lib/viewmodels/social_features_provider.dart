@@ -3,7 +3,6 @@ import 'package:riverpod/riverpod.dart';
 import '../models/extended_game_models.dart';
 import '../services/friend_service.dart';
 import '../services/game_invitation_service.dart';
-import '../services/leaderboard_service.dart';
 
 // ==================== Service Providers ====================
 
@@ -17,10 +16,13 @@ final gameInvitationServiceProvider = Provider<GameInvitationService>((ref) {
   return const GameInvitationService();
 });
 
-/// Leaderboard Service Provider
-final leaderboardServiceProvider = Provider<LeaderboardService>((ref) {
-  return const LeaderboardService();
-});
+// Note: leaderboard providers used to live here, backed by a
+// `LeaderboardService` API (getTopPlayers/getPlayerRank/streamLeaderboard/
+// etc.) that no longer exists — `services/leaderboard_service.dart` was
+// replaced by Phase 58's leaderboard system with a different API
+// (getLeaderboard/getUserRank/updateLeaderboard/...). Those calls were
+// dead code (nothing in lib/views referenced them) and didn't compile, so
+// they were removed; use `leaderboard_provider.dart` instead.
 
 // ==================== Friend System Providers ====================
 
@@ -164,74 +166,6 @@ final declineGameInvitationProvider =
   },
 );
 
-// ==================== Leaderboard Providers ====================
-
-/// Get top players for a period
-final topPlayersProvider =
-    FutureProvider.family<List<LeaderboardEntry>, (String, int)>(
-  (ref, params) async {
-    final (period, limit) = params;
-    final service = ref.watch(leaderboardServiceProvider);
-    return service.getTopPlayers(period: period, limit: limit);
-  },
-);
-
-/// Get player's current rank
-final playerRankProvider =
-    FutureProvider.family<LeaderboardEntry?, (String, String)>(
-  (ref, params) async {
-    final (userId, period) = params;
-    final service = ref.watch(leaderboardServiceProvider);
-    return service.getPlayerRank(userId: userId, period: period);
-  },
-);
-
-/// Stream leaderboard (real-time)
-final leaderboardStreamProvider =
-    StreamProvider.family<List<LeaderboardEntry>, (String, int)>(
-  (ref, params) {
-    final (period, limit) = params;
-    final service = ref.watch(leaderboardServiceProvider);
-    return service.streamLeaderboard(period: period, limit: limit);
-  },
-);
-
-/// Get leaderboard statistics
-final leaderboardStatsProvider =
-    FutureProvider.family<Map<String, dynamic>, String>(
-  (ref, period) async {
-    final service = ref.watch(leaderboardServiceProvider);
-    return service.getLeaderboardStats(period: period);
-  },
-);
-
-/// Update leaderboard entry provider
-final updateLeaderboardEntryProvider = FutureProvider.family<bool,
-    ({
-      String userId,
-      String displayName,
-      double rating,
-      int wins,
-      int losses,
-      int totalGames,
-      String period,
-      String? avatarUrl,
-    })>(
-  (ref, params) async {
-    final service = ref.watch(leaderboardServiceProvider);
-    return service.updateLeaderboardEntry(
-      userId: params.userId,
-      displayName: params.displayName,
-      rating: params.rating,
-      wins: params.wins,
-      losses: params.losses,
-      totalGames: params.totalGames,
-      period: params.period,
-      avatarUrl: params.avatarUrl,
-    );
-  },
-);
-
 // ==================== Computed Providers ====================
 
 /// Check if users are friends
@@ -257,23 +191,3 @@ final userProfileProvider = FutureProvider.family<UserProfile?, String>(
   },
 );
 
-/// Get all leaderboard periods
-final leaderboardPeriodsProvider =
-    FutureProvider<List<String>>((ref) async {
-  final service = ref.watch(leaderboardServiceProvider);
-  return service.getAvailablePeriods();
-});
-
-/// Filtered leaderboard by difficulty tier
-final tierLeaderboardProvider = FutureProvider.family<List<LeaderboardEntry>,
-    ({String period, double minRating, double maxRating, int limit})>(
-  (ref, params) async {
-    final service = ref.watch(leaderboardServiceProvider);
-    return service.getPlayersInRange(
-      period: params.period,
-      minRating: params.minRating,
-      maxRating: params.maxRating,
-      limit: params.limit,
-    );
-  },
-);

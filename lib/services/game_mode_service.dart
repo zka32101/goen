@@ -68,6 +68,31 @@ class GameModeService {
     }
   }
 
+  /// Update an existing game mode (admin only)
+  Future<bool> updateGameMode(GameMode mode) async {
+    try {
+      await _firestore
+          .collection('game_modes')
+          .doc(mode.id)
+          .update(mode.toJson()..remove('id'));
+      return true;
+    } catch (e) {
+      _logger.e('Failed to update game mode: $e');
+      return false;
+    }
+  }
+
+  /// Delete a game mode (admin only)
+  Future<bool> deleteGameMode(String modeId) async {
+    try {
+      await _firestore.collection('game_modes').doc(modeId).delete();
+      return true;
+    } catch (e) {
+      _logger.e('Failed to delete game mode: $e');
+      return false;
+    }
+  }
+
   // ===== Game Session Management =====
 
   /// Start a new game session
