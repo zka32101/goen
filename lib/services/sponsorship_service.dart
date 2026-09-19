@@ -11,7 +11,14 @@ class SponsorshipService {
   SponsorshipService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  /// スポンサーシップを開始
+  /// スポンサーシップを開始。
+  ///
+  /// Firestoreのトランザクション内では特定ドキュメント参照の読み取りしか
+  /// できず、クエリは打てない。そのため、ドキュメントIDを
+  /// `{sponsorUserId}_{sponsoredUserId}` の決め打ちにして、重複確認と
+  /// ティアの `currentSubscribers` 加算を1つのトランザクション内で完結させ、
+  /// 二重タップでの二重登録・購読者数の不整合を防ぐ（同じ相手への再スポンサー
+  /// はこの1レコードを使い回し、statusを'active'に戻す）。
   Future<SponsorshipRecord?> startSponsorship(
     String sponsorUserId,
     String sponsoredUserId,
@@ -21,77 +28,128 @@ class SponsorshipService {
     try {
       _logger.i('Starting sponsorship: $sponsorUserId -> $sponsoredUserId');
 
-      // ティア情報を取得
-      final tierDoc = await _firestore
+      final sponsorDoc =
+          await _firestore.collection('users').doc(sponsorUserId).get();
+      final sponsorDisplayName =
+          sponsorDoc.data()?['displayName'] ?? 'Anonymous Sponsor';
+
+      final tierRef = _firestore
           .collection('users')
           .doc(sponsoredUserId)
           .collection('sponsorshipTiers')
-          .doc(tierId)
-          .get();
+          .doc(tierId);
+      final docRef = _firestore
+          .collection('sponsorships')
+          .doc('${sponsorUserId}_$sponsoredUserId');
 
-      if (!tierDoc.exists) {
-        throw Exception('Sponsorship tier not found');
+      final result = await _firestore.runTransaction<SponsorshipRecord?>((transaction) async {
+        final tierDoc = await transaction.get(tierRef);
+        if (!tierDoc.exists) {
+          throw Exception('Sponsorship tier not found');
+        }
+
+        final existingDoc = await transaction.get(docRef);
+        if (existingDoc.exists && existingDoc.data()?['status'] == 'active') {
+          _logger.w('Sponsor $sponsorUserId already sponsors $sponsoredUserId');
+          return null;
+        }
+
+        final tierData = tierDoc.data()!;
+        final amountUSD = tierData['priceUSD'] as int;
+        final tierName = tierData['name'] ?? 'Unknown Tier';
+        final perks = List<String>.from(tierData['benefits'] ?? []);
+        final maxSlots = tierData['maxSlots'] as int? ?? 0;
+        final currentSubscribers = tierData['currentSubscribers'] as int? ?? 0;
+
+        if (maxSlots > 0 && currentSubscribers >= maxSlots) {
+          throw Exception('Sponsorship tier is full');
+        }
+
+        transaction.set(docRef, {
+          'id': docRef.id,
+          'sponsorUserId': sponsorUserId,
+          'sponsorDisplayName': sponsorDisplayName,
+          'sponsoredUserId': sponsoredUserId,
+          'tierId': tierId,
+          'tierName': tierName,
+          'amountUSD': amountUSD,
+          'message': message,
+          'perks': perks,
+          'status': 'active',
+          'startDate': FieldValue.serverTimestamp(),
+          'endDate': null,
+        });
+        transaction.update(tierRef, {'currentSubscribers': currentSubscribers + 1});
+
+        return SponsorshipRecord(
+          id: docRef.id,
+          sponsorUserId: sponsorUserId,
+          sponsorDisplayName: sponsorDisplayName,
+          sponsoredUserId: sponsoredUserId,
+          tierId: tierId,
+          tierName: tierName,
+          amountUSD: amountUSD,
+          startDate: DateTime.now(),
+          endDate: null,
+          status: 'active',
+          message: message,
+          perks: perks,
+        );
+      });
+
+      if (result != null) {
+        await _createSponsorshipNotification(
+          sponsoredUserId,
+          sponsorUserId,
+          result.amountUSD,
+          result.tierName,
+          'new_sponsor',
+        );
+        _logger.i('Sponsorship created: ${result.id}');
       }
 
-      final tierData = tierDoc.data()!;
-      final amountUSD = tierData['priceUSD'] as int;
-
-      // スポンサーシップレコードを作成
-      final docRef =
-          _firestore.collection('sponsorships').doc();
-
-      final sponsorshipData = {
-        'id': docRef.id,
-        'sponsorUserId': sponsorUserId,
-        'sponsoredUserId': sponsoredUserId,
-        'tierId': tierId,
-        'tierName': tierData['name'],
-        'amountUSD': amountUSD,
-        'message': message,
-        'perks': tierData['benefits'] ?? [],
-        'status': 'active',
-        'startDate': FieldValue.serverTimestamp(),
-        'endDate': null,
-      };
-
-      await docRef.set(sponsorshipData);
-
-      // 通知を作成
-      await _createSponsorshipNotification(
-        sponsoredUserId,
-        sponsorUserId,
-        amountUSD,
-        tierData['name'] ?? 'Unknown Tier',
-        'new_sponsor',
-      );
-
-      _logger.i('Sponsorship created: ${docRef.id}');
-
-      return SponsorshipRecord(
-        id: docRef.id,
-        sponsorUserId: sponsorUserId,
-        sponsoredUserId: sponsoredUserId,
-        amountUSD: amountUSD,
-        startDate: DateTime.now(),
-        endDate: null,
-        status: 'active',
-        message: message,
-        perks: List<String>.from(tierData['benefits'] ?? []),
-      );
+      return result;
     } catch (e) {
       _logger.e('Error starting sponsorship: $e');
       rethrow;
     }
   }
 
-  /// スポンサーシップをキャンセル
+  /// スポンサーシップをキャンセルし、ティアの購読者数を1減らす。
   Future<bool> cancelSponsorship(String sponsorshipId) async {
     try {
       _logger.i('Cancelling sponsorship: $sponsorshipId');
 
-      await _firestore.collection('sponsorships').doc(sponsorshipId).update({
-        'status': 'cancelled',
-        'endDate': FieldValue.serverTimestamp(),
+      final sponsorshipRef = _firestore.collection('sponsorships').doc(sponsorshipId);
+
+      await _firestore.runTransaction<void>((transaction) async {
+        final doc = await transaction.get(sponsorshipRef);
+        if (!doc.exists) return;
+
+        final data = doc.data()!;
+        if (data['status'] != 'active') return;
+
+        transaction.update(sponsorshipRef, {
+          'status': 'cancelled',
+          'endDate': FieldValue.serverTimestamp(),
+        });
+
+        final sponsoredUserId = data['sponsoredUserId'] as String?;
+        final tierId = data['tierId'] as String?;
+        if (sponsoredUserId != null && tierId != null) {
+          final tierRef = _firestore
+              .collection('users')
+              .doc(sponsoredUserId)
+              .collection('sponsorshipTiers')
+              .doc(tierId);
+          final tierDoc = await transaction.get(tierRef);
+          if (tierDoc.exists) {
+            final current = tierDoc.data()?['currentSubscribers'] as int? ?? 0;
+            transaction.update(tierRef, {
+              'currentSubscribers': current > 0 ? current - 1 : 0,
+            });
+          }
+        }
       });
 
       _logger.i('Sponsorship cancelled: $sponsorshipId');
@@ -178,7 +236,10 @@ class SponsorshipService {
         return SponsorshipRecord(
           id: doc.id,
           sponsorUserId: data['sponsorUserId'] ?? '',
+          sponsorDisplayName: data['sponsorDisplayName'] ?? 'Anonymous Sponsor',
           sponsoredUserId: data['sponsoredUserId'] ?? '',
+          tierId: data['tierId'] ?? '',
+          tierName: data['tierName'] ?? 'Unknown Tier',
           amountUSD: data['amountUSD'] ?? 0,
           startDate: (data['startDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
           endDate: data['endDate'] != null
@@ -212,7 +273,10 @@ class SponsorshipService {
         return SponsorshipRecord(
           id: doc.id,
           sponsorUserId: data['sponsorUserId'] ?? '',
+          sponsorDisplayName: data['sponsorDisplayName'] ?? 'Anonymous Sponsor',
           sponsoredUserId: data['sponsoredUserId'] ?? '',
+          tierId: data['tierId'] ?? '',
+          tierName: data['tierName'] ?? 'Unknown Tier',
           amountUSD: data['amountUSD'] ?? 0,
           startDate: (data['startDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
           endDate: data['endDate'] != null
@@ -305,8 +369,9 @@ class SponsorshipService {
     String name,
     int priceUSD,
     String description,
-    List<String> benefits,
-  ) async {
+    List<String> benefits, {
+    int maxSlots = 0,
+  }) async {
     try {
       _logger.i('Creating sponsorship tier for user: $userId');
 
@@ -321,6 +386,7 @@ class SponsorshipService {
         'priceUSD': priceUSD,
         'description': description,
         'benefits': benefits,
+        'maxSlots': maxSlots,
         'currentSubscribers': 0,
         'createdAt': FieldValue.serverTimestamp(),
       };
@@ -334,6 +400,7 @@ class SponsorshipService {
         priceUSD: priceUSD,
         description: description,
         benefits: benefits,
+        maxSlots: maxSlots,
       );
     } catch (e) {
       _logger.e('Error creating sponsorship tier: $e');

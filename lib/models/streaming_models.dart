@@ -9,6 +9,7 @@ part 'streaming_models.g.dart';
 @freezed
 class YouTubeShareData with _$YouTubeShareData {
   const factory YouTubeShareData({
+    required String userId,
     required String gameId,
     required String title,
     required String description,
@@ -45,7 +46,8 @@ class YouTubeUploadResult with _$YouTubeUploadResult {
 @freezed
 class TwitchStreamData with _$TwitchStreamData {
   const factory TwitchStreamData({
-    required String gameId,
+    required String userId,
+    String? gameId, // 対局と紐付ける場合のみ設定（任意）
     required String streamTitle,
     required String category, // 'Board Games', etc
     @Default(false) bool isLive,
@@ -67,6 +69,8 @@ class TwitchStreamInfo with _$TwitchStreamInfo {
     required String channelName,
     required String title,
     required DateTime startedAt,
+    DateTime? endedAt,
+    @Default(true) bool isLive,
     required int viewers,
     String? thumbnailUrl,
     String? category,
@@ -137,7 +141,10 @@ class SponsorshipRecord with _$SponsorshipRecord {
   const factory SponsorshipRecord({
     required String id,
     required String sponsorUserId,
+    required String sponsorDisplayName,
     required String sponsoredUserId,
+    required String tierId,
+    required String tierName,
     required int amountUSD, // Monthly sponsorship in USD cents
     required DateTime startDate,
     required DateTime? endDate,

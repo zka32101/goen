@@ -27,9 +27,11 @@ class YouTubeShareService {
 
       final uploadData = {
         'type': 'youtube',
+        'userId': shareData.userId,
         'title': shareData.title,
         'description': shareData.description,
         'moves': shareData.moves,
+        'channelId': shareData.channelId,
         'visibility': shareData.visibility,
         'autoGenerate': shareData.autoGenerate,
         'status': 'processing',
@@ -105,6 +107,7 @@ class YouTubeShareService {
         title: data['title'] ?? '',
         url: data['url'] ?? 'https://www.youtube.com/watch?v=${doc.id}',
         uploadedAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+        channelId: data['channelId'],
         status: data['status'] ?? 'processing',
       );
     } catch (e) {
@@ -129,13 +132,17 @@ class YouTubeShareService {
           .limit(limit)
           .get();
 
-      return querySnapshot.docs.map((doc) {
+      // 削除は 'deleted' への論理削除なので、一覧からは除外する。
+      return querySnapshot.docs
+          .where((doc) => doc.data()['status'] != 'deleted')
+          .map((doc) {
         final data = doc.data();
         return YouTubeUploadResult(
           videoId: doc.id,
           title: data['title'] ?? '',
           url: data['url'] ?? 'https://www.youtube.com/watch?v=${doc.id}',
           uploadedAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          channelId: data['channelId'],
           status: data['status'] ?? 'processing',
         );
       }).toList();

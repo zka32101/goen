@@ -73,6 +73,10 @@ class GoEnApp extends ConsumerWidget {
         '/joseki': (_) => const JosekiScreen(),
         // 縁 (En) features
         '/en-hub': (_) => const EnHubScreen(),
+        // Creator / sharing connections
+        '/sponsorship': (_) => const SponsorshipScreen(),
+        '/twitch-stream': (_) => const TwitchStreamScreen(),
+        '/youtube-share': (_) => const YouTubeShareScreen(),
       },
       onUnknownRoute: (_) {
         return MaterialPageRoute(

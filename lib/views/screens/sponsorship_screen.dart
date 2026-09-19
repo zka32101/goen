@@ -14,9 +14,24 @@ class SponsorshipScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building SponsorshipScreen');
 
-    final sponsorInfo = ref.watch(sponsorInfoProvider('current_user'));
-    final incomingSponsors = ref.watch(incomingSponsorsProvider('current_user'));
-    final notifications = ref.watch(sponsorshipNotificationsProvider('current_user'));
+    final currentUser = ref.watch(currentUserProvider);
+    if (currentUser == null) {
+      return Scaffold(
+        backgroundColor: Colors.black87,
+        appBar: AppBar(
+          title: const Text('スポンサーシップ'),
+          backgroundColor: Colors.black,
+        ),
+        body: const Center(
+          child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+        ),
+      );
+    }
+    final uid = currentUser.uid;
+
+    final sponsorInfo = ref.watch(sponsorInfoProvider(uid));
+    final incomingSponsors = ref.watch(incomingSponsorsProvider(uid));
+    final notifications = ref.watch(sponsorshipNotificationsProvider(uid));
 
     return Scaffold(
       backgroundColor: Colors.black87,
@@ -34,6 +49,7 @@ class SponsorshipScreen extends ConsumerWidget {
           return _buildSponsorshipView(
             context,
             ref,
+            uid,
             info,
             incomingSponsors,
             notifications,
@@ -86,6 +102,7 @@ class SponsorshipScreen extends ConsumerWidget {
   Widget _buildSponsorshipView(
     BuildContext context,
     WidgetRef ref,
+    String uid,
     SponsorInfo info,
     AsyncValue<List<SponsorshipRecord>> incomingSponsors,
     AsyncValue<List<SponsorshipNotification>> notifications,
@@ -252,12 +269,12 @@ class SponsorshipScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: ElevatedButton.icon(
-              icon: const Icon(Icons.settings),
-              label: const Text('ティア設定'),
+              icon: const Icon(Icons.add),
+              label: const Text('ティアを追加'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber[600],
               ),
-              onPressed: () => _manageTiers(context),
+              onPressed: () => _showCreateTierDialog(context, ref, uid),
             ),
           ),
         ],
@@ -315,14 +332,14 @@ class SponsorshipScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      sponsor.sponsorUserId,
+                      sponsor.sponsorDisplayName,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      startDate,
+                      '${sponsor.tierName} • $startDate',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Colors.white54,
                       ),
@@ -415,10 +432,76 @@ class SponsorshipScreen extends ConsumerWidget {
 
   // ========== Actions ==========
 
-  void _manageTiers(BuildContext context) {
-    _logger.i('Managing sponsorship tiers');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('ティア設定画面（次フェーズで実装）')),
+  void _showCreateTierDialog(BuildContext context, WidgetRef ref, String uid) {
+    _logger.i('Creating a sponsorship tier');
+    final nameController = TextEditingController();
+    final priceController = TextEditingController();
+    final descriptionController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('新しいティアを追加'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(hintText: 'ティア名（例: 応援者）'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(hintText: '月額（USD）'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(hintText: '説明'),
+                style: const TextStyle(color: Colors.white),
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('キャンセル'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final name = nameController.text.trim();
+              final priceInputUSD = double.tryParse(priceController.text.trim());
+              if (name.isEmpty || priceInputUSD == null || priceInputUSD <= 0) {
+                return;
+              }
+              // amountUSD/priceUSD are stored in cents everywhere else in this
+              // feature (see the "/ 100" divisions when displaying them).
+              final priceUSD = (priceInputUSD * 100).round();
+              Navigator.pop(dialogContext);
+              final result = await ref.read(createSponsorshipTierProvider)(
+                userId: uid,
+                name: name,
+                priceUSD: priceUSD,
+                description: descriptionController.text.trim(),
+                benefits: const [],
+              );
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(result != null ? 'ティアを作成しました' : 'エラーが発生しました')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[600]),
+            child: const Text('作成'),
+          ),
+        ],
+      ),
     );
   }
 }

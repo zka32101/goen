@@ -14,9 +14,21 @@ class TwitchStreamScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building TwitchStreamScreen');
 
-    final isConnected = ref.watch(twitchConnectedProvider('current_user'));
-    final activeStream = ref.watch(activeTwitchStreamProvider('current_game'));
-    final history = ref.watch(twitchStreamHistoryProvider('current_user'));
+    final currentUser = ref.watch(currentUserProvider);
+    if (currentUser == null) {
+      return Scaffold(
+        backgroundColor: Colors.black87,
+        appBar: AppBar(title: const Text('Twitch 配信'), backgroundColor: Colors.black),
+        body: const Center(
+          child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+        ),
+      );
+    }
+    final uid = currentUser.uid;
+
+    final isConnected = ref.watch(twitchConnectedProvider(uid));
+    final activeStream = ref.watch(activeTwitchStreamProvider(uid));
+    final history = ref.watch(twitchStreamHistoryProvider(uid));
 
     return Scaffold(
       backgroundColor: Colors.black87,
@@ -31,7 +43,7 @@ class TwitchStreamScreen extends ConsumerWidget {
           if (!connected) {
             return _buildConnectionRequired(context);
           }
-          return _buildConnectedView(context, ref, activeStream, history);
+          return _buildConnectedView(context, ref, uid, activeStream, history);
         },
         loading: () => const Center(
           child: CircularProgressIndicator(
@@ -90,6 +102,7 @@ class TwitchStreamScreen extends ConsumerWidget {
   Widget _buildConnectedView(
     BuildContext context,
     WidgetRef ref,
+    String uid,
     AsyncValue<TwitchStreamInfo?> activeStream,
     AsyncValue<List<TwitchStreamInfo>> history,
   ) {
@@ -100,9 +113,9 @@ class TwitchStreamScreen extends ConsumerWidget {
           activeStream.when(
             data: (stream) {
               if (stream != null) {
-                return _buildActiveStreamCard(context, stream);
+                return _buildActiveStreamCard(context, ref, uid, stream);
               } else {
-                return _buildNoActiveStream(context, ref);
+                return _buildNoActiveStream(context, ref, uid);
               }
             },
             loading: () => const SizedBox(
@@ -184,7 +197,7 @@ class TwitchStreamScreen extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[700],
               ),
-              onPressed: () => _disconnectTwitch(context, ref),
+              onPressed: () => _disconnectTwitch(context, ref, uid),
             ),
           ),
         ],
@@ -193,7 +206,12 @@ class TwitchStreamScreen extends ConsumerWidget {
   }
 
   /// アクティブなストリーム表示
-  Widget _buildActiveStreamCard(BuildContext context, TwitchStreamInfo stream) {
+  Widget _buildActiveStreamCard(
+    BuildContext context,
+    WidgetRef ref,
+    String uid,
+    TwitchStreamInfo stream,
+  ) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -285,7 +303,7 @@ class TwitchStreamScreen extends ConsumerWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red[600],
                   ),
-                  onPressed: () => _endStream(context),
+                  onPressed: () => _endStream(context, ref, uid, stream.streamId),
                 ),
               ),
               const SizedBox(width: 12),
@@ -304,7 +322,7 @@ class TwitchStreamScreen extends ConsumerWidget {
   }
 
   /// ストリームが未開始の場合
-  Widget _buildNoActiveStream(BuildContext context, WidgetRef ref) {
+  Widget _buildNoActiveStream(BuildContext context, WidgetRef ref, String uid) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(32),
@@ -333,7 +351,7 @@ class TwitchStreamScreen extends ConsumerWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.purple[600],
             ),
-            onPressed: () => _startStream(context, ref),
+            onPressed: () => _startStream(context, ref, uid),
           ),
         ],
       ),
@@ -342,7 +360,10 @@ class TwitchStreamScreen extends ConsumerWidget {
 
   /// ストリーム履歴カード
   Widget _buildStreamHistoryCard(BuildContext context, TwitchStreamInfo stream) {
-    final duration = DateTime.now().difference(stream.startedAt);
+    // 配信中はまだ終了時刻が無いので経過時間、終了済みなら実際の配信時間を出す
+    // （以前は常にDateTime.now()との差分を使っていたため、終了済みの古い配信が
+    // 経過日数分の巨大な「配信時間」として表示されるバグがあった）。
+    final duration = (stream.endedAt ?? DateTime.now()).difference(stream.startedAt);
     final durationText = duration.inHours > 0
         ? '${duration.inHours}時間${duration.inMinutes % 60}分'
         : '${duration.inMinutes}分';
@@ -404,37 +425,102 @@ class TwitchStreamScreen extends ConsumerWidget {
 
   void _connectTwitch(BuildContext context) {
     _logger.i('Connecting to Twitch');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Twitch 認証画面が開きます')),
-    );
-  }
-
-  void _startStream(BuildContext context, WidgetRef ref) {
-    _logger.i('Starting Twitch stream');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('配信を開始しました')),
-    );
-  }
-
-  void _endStream(BuildContext context) {
-    _logger.i('Ending Twitch stream');
+    // 実際のTwitch OAuth連携にはTwitch Developer Consoleでのアプリ登録と
+    // クライアントシークレットが必要で、このビルドには含まれていない。
+    // 「接続成功」を偽装せず、正直に「まだ使えない」ことを伝える。
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('Twitch 連携は準備中です'),
+        content: const Text('実際のTwitchアカウント連携（OAuth）はまだこのビルドでは利用できません。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('閉じる'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _startStream(BuildContext context, WidgetRef ref, String uid) async {
+    _logger.i('Starting Twitch stream');
+    final titleController = TextEditingController(text: '碁縁の対局を配信中');
+
+    final title = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('配信を開始'),
+        content: TextField(
+          controller: titleController,
+          decoration: const InputDecoration(hintText: '配信タイトル'),
+          style: const TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('キャンセル'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, titleController.text.trim()),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple[600]),
+            child: const Text('開始'),
+          ),
+        ],
+      ),
+    );
+    if (title == null || title.isEmpty) return;
+
+    try {
+      await ref.read(startTwitchStreamProvider)(TwitchStreamData(
+        userId: uid,
+        streamTitle: title,
+        category: 'Board Games',
+      ));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('配信を開始しました')),
+      );
+    } catch (e) {
+      _logger.e('Failed to start stream: $e');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('配信の開始に失敗しました')),
+      );
+    }
+  }
+
+  void _endStream(BuildContext context, WidgetRef ref, String uid, String streamId) {
+    _logger.i('Ending Twitch stream: $streamId');
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.grey[900],
         title: const Text('配信を終了'),
         content: const Text('配信を終了しますか？'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('キャンセル'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('配信を終了しました')),
-              );
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              try {
+                await ref.read(endTwitchStreamProvider)(uid, streamId);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('配信を終了しました')),
+                );
+              } catch (e) {
+                _logger.e('Failed to end stream: $e');
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('配信の終了に失敗しました')),
+                );
+              }
             },
             child: const Text('終了'),
           ),
@@ -443,25 +529,35 @@ class TwitchStreamScreen extends ConsumerWidget {
     );
   }
 
-  void _disconnectTwitch(BuildContext context, WidgetRef ref) {
+  void _disconnectTwitch(BuildContext context, WidgetRef ref, String uid) {
     _logger.i('Disconnecting from Twitch');
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.grey[900],
         title: const Text('Twitch を切断'),
         content: const Text('本当に Twitch との接続を切断しますか？'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('キャンセル'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Twitch を切断しました')),
-              );
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              try {
+                await ref.read(disconnectTwitchProvider)(uid);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Twitch を切断しました')),
+                );
+              } catch (e) {
+                _logger.e('Failed to disconnect Twitch: $e');
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('切断に失敗しました')),
+                );
+              }
             },
             child: const Text('切断', style: TextStyle(color: Colors.red)),
           ),

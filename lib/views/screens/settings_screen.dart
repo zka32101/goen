@@ -114,6 +114,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _buildAccountSettings(context, ref),
             ),
 
+            // Connections / creator features section
+            _buildSection(
+              context,
+              '連携・共有',
+              _buildConnectionsSettings(context),
+            ),
+
             // App info section
             _buildSection(
               context,
@@ -505,6 +512,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildConnectionsSettings(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildConnectionRow(
+          context,
+          icon: Icons.favorite,
+          label: 'スポンサーシップ',
+          onTap: () => Navigator.of(context).pushNamed('/sponsorship'),
+        ),
+        const Divider(color: Colors.white10, height: 24),
+        _buildConnectionRow(
+          context,
+          icon: Icons.streaming,
+          label: 'Twitch 配信',
+          onTap: () => Navigator.of(context).pushNamed('/twitch-stream'),
+        ),
+        const Divider(color: Colors.white10, height: 24),
+        _buildConnectionRow(
+          context,
+          icon: Icons.video_library,
+          label: 'YouTube 共有',
+          onTap: () => Navigator.of(context).pushNamed('/youtube-share'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConnectionRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.amber[600], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Colors.white30),
+        ],
+      ),
     );
   }
 

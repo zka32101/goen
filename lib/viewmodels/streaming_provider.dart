@@ -82,13 +82,14 @@ final twitchConnectedProvider =
   }
 });
 
-/// アクティブなTwitchストリーム
+/// アクティブなTwitchストリーム（ユーザー単位。以前はgameIdで引いていたが、
+/// 配信は特定の対局と紐付かない設定画面からも開始できるため、userIdで引く）
 final activeTwitchStreamProvider =
-    FutureProvider.family<TwitchStreamInfo?, String>((ref, gameId) async {
+    FutureProvider.family<TwitchStreamInfo?, String>((ref, userId) async {
   try {
     final service = ref.watch(twitchShareServiceProvider);
-    _logger.d('Fetching active Twitch stream for game: $gameId');
-    final stream = await service.getActiveStream(gameId);
+    _logger.d('Fetching active Twitch stream for user: $userId');
+    final stream = await service.getActiveStream(userId);
     return stream;
   } catch (e) {
     _logger.e('Error fetching active stream: $e');
@@ -173,63 +174,208 @@ final sponsorshipNotificationsProvider =
 
 // ================== ACTION PROVIDERS ==================
 
-/// YouTube アップロード実行
-final uploadToYouTubeProvider =
-    FutureProvider.family<YouTubeUploadResult?, YouTubeShareData>(
-        (ref, shareData) async {
-  try {
+/// YouTube アップロード実行（プレーンなアクション。ゲームごとに異なる
+/// YouTubeShareDataをfamilyキーにすると使うたびにキャッシュが増え続けるため、
+/// 他のワンショット書き込み系と同様プレーンなProviderにする）
+final uploadToYouTubeProvider = Provider<
+    Future<YouTubeUploadResult?> Function(YouTubeShareData shareData)>((ref) {
+  return (shareData) async {
     final service = ref.watch(youtubeShareServiceProvider);
-    _logger.i('Uploading to YouTube: ${shareData.title}');
-    final result = await service.uploadGameToYouTube(shareData);
-    return result;
-  } catch (e) {
-    _logger.e('Error uploading to YouTube: $e');
-    rethrow;
-  }
+    try {
+      _logger.i('Uploading to YouTube: ${shareData.title}');
+      final result = await service.uploadGameToYouTube(shareData);
+      ref.invalidate(youtubeUploadsProvider(shareData.userId));
+      return result;
+    } catch (e) {
+      _logger.e('Error uploading to YouTube: $e');
+      rethrow;
+    }
+  };
 });
 
-/// Twitch ストリーム開始
-final startTwitchStreamProvider =
-    FutureProvider.family<TwitchStreamInfo?, TwitchStreamData>(
-        (ref, streamData) async {
-  try {
+/// Twitch ストリーム開始（プレーンなアクション。TwitchStreamDataの値ごとに
+/// キャッシュされる`.family`にすると呼ぶたびに新しいキャッシュエントリが
+/// 積み上がるため、他のワンショット書き込み系と同様プレーンなProviderにする）
+final startTwitchStreamProvider = Provider<
+    Future<TwitchStreamInfo?> Function(TwitchStreamData streamData)>((ref) {
+  return (streamData) async {
     final service = ref.watch(twitchShareServiceProvider);
-    _logger.i('Starting Twitch stream: ${streamData.streamTitle}');
-    final result = await service.startGameStream(streamData);
-    return result;
-  } catch (e) {
-    _logger.e('Error starting Twitch stream: $e');
-    rethrow;
-  }
+    try {
+      _logger.i('Starting Twitch stream: ${streamData.streamTitle}');
+      final result = await service.startGameStream(streamData);
+      ref.invalidate(activeTwitchStreamProvider(streamData.userId));
+      return result;
+    } catch (e) {
+      _logger.e('Error starting Twitch stream: $e');
+      rethrow;
+    }
+  };
 });
 
-/// スポンサーシップ開始
-final startSponsorshipProvider = FutureProvider.family<
-    SponsorshipRecord?,
-    ({
-      String sponsorUserId,
-      String sponsoredUserId,
-      String tierId,
-      String message
-    })>((ref, params) async {
-  try {
+/// Twitch ストリーム終了
+final endTwitchStreamProvider =
+    Provider<Future<bool> Function(String userId, String streamId)>((ref) {
+  return (userId, streamId) async {
+    final service = ref.watch(twitchShareServiceProvider);
+    try {
+      final result = await service.endGameStream(streamId);
+      ref.invalidate(activeTwitchStreamProvider(userId));
+      ref.invalidate(twitchStreamHistoryProvider(userId));
+      return result;
+    } catch (e) {
+      _logger.e('Error ending Twitch stream: $e');
+      rethrow;
+    }
+  };
+});
+
+/// Twitch 接続解除
+final disconnectTwitchProvider =
+    Provider<Future<bool> Function(String userId)>((ref) {
+  return (userId) async {
+    final service = ref.watch(twitchShareServiceProvider);
+    try {
+      final result = await service.disconnectTwitch(userId);
+      ref.invalidate(twitchConnectedProvider(userId));
+      return result;
+    } catch (e) {
+      _logger.e('Error disconnecting Twitch: $e');
+      rethrow;
+    }
+  };
+});
+
+/// YouTube 接続解除
+final disconnectYouTubeProvider =
+    Provider<Future<bool> Function(String userId)>((ref) {
+  return (userId) async {
+    final service = ref.watch(youtubeShareServiceProvider);
+    try {
+      final result = await service.disconnectYouTube(userId);
+      ref.invalidate(youtubeConnectedProvider(userId));
+      return result;
+    } catch (e) {
+      _logger.e('Error disconnecting YouTube: $e');
+      rethrow;
+    }
+  };
+});
+
+/// YouTube 自動共有設定の変更
+final setAutoShareProvider =
+    Provider<Future<bool> Function(String userId, bool enabled)>((ref) {
+  return (userId, enabled) async {
+    final service = ref.watch(youtubeShareServiceProvider);
+    try {
+      final result = await service.setAutoShareEnabled(userId, enabled);
+      ref.invalidate(youtubeAutoShareProvider(userId));
+      return result;
+    } catch (e) {
+      _logger.e('Error setting auto-share: $e');
+      rethrow;
+    }
+  };
+});
+
+/// スポンサーシップ開始（プレーンなアクション。familyのキーに自由記述の
+/// messageを含めると、メッセージが変わるたびに新しいキャッシュエントリが
+/// 積み上がり続けるため、他のワンショット書き込み系と同様プレーンな
+/// Providerにする）
+final startSponsorshipProvider = Provider<
+    Future<SponsorshipRecord?> Function({
+      required String sponsorUserId,
+      required String sponsoredUserId,
+      required String tierId,
+      required String message,
+    })>((ref) {
+  return ({
+    required sponsorUserId,
+    required sponsoredUserId,
+    required tierId,
+    required message,
+  }) async {
     final service = ref.watch(sponsorshipServiceProvider);
-    _logger.i(
-        'Starting sponsorship: ${params.sponsorUserId} -> ${params.sponsoredUserId}');
-    final result = await service.startSponsorship(
-      params.sponsorUserId,
-      params.sponsoredUserId,
-      params.tierId,
-      params.message,
-    );
-    // 関連プロバイダーを無効化（リフレッシュ）
-    ref.invalidate(incomingSponsorsProvider(params.sponsoredUserId));
-    ref.invalidate(sponsorInfoProvider(params.sponsoredUserId));
-    return result;
-  } catch (e) {
-    _logger.e('Error starting sponsorship: $e');
-    rethrow;
-  }
+    try {
+      _logger.i('Starting sponsorship: $sponsorUserId -> $sponsoredUserId');
+      final result = await service.startSponsorship(
+        sponsorUserId,
+        sponsoredUserId,
+        tierId,
+        message,
+      );
+      // 関連プロバイダーを無効化（リフレッシュ） — 支援を受ける側だけでなく
+      // 支援する側の一覧・統計も古いままにならないようにする。
+      ref.invalidate(incomingSponsorsProvider(sponsoredUserId));
+      ref.invalidate(sponsorInfoProvider(sponsoredUserId));
+      ref.invalidate(outgoingSponsorsProvider(sponsorUserId));
+      ref.invalidate(sponsorInfoProvider(sponsorUserId));
+      return result;
+    } catch (e) {
+      _logger.e('Error starting sponsorship: $e');
+      rethrow;
+    }
+  };
+});
+
+/// スポンサーシップをキャンセル
+final cancelSponsorshipProvider = Provider<
+    Future<bool> Function({
+      required String sponsorshipId,
+      required String sponsorUserId,
+      required String sponsoredUserId,
+    })>((ref) {
+  return ({
+    required sponsorshipId,
+    required sponsorUserId,
+    required sponsoredUserId,
+  }) async {
+    final service = ref.watch(sponsorshipServiceProvider);
+    try {
+      final result = await service.cancelSponsorship(sponsorshipId);
+      ref.invalidate(incomingSponsorsProvider(sponsoredUserId));
+      ref.invalidate(sponsorInfoProvider(sponsoredUserId));
+      ref.invalidate(outgoingSponsorsProvider(sponsorUserId));
+      ref.invalidate(sponsorInfoProvider(sponsorUserId));
+      return result;
+    } catch (e) {
+      _logger.e('Error cancelling sponsorship: $e');
+      rethrow;
+    }
+  };
+});
+
+/// スポンサーシップティアを作成
+final createSponsorshipTierProvider = Provider<
+    Future<SponsorshipTier?> Function({
+      required String userId,
+      required String name,
+      required int priceUSD,
+      required String description,
+      required List<String> benefits,
+    })>((ref) {
+  return ({
+    required userId,
+    required name,
+    required priceUSD,
+    required description,
+    required benefits,
+  }) async {
+    final service = ref.watch(sponsorshipServiceProvider);
+    try {
+      final result = await service.createSponsorshipTier(
+        userId,
+        name,
+        priceUSD,
+        description,
+        benefits,
+      );
+      ref.invalidate(sponsorInfoProvider(userId));
+      return result;
+    } catch (e) {
+      _logger.e('Error creating sponsorship tier: $e');
+      rethrow;
+    }
+  };
 });
 
 // ================== UI STATE PROVIDERS ==================
