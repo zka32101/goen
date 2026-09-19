@@ -171,6 +171,28 @@ class HomeScreen extends ConsumerWidget {
                     color: Colors.amber[700]!,
                     onTap: () => _navigateToTournament(context),
                   ),
+                  const SizedBox(height: 16),
+
+                  // How to Play (persistent reference, unlike onboarding)
+                  _buildActionCard(
+                    context,
+                    title: '遊び方',
+                    subtitle: 'ルールをいつでも確認できます',
+                    icon: Icons.menu_book,
+                    color: Colors.teal[300]!,
+                    onTap: () => _navigateToHowToPlay(context),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Joseki (strategy) library
+                  _buildActionCard(
+                    context,
+                    title: '戦法（定石）',
+                    subtitle: '代表的な定石と狙いを学ぶ',
+                    icon: Icons.auto_stories,
+                    color: Colors.indigo[300]!,
+                    onTap: () => _navigateToJoseki(context),
+                  ),
                 ],
               ),
             ),
@@ -502,6 +524,16 @@ class HomeScreen extends ConsumerWidget {
   void _navigateToNotifications(BuildContext context) {
     _logger.i('Navigating to Notifications');
     Navigator.of(context).pushNamed('/notifications');
+  }
+
+  void _navigateToHowToPlay(BuildContext context) {
+    _logger.i('Navigating to How to Play');
+    Navigator.of(context).pushNamed('/how-to-play');
+  }
+
+  void _navigateToJoseki(BuildContext context) {
+    _logger.i('Navigating to Joseki');
+    Navigator.of(context).pushNamed('/joseki');
   }
 
   /// Notification bell with an unread-count badge

@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/services/index.dart' show GameAnalysis;
 
 final _logger = Logger();
 
@@ -178,7 +179,7 @@ class GameResultScreen extends ConsumerWidget {
               // AI commentary (if available)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _buildCommentarySection(context),
+                child: _AiReviewSection(sgfData: boardState.toSgf()),
               ),
 
               const SizedBox(height: 32),
@@ -400,37 +401,6 @@ class GameResultScreen extends ConsumerWidget {
     );
   }
 
-  /// Commentary section (placeholder)
-  Widget _buildCommentarySection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Move Analysis',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'AI-powered analysis coming soon. AI will review your moves and provide detailed commentary.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
-              height: 1.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _getResultTitle(String? winner) {
     switch (winner) {
       case 'player':
@@ -508,5 +478,127 @@ class GameResultScreen extends ConsumerWidget {
   void _handleBackToHome(BuildContext context) {
     _logger.i('Returning to home...');
     Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+  }
+}
+
+/// AI振り返り（対局後レビュー） - ボタン押下でCloud Functionsを呼び、
+/// 手ごとの解説と局面の総評を表示する。時間のかかる処理なので画面表示時に
+/// 自動実行はせず、ユーザーの明示的な操作で開始する。
+class _AiReviewSection extends ConsumerStatefulWidget {
+  final String sgfData;
+
+  const _AiReviewSection({required this.sgfData});
+
+  @override
+  ConsumerState<_AiReviewSection> createState() => _AiReviewSectionState();
+}
+
+class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
+  GameAnalysis? _analysis;
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _runReview() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final analysis = await ref.read(generateGameAnalysisProvider)(
+        sgfData: widget.sgfData,
+        kifuId: 'review-${DateTime.now().millisecondsSinceEpoch}',
+      );
+      if (!mounted) return;
+      setState(() => _analysis = analysis);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = 'AI振り返りの生成に失敗しました: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white10),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.white.withOpacity(0.03),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'AI振り返り',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 12),
+          if (_analysis == null && !_loading)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AIが対局を振り返り、良かった手・改善点を解説します。',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white70,
+                        height: 1.6,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: _runReview,
+                    child: const Text('AIで振り返る'),
+                  ),
+                ),
+              ],
+            ),
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          if (_error != null)
+            Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+          if (_analysis != null) _buildAnalysis(context, _analysis!),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnalysis(BuildContext context, GameAnalysis analysis) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          analysis.overallTheme,
+          style: const TextStyle(color: Colors.white, height: 1.6),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '転換点: ${analysis.keyTurningPoints}',
+          style: TextStyle(color: Colors.grey[400], height: 1.6),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          analysis.conclusion,
+          style: TextStyle(color: Colors.grey[400], height: 1.6),
+        ),
+        const SizedBox(height: 16),
+        for (final move in analysis.moves) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              '${move.moveNumber}手目 (${move.playerColor == 'black' ? '黒' : '白'} '
+              '[${move.row},${move.col}]): ${move.basicExplanation}',
+              style: TextStyle(color: Colors.grey[300], fontSize: 13),
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
