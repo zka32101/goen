@@ -81,6 +81,33 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: AppColors.white,
         ),
+        // 以前はここで未定義だったバリアント（多くの画面がbodySmall/
+        // titleSmall等を直接参照している）は、Flutter標準の
+        // デフォルトフォントにフォールバックしてしまい、和文明朝体が
+        // 適用されない箇所があったため追加する。
+        displaySmall: GoogleFonts.notoSerifJp(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: AppColors.white,
+        ),
+        titleSmall: GoogleFonts.notoSerifJp(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppColors.white,
+        ),
+        bodySmall: GoogleFonts.notoSerifJp(
+          fontSize: 12,
+          color: AppColors.grey300,
+        ),
+        labelMedium: GoogleFonts.notoSerifJp(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: AppColors.white,
+        ),
+        labelSmall: GoogleFonts.notoSerifJp(
+          fontSize: 11,
+          color: AppColors.grey300,
+        ),
       ),
 
       // Button styles

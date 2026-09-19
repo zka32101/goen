@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/utils/shoji_transition.dart';
+import 'ai_game_screen.dart';
 
 final _logger = Logger();
 
@@ -493,7 +495,9 @@ class HomeScreen extends ConsumerWidget {
     // screen; without resetting them here, a previous game's finished
     // board would still be showing (see startNewGameProvider's doc).
     ref.read(startNewGameProvider)();
-    Navigator.of(context).pushNamed('/ai-game');
+    // 障子が開いて対局へ入るような節目の演出にするため、通常の
+    // pushNamedではなくカスタムトランジションで直接pushする。
+    Navigator.of(context).push(shojiTransitionRoute(const AIGameScreen()));
   }
 
   void _navigateToTsumeGo(BuildContext context) {
