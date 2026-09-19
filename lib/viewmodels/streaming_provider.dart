@@ -204,6 +204,7 @@ final startTwitchStreamProvider = Provider<
       _logger.i('Starting Twitch stream: ${streamData.streamTitle}');
       final result = await service.startGameStream(streamData);
       ref.invalidate(activeTwitchStreamProvider(streamData.userId));
+      ref.invalidate(twitchStreamHistoryProvider(streamData.userId));
       return result;
     } catch (e) {
       _logger.e('Error starting Twitch stream: $e');
@@ -352,6 +353,7 @@ final createSponsorshipTierProvider = Provider<
       required int priceUSD,
       required String description,
       required List<String> benefits,
+      int maxSlots,
     })>((ref) {
   return ({
     required userId,
@@ -359,6 +361,7 @@ final createSponsorshipTierProvider = Provider<
     required priceUSD,
     required description,
     required benefits,
+    maxSlots = 0,
   }) async {
     final service = ref.watch(sponsorshipServiceProvider);
     try {
@@ -368,6 +371,7 @@ final createSponsorshipTierProvider = Provider<
         priceUSD,
         description,
         benefits,
+        maxSlots: maxSlots,
       );
       ref.invalidate(sponsorInfoProvider(userId));
       return result;

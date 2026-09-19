@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 
@@ -428,7 +429,13 @@ class YouTubeShareScreen extends ConsumerWidget {
     );
   }
 
-  void _openYouTubeVideo(String url) {
+  Future<void> _openYouTubeVideo(String url) async {
     _logger.i('Opening YouTube video: $url');
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      _logger.w('Could not launch YouTube video URL: $url');
+    }
   }
 }

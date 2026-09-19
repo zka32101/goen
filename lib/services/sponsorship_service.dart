@@ -56,7 +56,7 @@ class SponsorshipService {
 
         final tierData = tierDoc.data()!;
         final amountUSD = tierData['priceUSD'] as int;
-        final tierName = tierData['name'] ?? 'Unknown Tier';
+        final tierName = tierData['name'] as String? ?? 'Unknown Tier';
         final perks = List<String>.from(tierData['benefits'] ?? []);
         final maxSlots = tierData['maxSlots'] as int? ?? 0;
         final currentSubscribers = tierData['currentSubscribers'] as int? ?? 0;
@@ -123,32 +123,43 @@ class SponsorshipService {
       final sponsorshipRef = _firestore.collection('sponsorships').doc(sponsorshipId);
 
       await _firestore.runTransaction<void>((transaction) async {
+        // Firestoreのトランザクションはコミット前に全ての読み取りを終える
+        // 必要があり、読み取りと書き込みを混在させると失敗する。そのため、
+        // ティアの参照解決に必要な読み取りも含めて、書き込みより前に
+        // すべて済ませておく。
         final doc = await transaction.get(sponsorshipRef);
         if (!doc.exists) return;
 
         final data = doc.data()!;
         if (data['status'] != 'active') return;
 
-        transaction.update(sponsorshipRef, {
-          'status': 'cancelled',
-          'endDate': FieldValue.serverTimestamp(),
-        });
-
         final sponsoredUserId = data['sponsoredUserId'] as String?;
         final tierId = data['tierId'] as String?;
+        DocumentReference<Map<String, dynamic>>? tierRef;
+        int? tierCurrentSubscribers;
         if (sponsoredUserId != null && tierId != null) {
-          final tierRef = _firestore
+          tierRef = _firestore
               .collection('users')
               .doc(sponsoredUserId)
               .collection('sponsorshipTiers')
               .doc(tierId);
           final tierDoc = await transaction.get(tierRef);
           if (tierDoc.exists) {
-            final current = tierDoc.data()?['currentSubscribers'] as int? ?? 0;
-            transaction.update(tierRef, {
-              'currentSubscribers': current > 0 ? current - 1 : 0,
-            });
+            tierCurrentSubscribers = tierDoc.data()?['currentSubscribers'] as int? ?? 0;
+          } else {
+            tierRef = null;
           }
+        }
+
+        transaction.update(sponsorshipRef, {
+          'status': 'cancelled',
+          'endDate': FieldValue.serverTimestamp(),
+        });
+
+        if (tierRef != null && tierCurrentSubscribers != null) {
+          transaction.update(tierRef, {
+            'currentSubscribers': tierCurrentSubscribers > 0 ? tierCurrentSubscribers - 1 : 0,
+          });
         }
       });
 
@@ -339,6 +350,7 @@ class SponsorshipService {
           priceUSD: data['priceUSD'] ?? 0,
           description: data['description'] ?? '',
           benefits: List<String>.from(data['benefits'] ?? []),
+          maxSlots: data['maxSlots'] ?? 0,
           currentSubscribers: data['currentSubscribers'] ?? 0,
         );
       }).toList();

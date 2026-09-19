@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 
@@ -566,7 +567,13 @@ class TwitchStreamScreen extends ConsumerWidget {
     );
   }
 
-  void _openTwitchChannel(String channelName) {
+  Future<void> _openTwitchChannel(String channelName) async {
     _logger.i('Opening Twitch channel: $channelName');
+    final url = Uri.parse('https://twitch.tv/$channelName');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      _logger.w('Could not launch Twitch channel URL: $url');
+    }
   }
 }

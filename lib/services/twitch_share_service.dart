@@ -26,7 +26,7 @@ class TwitchShareService {
       _logger.i('Starting Twitch stream: ${streamData.streamTitle}');
 
       final channelInfo = await getChannelInfo(streamData.userId);
-      final channelName = channelInfo?['channelName'] ?? 'unknown';
+      final channelName = channelInfo?['channelName'] as String? ?? 'unknown';
 
       final docRef = _firestore.collection('streams').doc();
 
@@ -145,10 +145,13 @@ class TwitchShareService {
     try {
       _logger.d('Fetching stream history for user: $userId');
 
+      // isLive: false — 配信中のものは別途アクティブ配信カードに表示される
+      // ため、履歴に重複して出さないようにする。
       final querySnapshot = await _firestore
           .collection('streams')
           .where('userId', isEqualTo: userId)
           .where('platform', isEqualTo: 'twitch')
+          .where('isLive', isEqualTo: false)
           .orderBy('startedAt', descending: true)
           .limit(limit)
           .get();
