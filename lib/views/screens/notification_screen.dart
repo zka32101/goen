@@ -1,0 +1,253 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
+import 'package:goen/models/notification.dart';
+import 'package:goen/viewmodels/index.dart';
+
+final _logger = Logger();
+
+/// 通知画面 - 通知一覧の確認と通知設定
+class NotificationScreen extends ConsumerWidget {
+  const NotificationScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(currentUserProvider);
+    final uid = currentUser?.uid;
+
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      appBar: AppBar(
+        title: const Text('通知'),
+        backgroundColor: Colors.grey[900],
+        elevation: 0,
+        actions: uid == null
+            ? null
+            : [
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  tooltip: '通知設定',
+                  onPressed: () => _showPreferenceDialog(context, ref, uid),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_sweep),
+                  tooltip: 'すべて削除',
+                  onPressed: () => _confirmClear(context, ref, uid),
+                ),
+              ],
+      ),
+      body: uid == null
+          ? const Center(
+              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+            )
+          : _buildNotificationList(ref, uid),
+    );
+  }
+
+  Widget _buildNotificationList(WidgetRef ref, String uid) {
+    final notificationsAsync = ref.watch(userNotificationsProvider(uid));
+    return notificationsAsync.when(
+      data: (notifications) {
+        if (notifications.isEmpty) {
+          return Center(
+            child: Text('通知はまだありません', style: TextStyle(color: Colors.grey[500])),
+          );
+        }
+        return ListView.separated(
+          itemCount: notifications.length,
+          separatorBuilder: (_, __) => Divider(color: Colors.grey[850], height: 1),
+          itemBuilder: (context, index) {
+            final n = notifications[index];
+            return ListTile(
+              tileColor: n.isRead ? null : Colors.amber[600]?.withOpacity(0.05),
+              leading: Icon(_iconFor(n.type), color: n.isRead ? Colors.grey[500] : Colors.amber[600]),
+              title: Text(
+                n.title,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: n.isRead ? FontWeight.normal : FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(n.body, style: TextStyle(color: Colors.grey[400])),
+              trailing: Text(
+                _formatDate(n.createdAt),
+                style: TextStyle(color: Colors.grey[500], fontSize: 11),
+              ),
+              onTap: n.isRead ? null : () => _markAsRead(ref, uid, n.id),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) {
+        _logger.e('Notifications error: $err');
+        return Center(child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)));
+      },
+    );
+  }
+
+  IconData _iconFor(String type) {
+    switch (type) {
+      case 'friend_request':
+        return Icons.person_add;
+      case 'tournament_match':
+        return Icons.emoji_events;
+      case 'achievement':
+        return Icons.star;
+      default:
+        return Icons.notifications;
+    }
+  }
+
+  String _formatDate(DateTime date) => '${date.month}/${date.day}';
+
+  Future<void> _markAsRead(WidgetRef ref, String uid, String notificationId) async {
+    try {
+      await ref.read(markNotificationAsReadProvider)(uid: uid, notificationId: notificationId);
+      ref.invalidate(userNotificationsProvider(uid));
+      ref.invalidate(unreadNotificationsProvider(uid));
+    } catch (e) {
+      _logger.e('Error marking notification as read: $e');
+    }
+  }
+
+  Future<void> _confirmClear(BuildContext context, WidgetRef ref, String uid) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('通知をすべて削除しますか？', style: TextStyle(color: Colors.white)),
+        content: const Text('この操作は取り消せません。', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text('キャンセル', style: TextStyle(color: Colors.blue[400])),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text('削除', style: TextStyle(color: Colors.red[400])),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ref.read(clearNotificationsProvider)(uid);
+        ref.invalidate(userNotificationsProvider(uid));
+        ref.invalidate(unreadNotificationsProvider(uid));
+      } catch (e) {
+        _logger.e('Error clearing notifications: $e');
+      }
+    }
+  }
+
+  Future<void> _showPreferenceDialog(BuildContext context, WidgetRef ref, String uid) async {
+    final preference = await ref.read(notificationPreferenceProvider(uid).future);
+    if (!context.mounted) return;
+
+    final current = preference ??
+        NotificationPreference(
+          uid: uid,
+          friendRequests: true,
+          tournamentUpdates: true,
+          achievements: true,
+          gameInvitations: true,
+          allNotifications: true,
+        );
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => _NotificationPreferenceDialog(
+        preference: current,
+        onSave: (updated) async {
+          try {
+            await ref.read(saveNotificationPreferenceProvider)(updated);
+            ref.invalidate(notificationPreferenceProvider(uid));
+          } catch (e) {
+            _logger.e('Error saving notification preference: $e');
+          }
+        },
+      ),
+    );
+  }
+}
+
+class _NotificationPreferenceDialog extends StatefulWidget {
+  final NotificationPreference preference;
+  final Future<void> Function(NotificationPreference) onSave;
+
+  const _NotificationPreferenceDialog({required this.preference, required this.onSave});
+
+  @override
+  State<_NotificationPreferenceDialog> createState() => _NotificationPreferenceDialogState();
+}
+
+class _NotificationPreferenceDialogState extends State<_NotificationPreferenceDialog> {
+  late bool _friendRequests;
+  late bool _tournamentUpdates;
+  late bool _achievements;
+  late bool _gameInvitations;
+  late bool _allNotifications;
+
+  @override
+  void initState() {
+    super.initState();
+    _friendRequests = widget.preference.friendRequests;
+    _tournamentUpdates = widget.preference.tournamentUpdates;
+    _achievements = widget.preference.achievements;
+    _gameInvitations = widget.preference.gameInvitations;
+    _allNotifications = widget.preference.allNotifications;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.grey[900],
+      title: const Text('通知設定', style: TextStyle(color: Colors.white)),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildSwitch('すべての通知', _allNotifications, (v) => setState(() => _allNotifications = v)),
+            _buildSwitch('友達リクエスト', _friendRequests, (v) => setState(() => _friendRequests = v)),
+            _buildSwitch('トーナメント更新', _tournamentUpdates, (v) => setState(() => _tournamentUpdates = v)),
+            _buildSwitch('実績', _achievements, (v) => setState(() => _achievements = v)),
+            _buildSwitch('対局招待', _gameInvitations, (v) => setState(() => _gameInvitations = v)),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('キャンセル', style: TextStyle(color: Colors.blue[400])),
+        ),
+        TextButton(
+          onPressed: () async {
+            await widget.onSave(NotificationPreference(
+              uid: widget.preference.uid,
+              friendRequests: _friendRequests,
+              tournamentUpdates: _tournamentUpdates,
+              achievements: _achievements,
+              gameInvitations: _gameInvitations,
+              allNotifications: _allNotifications,
+            ));
+            if (context.mounted) Navigator.pop(context);
+          },
+          child: Text('保存', style: TextStyle(color: Colors.amber[600])),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSwitch(String label, bool value, ValueChanged<bool> onChanged) {
+    return SwitchListTile(
+      title: Text(label, style: const TextStyle(color: Colors.white)),
+      value: value,
+      activeColor: Colors.amber[600],
+      onChanged: onChanged,
+      contentPadding: EdgeInsets.zero,
+    );
+  }
+}

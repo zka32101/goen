@@ -32,6 +32,8 @@ export 'friends_screen.dart';
 export 'leaderboard_screen.dart';
 export 'game_preset_manager_screen.dart';
 export 'analytics_dashboard_screen.dart';
+export 'tournament_screen.dart';
+export 'notification_screen.dart';
 
 // 縁 (En) features
 export 'en_hub_screen.dart';

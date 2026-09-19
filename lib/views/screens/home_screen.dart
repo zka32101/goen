@@ -32,6 +32,7 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: Colors.black,
         elevation: 0,
         actions: [
+          _buildNotificationButton(context, ref, currentUser?.uid),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => _navigateToSettings(context),
@@ -158,6 +159,17 @@ class HomeScreen extends ConsumerWidget {
                     icon: Icons.favorite,
                     color: Colors.pink[300]!,
                     onTap: () => _navigateToEnHub(context),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Tournament
+                  _buildActionCard(
+                    context,
+                    title: 'トーナメント',
+                    subtitle: '大会に参加して腕を試そう',
+                    icon: Icons.emoji_events,
+                    color: Colors.amber[700]!,
+                    onTap: () => _navigateToTournament(context),
                   ),
                 ],
               ),
@@ -480,6 +492,56 @@ class HomeScreen extends ConsumerWidget {
   void _navigateToEnHub(BuildContext context) {
     _logger.i('Navigating to En Hub');
     Navigator.of(context).pushNamed('/en-hub');
+  }
+
+  void _navigateToTournament(BuildContext context) {
+    _logger.i('Navigating to Tournament');
+    Navigator.of(context).pushNamed('/tournament');
+  }
+
+  void _navigateToNotifications(BuildContext context) {
+    _logger.i('Navigating to Notifications');
+    Navigator.of(context).pushNamed('/notifications');
+  }
+
+  /// Notification bell with an unread-count badge
+  Widget _buildNotificationButton(BuildContext context, WidgetRef ref, String? uid) {
+    if (uid == null) {
+      return IconButton(
+        icon: const Icon(Icons.notifications_none),
+        onPressed: () => _navigateToNotifications(context),
+        tooltip: 'Notifications',
+      );
+    }
+
+    final unreadCountAsync = ref.watch(unreadNotificationCountProvider(uid));
+    final unreadCount = unreadCountAsync.valueOrNull ?? 0;
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.notifications_none),
+          onPressed: () => _navigateToNotifications(context),
+          tooltip: 'Notifications',
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+              child: Text(
+                unreadCount > 9 ? '9+' : '$unreadCount',
+                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   void _navigateToSettings(BuildContext context) {
