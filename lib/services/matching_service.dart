@@ -47,7 +47,14 @@ class MatchingService {
     }
   }
 
-  /// レート差が最も近い待機中プレイヤーを探し、マッチが見つかれば成立させる
+  /// レート差が最も近い待機中プレイヤーを探し、マッチが見つかれば成立させる。
+  ///
+  /// 候補者選定（誰が一番近いか）はコレクションクエリが必要なため
+  /// トランザクション外で行うが、実際にマッチを成立させる書き込みは
+  /// トランザクション内で候補者の状態を再確認してから行う。これにより、
+  /// 2人のユーザーがほぼ同時に同じ候補者を見つけても、片方だけが
+  /// マッチを成立させ、もう片方は「見つからなかった」扱いになる
+  /// （既に'matched'になった候補者を二重に予約することがない）。
   Future<MatchResult?> findMatch({
     required String uid,
     required String displayName,
@@ -79,30 +86,49 @@ class MatchingService {
         return null;
       }
 
+      final selectedCandidate = bestCandidate;
+      final selectedDiff = bestDiff;
+      final selfRef = _firestore.collection('matchmaking_queue').doc(uid);
+      final candidateRef = _firestore.collection('matchmaking_queue').doc(selectedCandidate.uid);
       final matchRef = _firestore.collection('match_results').doc();
-      final match = MatchResult(
-        id: matchRef.id,
-        player1Uid: uid,
-        player1DisplayName: displayName,
-        player1Rating: rating,
-        player2Uid: bestCandidate.uid,
-        player2DisplayName: bestCandidate.displayName,
-        player2Rating: bestCandidate.rating,
-        boardSize: boardSize,
-        ratingDiff: bestDiff,
-        createdAt: DateTime.now(),
-      );
 
-      final batch = _firestore.batch();
-      batch.set(matchRef, match.toFirestore());
-      batch.update(_firestore.collection('matchmaking_queue').doc(uid), {'status': 'matched'});
-      batch.update(
-        _firestore.collection('matchmaking_queue').doc(bestCandidate.uid),
-        {'status': 'matched'},
-      );
-      await batch.commit();
+      final match = await _firestore.runTransaction<MatchResult?>((transaction) async {
+        final selfDoc = await transaction.get(selfRef);
+        final candidateDoc = await transaction.get(candidateRef);
+        final selfStatus = selfDoc.data()?['status'] as String?;
+        final candidateStatus = candidateDoc.data()?['status'] as String?;
 
-      _logger.i('Match found: $uid <-> ${bestCandidate.uid} (rating diff: $bestDiff)');
+        if (selfStatus != 'waiting' || candidateStatus != 'waiting') {
+          _logger.i(
+            'Match candidate no longer available (self=$selfStatus, candidate=$candidateStatus)',
+          );
+          return null;
+        }
+
+        final result = MatchResult(
+          id: matchRef.id,
+          player1Uid: uid,
+          player1DisplayName: displayName,
+          player1Rating: rating,
+          player2Uid: selectedCandidate.uid,
+          player2DisplayName: selectedCandidate.displayName,
+          player2Rating: selectedCandidate.rating,
+          boardSize: boardSize,
+          ratingDiff: selectedDiff,
+          createdAt: DateTime.now(),
+        );
+
+        transaction.set(matchRef, result.toFirestore());
+        transaction.update(selfRef, {'status': 'matched'});
+        transaction.update(candidateRef, {'status': 'matched'});
+        return result;
+      });
+
+      if (match == null) {
+        return null;
+      }
+
+      _logger.i('Match found: $uid <-> ${selectedCandidate.uid} (rating diff: $selectedDiff)');
       return match;
     } catch (e) {
       _logger.e('Error finding match: $e');

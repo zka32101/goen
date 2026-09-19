@@ -270,19 +270,31 @@ class PvpGameService {
     return blackScore > whiteScore ? game.blackUid : game.whiteUid;
   }
 
+  /// トランザクション内で読み取り・判定・書き込みを行い、パス2連続による
+  /// 終局処理（pass()）と同時に投了しても、後勝ちで結果が上書きされない
+  /// ようにする（isActiveの再確認をコミット直前の状態に対して行う）。
   Future<void> resign({required String gameId, required String uid}) async {
     try {
-      final game = await getGame(gameId);
-      if (game == null || !game.isActive) return;
+      await _firestore.runTransaction<void>((transaction) async {
+        final docRef = _games.doc(gameId);
+        final snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return;
 
-      final winnerUid = game.playerColorOf(uid) == 1 ? game.whiteUid : game.blackUid;
-      await _games.doc(gameId).update({
-        'status': 'finished',
-        'winnerUid': winnerUid,
-        'result': 'resignation',
-        'updatedAt': FieldValue.serverTimestamp(),
+        final game = PvpGame.fromFirestore(snapshot);
+        if (!game.isActive) {
+          _logger.w('PvP game already finished, ignoring resign: $gameId');
+          return;
+        }
+
+        final winnerUid = game.playerColorOf(uid) == 1 ? game.whiteUid : game.blackUid;
+        transaction.update(docRef, {
+          'status': 'finished',
+          'winnerUid': winnerUid,
+          'result': 'resignation',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        _logger.i('PvP game resigned: game=$gameId by=$uid');
       });
-      _logger.i('PvP game resigned: game=$gameId by=$uid');
     } catch (e) {
       _logger.e('Error resigning PvP game: $e');
       rethrow;

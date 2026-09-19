@@ -261,50 +261,107 @@ class TournamentService {
 
   /// 指定ラウンドの全試合が完了していれば、勝者同士で次ラウンドを生成する。
   /// 勝者が1人だけならその人が優勝者としてトーナメントを完了させる。
+  ///
+  /// 同じラウンドの複数試合がほぼ同時に完了すると、それぞれの呼び出しが
+  /// 「ラウンド完了」を独立に検知して次ラウンドを二重生成しうるため、
+  /// Tournament.lastAdvancedRound をトランザクション内でチェック＆更新する
+  /// ことで一度しか進行しないようにする。
   Future<void> _advanceRoundIfComplete({
     required String tournamentId,
     required int round,
   }) async {
     final tournamentRef = _firestore.collection(tournamentsCollection).doc(tournamentId);
+
+    // コレクションクエリはトランザクション内で実行できないため、対象試合の
+    // 参照だけ先に取得し、実際の内容はトランザクション内で読み直す。
     final roundMatchesSnapshot = await tournamentRef
         .collection(matchesCollection)
         .where('round', isEqualTo: round)
         .get();
-    final roundMatches = roundMatchesSnapshot.docs
-        .map((doc) => TournamentMatch.fromFirestore(
-            doc as DocumentSnapshot<Map<String, dynamic>>))
-        .toList();
+    final matchRefs = roundMatchesSnapshot.docs.map((doc) => doc.reference).toList();
+    if (matchRefs.isEmpty) return;
 
-    if (roundMatches.isEmpty || roundMatches.any((m) => !m.isCompleted)) {
-      return; // まだ全試合が終わっていない
+    await _firestore.runTransaction<void>((transaction) async {
+      final roundMatches = <TournamentMatch>[];
+      for (final ref in matchRefs) {
+        final doc = await transaction.get(ref);
+        roundMatches.add(TournamentMatch.fromFirestore(doc));
+      }
+
+      if (roundMatches.any((m) => !m.isCompleted)) {
+        return; // まだ全試合が終わっていない
+      }
+
+      final tournamentDoc = await transaction.get(tournamentRef);
+      final tournament = Tournament.fromFirestore(tournamentDoc);
+      if (tournament.lastAdvancedRound >= round) {
+        _logger.i('Round $round already advanced for $tournamentId, skipping');
+        return; // 既に別の呼び出しがこのラウンドを処理済み
+      }
+
+      final winners = roundMatches.map((m) => m.winnerUid).whereType<String>().toList();
+
+      if (winners.length <= 1) {
+        final championUid = winners.isNotEmpty ? winners.first : null;
+        transaction.update(tournamentRef, {
+          'status': 'completed',
+          'winnerId': championUid,
+          'lastAdvancedRound': round,
+        });
+        _logger.i('🏆 Tournament completed: $tournamentId winner=$championUid');
+        return;
+      }
+
+      final displayNames = <String, String>{
+        for (final m in roundMatches) ...{
+          if (m.player1Uid != null) m.player1Uid!: m.player1DisplayName ?? 'Player',
+          if (m.player2Uid != null) m.player2Uid!: m.player2DisplayName ?? 'Player',
+        },
+      };
+
+      _writeRound(
+        transaction: transaction,
+        tournamentRef: tournamentRef,
+        round: round + 1,
+        playerUids: winners,
+        displayNames: displayNames,
+      );
+      transaction.update(tournamentRef, {'lastAdvancedRound': round});
+      _logger.i('Advanced $tournamentId to round ${round + 1} with ${winners.length} players');
+    });
+  }
+
+  /// _generateRoundのトランザクション版。単一のFirestoreトランザクション
+  /// 内から呼び出し、次ラウンドの試合をアトミックに書き込む。
+  void _writeRound({
+    required Transaction transaction,
+    required DocumentReference<Map<String, dynamic>> tournamentRef,
+    required int round,
+    required List<String> playerUids,
+    required Map<String, String> displayNames,
+  }) {
+    final now = DateTime.now();
+    for (var i = 0; i < playerUids.length; i += 2) {
+      final player1Uid = playerUids[i];
+      final hasOpponent = i + 1 < playerUids.length;
+      final player2Uid = hasOpponent ? playerUids[i + 1] : null;
+
+      final matchRef = tournamentRef.collection(matchesCollection).doc();
+      final match = TournamentMatch(
+        id: matchRef.id,
+        tournamentId: tournamentRef.id,
+        player1Uid: player1Uid,
+        player1DisplayName: displayNames[player1Uid],
+        player2Uid: player2Uid,
+        player2DisplayName: player2Uid != null ? displayNames[player2Uid] : null,
+        round: round,
+        winnerUid: hasOpponent ? null : player1Uid,
+        status: hasOpponent ? 'pending' : 'completed',
+        scheduledAt: now,
+        completedAt: hasOpponent ? null : now,
+      );
+      transaction.set(matchRef, match.toFirestore());
     }
-
-    final winners = roundMatches.map((m) => m.winnerUid).whereType<String>().toList();
-
-    if (winners.length <= 1) {
-      final championUid = winners.isNotEmpty ? winners.first : null;
-      await tournamentRef.update({
-        'status': 'completed',
-        'winnerId': championUid,
-      });
-      _logger.i('🏆 Tournament completed: $tournamentId winner=$championUid');
-      return;
-    }
-
-    final displayNames = <String, String>{
-      for (final m in roundMatches) ...{
-        if (m.player1Uid != null) m.player1Uid!: m.player1DisplayName ?? 'Player',
-        if (m.player2Uid != null) m.player2Uid!: m.player2DisplayName ?? 'Player',
-      },
-    };
-
-    await _generateRound(
-      tournamentId: tournamentId,
-      round: round + 1,
-      playerUids: winners,
-      displayNames: displayNames,
-    );
-    _logger.i('Advanced $tournamentId to round ${round + 1} with ${winners.length} players');
   }
 
   /// アクティブなトーナメント一覧

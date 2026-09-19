@@ -122,9 +122,7 @@ class PlaystyleScreen extends ConsumerWidget {
         if (friends.isEmpty) {
           return _infoBox('フレンドを追加すると、棋風の相性がわかります。');
         }
-        final compatAsync = ref.watch(
-          compatibleFriendsProvider((uid: uid, friends: friends)),
-        );
+        final compatAsync = ref.watch(compatibleFriendsProvider(uid));
         return compatAsync.when(
           data: (results) {
             if (results.isEmpty) {

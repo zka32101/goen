@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-// `Friend` here is extended_game_models.dart's — see playstyle_service.dart.
-import '../models/extended_game_models.dart';
 import '../models/playstyle.dart';
 import '../services/index.dart';
+import 'social_features_provider.dart';
 
 final _logger = Logger();
 
@@ -24,16 +23,20 @@ final playstyleProfileProvider =
   }
 });
 
+/// フレンド一覧は内部でfriendsStreamProviderをwatchして取得する（呼び出し側が
+/// 毎回 List<Friend> を渡す設計だと、ストリームが新しいリストを emit する
+/// たびに参照の異なる family キーとして扱われ、キャッシュが際限なく増え続け
+/// てしまうため — familyのキーはuidという安定した値だけにする）。
 final compatibleFriendsProvider =
-    FutureProvider.family<List<PlaystyleCompatibility>, ({String uid, List<Friend> friends})>(
-        (ref, params) async {
+    FutureProvider.family<List<PlaystyleCompatibility>, String>((ref, uid) async {
   final service = ref.watch(playstyleServiceProvider);
+  final friendsAsync = ref.watch(friendsStreamProvider(uid));
+  final friends = friendsAsync.valueOrNull ?? const [];
+  if (friends.isEmpty) return [];
+
   try {
-    final results = await service.getCompatibleFriends(
-      uid: params.uid,
-      friends: params.friends,
-    );
-    _logger.i('Fetched ${results.length} compatibility scores for ${params.uid}');
+    final results = await service.getCompatibleFriends(uid: uid, friends: friends);
+    _logger.i('Fetched ${results.length} compatibility scores for $uid');
     return results;
   } catch (e) {
     _logger.e('Error fetching compatible friends: $e');

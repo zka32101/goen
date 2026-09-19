@@ -13,6 +13,9 @@ class Tournament {
   final List<String> participantUids;
   final String? winnerId;
   final int boardSize; // 対局に使う碁盤サイズ（9/13/19）
+  // 次ラウンド生成済みの最大ラウンド番号（0=未生成）。
+  // _advanceRoundIfCompleteの二重生成防止に使う内部管理フィールド。
+  final int lastAdvancedRound;
   final DateTime createdAt;
 
   Tournament({
@@ -27,6 +30,7 @@ class Tournament {
     required this.participantUids,
     this.winnerId,
     this.boardSize = 19,
+    this.lastAdvancedRound = 0,
     required this.createdAt,
   });
 
@@ -48,6 +52,7 @@ class Tournament {
       participantUids: List<String>.from(data['participantUids'] ?? []),
       winnerId: data['winnerId'],
       boardSize: data['boardSize'] as int? ?? 19,
+      lastAdvancedRound: data['lastAdvancedRound'] as int? ?? 0,
       createdAt: data['createdAt'] is Timestamp
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -66,6 +71,7 @@ class Tournament {
       'participantUids': participantUids,
       'winnerId': winnerId,
       'boardSize': boardSize,
+      'lastAdvancedRound': lastAdvancedRound,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
