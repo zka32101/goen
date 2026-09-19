@@ -103,7 +103,7 @@ class SponsorshipService {
   }
 
   /// スポンサーシップをアップグレード
-  Future<bool> upgradeSponsor ship(
+  Future<bool> upgradeSponsorship(
     String sponsorshipId,
     String newTierId,
   ) async {
@@ -279,10 +279,15 @@ class SponsorshipService {
         );
       }).toList();
 
+      // DocumentSnapshot's operator[] throws StateError for a field that's
+      // absent from the document entirely (unlike a plain Map, where a
+      // missing key just reads as null) — User has no profileImageUrl field
+      // at all, so this must go through data() first to stay safe.
+      final userData = userDoc.data() ?? {};
       return SponsorInfo(
         userId: userId,
-        displayName: userDoc['displayName'] ?? 'Unknown',
-        avatarUrl: userDoc['profileImageUrl'],
+        displayName: userData['displayName'] ?? 'Unknown',
+        avatarUrl: userData['profileImageUrl'],
         totalSponsorCount: outgoingSnapshot.size,
         totalSponsorshipCount: incomingSnapshot.size,
         totalMonthlyUSD: monthlyUSD,

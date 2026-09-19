@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:logger/logger.dart';
@@ -71,11 +72,14 @@ class SocialShareService {
   /// Share via system share sheet
   Future<bool> shareGeneric(ShareContent content) async {
     try {
-      final result = await Share.share(
+      // share_plus 7.x's Share.share() returns void (only shareWithResult()
+      // reports the outcome) — reaching here without throwing means the
+      // share sheet was presented successfully.
+      await Share.share(
         content.text,
         subject: content.appName,
       );
-      return result.isNotEmpty;
+      return true;
     } catch (e) {
       _logger.e('Failed to share: $e');
       return false;
@@ -86,7 +90,10 @@ class SocialShareService {
 
   Future<bool> _shareToTwitter(ShareContent content) async {
     try {
-      final text = Uri.encodeComponent('${content.text}\n${content.hashtags}');
+      // content.text already ends with its own hashtag line (see the
+      // _generate*ShareContent methods below) — appending content.hashtags
+      // here would duplicate them in the tweet.
+      final text = Uri.encodeComponent(content.text);
       final twitterUrl = Uri.parse('https://twitter.com/intent/tweet?text=$text');
 
       if (await canLaunchUrl(twitterUrl)) {
@@ -154,8 +161,7 @@ class SocialShareService {
 
   Future<bool> _copyToClipboard(ShareContent content) async {
     try {
-      // Import from flutter/services will be added to imports
-      // Clipboard.setData(ClipboardData(text: content.text));
+      await Clipboard.setData(ClipboardData(text: content.text));
       return true;
     } catch (e) {
       _logger.e('Clipboard copy failed: $e');
