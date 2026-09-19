@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'pvp_game_screen.dart';
 
 final _logger = Logger();
 
@@ -17,6 +18,7 @@ class MatchingScreen extends ConsumerStatefulWidget {
 class _MatchingScreenState extends ConsumerState<MatchingScreen> {
   int _boardSize = 19;
   bool _isSearching = false;
+  bool _isStartingGame = false;
   MatchResult? _foundMatch;
   String? _error;
 
@@ -48,7 +50,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                   const SizedBox(height: 16),
                   _buildBoardSizeSelector(),
                   const SizedBox(height: 20),
-                  if (_foundMatch != null) _buildMatchFoundCard(_foundMatch!),
+                  if (_foundMatch != null) _buildMatchFoundCard(_foundMatch!, uid, currentUser!),
                   if (_error != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -57,7 +59,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isSearching ? null : () => _findMatch(uid, currentUser),
+                      onPressed: _isSearching ? null : () => _findMatch(uid, currentUser!),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber[600],
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -108,7 +110,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     );
   }
 
-  Widget _buildMatchFoundCard(MatchResult match) {
+  Widget _buildMatchFoundCard(MatchResult match, String uid, User currentUser) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -141,6 +143,23 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
             'レート差: ${match.ratingDiff} / ${match.boardSize}路盤',
             style: TextStyle(color: Colors.grey[400], fontSize: 12),
           ),
+          if (match.gameId == null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isStartingGame ? null : () => _startGame(match, uid, currentUser),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green[600]),
+                child: _isStartingGame
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('対局を開始する', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -169,8 +188,15 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                   style: TextStyle(color: Colors.grey[400]),
                 ),
                 trailing: match.gameId != null
-                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    ? const Icon(Icons.arrow_forward_ios, color: Colors.green, size: 16)
                     : null,
+                onTap: match.gameId == null
+                    ? null
+                    : () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PvpGameScreen(gameId: match.gameId!, uid: uid),
+                          ),
+                        ),
               ),
             );
           }).toList(),
@@ -217,6 +243,57 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     } finally {
       if (mounted) {
         setState(() => _isSearching = false);
+      }
+    }
+  }
+
+  Future<void> _startGame(MatchResult match, String uid, User currentUser) async {
+    setState(() => _isStartingGame = true);
+    try {
+      final isPlayer1 = match.player1Uid == uid;
+      final opponentUid = isPlayer1 ? match.player2Uid : match.player1Uid;
+      final opponentName = isPlayer1 ? match.player2DisplayName : match.player1DisplayName;
+      final myName = currentUser.displayName ?? 'Player';
+
+      // マッチを見つけた側が黒番（先手）を持つ。
+      final game = await ref.read(createPvpGameProvider)(
+        match.boardSize,
+        uid,
+        myName,
+        opponentUid,
+        opponentName,
+        matchId: match.id,
+      );
+
+      await ref.read(attachGameToMatchProvider)(match.id, game.id);
+
+      try {
+        await ref.read(sendNotificationProvider)(
+          uid: opponentUid,
+          title: '$myName さんとの対局が始まりました',
+          body: 'マッチングで見つかった相手との対局です。今すぐ打ちましょう！',
+          type: 'pvp_challenge',
+          data: {'gameId': game.id},
+        );
+      } catch (e) {
+        _logger.w('Failed to notify opponent of new PvP game (non-fatal): $e');
+      }
+
+      if (!mounted) return;
+      ref.invalidate(matchHistoryProvider(uid));
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => PvpGameScreen(gameId: game.id, uid: uid)),
+      );
+    } catch (e) {
+      _logger.e('Error starting PvP game: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('対局を開始できませんでした: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isStartingGame = false);
       }
     }
   }

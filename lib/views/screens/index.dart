@@ -42,6 +42,7 @@ export 'playstyle_screen.dart';
 export 'position_echo_screen.dart';
 export 'live_friends_screen.dart';
 export 'spectator_view_screen.dart';
+export 'pvp_game_screen.dart';
 export 'fateful_moves_screen.dart';
 export 'concurrent_players_screen.dart';
 export 'en_score_screen.dart';

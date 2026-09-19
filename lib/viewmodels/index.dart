@@ -44,3 +44,4 @@ export 'friend_activity_provider.dart';
 export 'fateful_move_provider.dart';
 export 'concurrent_session_provider.dart';
 export 'en_score_provider.dart';
+export 'pvp_game_provider.dart';

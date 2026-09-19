@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/notification.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'pvp_game_screen.dart';
 
 final _logger = Logger();
 
@@ -40,11 +41,11 @@ class NotificationScreen extends ConsumerWidget {
           ? const Center(
               child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
             )
-          : _buildNotificationList(ref, uid),
+          : _buildNotificationList(context, ref, uid),
     );
   }
 
-  Widget _buildNotificationList(WidgetRef ref, String uid) {
+  Widget _buildNotificationList(BuildContext context, WidgetRef ref, String uid) {
     final notificationsAsync = ref.watch(userNotificationsProvider(uid));
     return notificationsAsync.when(
       data: (notifications) {
@@ -58,6 +59,7 @@ class NotificationScreen extends ConsumerWidget {
           separatorBuilder: (_, __) => Divider(color: Colors.grey[850], height: 1),
           itemBuilder: (context, index) {
             final n = notifications[index];
+            final gameId = n.type == 'pvp_challenge' ? n.data?['gameId'] as String? : null;
             return ListTile(
               tileColor: n.isRead ? null : Colors.amber[600]?.withOpacity(0.05),
               leading: Icon(_iconFor(n.type), color: n.isRead ? Colors.grey[500] : Colors.amber[600]),
@@ -69,11 +71,15 @@ class NotificationScreen extends ConsumerWidget {
                 ),
               ),
               subtitle: Text(n.body, style: TextStyle(color: Colors.grey[400])),
-              trailing: Text(
-                _formatDate(n.createdAt),
-                style: TextStyle(color: Colors.grey[500], fontSize: 11),
-              ),
-              onTap: n.isRead ? null : () => _markAsRead(ref, uid, n.id),
+              trailing: gameId != null
+                  ? const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.amber)
+                  : Text(
+                      _formatDate(n.createdAt),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                    ),
+              onTap: gameId != null
+                  ? () => _openPvpGame(context, ref, uid, n, gameId)
+                  : (n.isRead ? null : () => _markAsRead(ref, uid, n.id)),
             );
           },
         );
@@ -94,12 +100,31 @@ class NotificationScreen extends ConsumerWidget {
         return Icons.emoji_events;
       case 'achievement':
         return Icons.star;
+      case 'pvp_challenge':
+        return Icons.sports_esports;
       default:
         return Icons.notifications;
     }
   }
 
   String _formatDate(DateTime date) => '${date.month}/${date.day}';
+
+  Future<void> _openPvpGame(
+    BuildContext context,
+    WidgetRef ref,
+    String uid,
+    AppNotification notification,
+    String gameId,
+  ) async {
+    if (!notification.isRead) {
+      await _markAsRead(ref, uid, notification.id);
+    }
+    if (context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => PvpGameScreen(gameId: gameId, uid: uid)),
+      );
+    }
+  }
 
   Future<void> _markAsRead(WidgetRef ref, String uid, String notificationId) async {
     try {

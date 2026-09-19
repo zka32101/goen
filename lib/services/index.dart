@@ -37,3 +37,4 @@ export 'friend_activity_service.dart';
 export 'fateful_move_service.dart';
 export 'concurrent_session_service.dart';
 export 'en_score_service.dart';
+export 'pvp_game_service.dart';

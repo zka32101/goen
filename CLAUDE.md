@@ -598,7 +598,7 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 
 碁縁（GoEn）の名を体現する7つのつながり機能。Model → Service → Provider → UI画面 → 実対局統合まで全レイヤー実装済み。
 
-- [x] 実力マッチングEngine (`matching.dart`/`matching_service.dart`/`matching_provider.dart`/`matching_screen.dart`) - レート差200以内のプレイヤーを自動マッチング。`matchmaking_queue`/`match_results` コレクション
+- [x] 実力マッチングEngine (`matching.dart`/`matching_service.dart`/`matching_provider.dart`/`matching_screen.dart`) - レート差200以内のプレイヤーを自動マッチング。マッチ成立後「対局を開始する」でPvpGameを作成し相手に通知、そのままPvpGameScreenへ遷移。`matchmaking_queue`/`match_results` コレクション
 - [x] 棋風の相性 (`playstyle.dart`/`playstyle_service.dart`/`playstyle_provider.dart`/`playstyle_screen.dart`) - 対局記録から攻撃性/地合い重視度/捨て石率を分析し、フレンドとの「補完型」「類似型」相性を診断。`playstyle_profiles` コレクション
 - [x] 局面の轍 (`position_echo.dart`/`position_echo_service.dart`/`position_echo_provider.dart`/`position_echo_screen.dart`) - 盤面ハッシュを名局ライブラリ(`kifuLibrary`)と照合し、歴史的名局と同じ局面への到達を検出。`position_echoes` コレクション
 - [x] ライブ観戦フレンド (`friend_activity.dart`/`friend_activity_service.dart`/`friend_activity_provider.dart`/`live_friends_screen.dart`/`spectator_view_screen.dart`) - フレンドの対局開始を通知し、いま観戦可能な対局を一覧表示。「観戦する」を押すとSpectatorViewScreenでホストの盤面を`spectatorSessionStreamProvider`経由でリアルタイム表示（毎手`applyMoveProvider`から`updateSpectatorBoardStateProvider`で同期）。Phase 58のFriendService/SpectatorServiceを利用
@@ -607,7 +607,18 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 - [x] 縁スコア (`en_score.dart`/`en_score_service.dart`/`en_score_provider.dart`/`en_score_screen.dart`) - 友情期間・対戦数・共同観戦・局面共有から0-100点のつながりスコアを算出。`en_scores/{uid}/connections/{friendUid}` コレクション
 - [x] 縁ハブ画面 (`en_hub_screen.dart`) - 7機能への入り口。HomeScreenに「縁」カード追加、ルート `/en-hub`
 - [x] ゲームプレイ統合 (`game_provider.dart`) - `startNewGameProvider`(対局開始時: 同時刻セッション登録+観戦セッション作成+フレンド通知)、`applyMoveProvider`(捕獲時: 運命の一手検出)、`saveGameRecordProvider`(対局終了時: 局面の轍記録+セッション終了)にbest-effortでフック。Firestore書き込み失敗はtry/catchで握りつぶし、ゲームプレイ本体をブロックしない
-- [x] **既知の制約**: マッチング成立後の実際のPvP対局画面は未実装（AIGameScreenのみ、観戦できるのはAI対局のみ）。トーナメント参加者同士の実対局（ブラケット消化）も同様に未接続。SpectatorSessionの盤面フィールド（`stones`）はFirestoreの配列のネスト禁止制約のため、各行を数字文字列にエンコードして保存している（`SpectatorSession.toFirestore`/`fromFirestore`参照）
+- [x] **既知の制約**: トーナメント参加者同士の実対局（ブラケット消化）はPvpGameへ未接続（マッチングエンジン経由のみ対局作成に繋がる）。ライブ観戦フレンド機能はAI対局のみが観戦対象（PvP対局を観戦する機能は未実装）。SpectatorSession/PvpGameの盤面フィールド（`stones`）はいずれもFirestoreの配列のネスト禁止制約のため、各行を数字文字列にエンコードして保存している（`toFirestore`/`fromFirestore`参照）
+
+**PvP対局システム — Complete ✅**
+
+マッチング成立後、実際に2人のプレイヤーがリアルタイムで対局できる画面。
+
+- [x] `pvp_game.dart`/`pvp_game_service.dart`/`pvp_game_provider.dart`/`pvp_game_screen.dart`
+- [x] `PvpGameService.applyMove`は`GoRules`（既存のAI対局と同じ純粋関数の着手検証・捕獲ロジック）をFirestoreトランザクション内で実行し、同時操作による不整合を防止
+- [x] パス2回連続で終局、簡易スコア（石数+捕獲数）で暫定勝者を決定。投了は即終局
+- [x] `matching_screen.dart`: マッチ成立時に「対局を開始する」ボタン→PvpGame作成→`MatchResult.gameId`紐付け→相手へ`pvp_challenge`通知→自分はそのままPvpGameScreenへ。マッチ履歴の既存対局もタップで再開可能
+- [x] `notification_screen.dart`: `pvp_challenge`通知をタップすると該当のPvpGameScreenへ遷移
+- [x] `pvpGameStreamProvider`/`userActivePvpGamesProvider`は用意済みだが、後者向けの専用一覧画面はまだ無い（通知またはマッチ履歴経由でのみ対局に戻れる）
 - [x] **Total: 7 connection features, full stack (Model/Service/Provider/UI/Game integration)**
 
 **既存コードベースのバグ修正 (縁機能実装時に発見・対応) - Complete ✅**
@@ -847,3 +858,5 @@ None yet - track here as they arise.
 - 2026-09-19 | 縁 (En) Features — 7 connection features (matching, playstyle compatibility, position echo, live friend spectate, fateful moves, concurrent players, En score), full Model/Service/Provider/UI/gameplay-integration stack Complete ✅
 - 2026-09-19 | Fixed pre-existing barrel-export ambiguities and compile errors (models/index.dart, viewmodels/index.dart, social_features_provider.dart, game_mode_provider.dart) discovered while integrating the En features Complete ✅
 - 2026-09-19 | Added TournamentScreen and NotificationScreen (route '/tournament', '/notifications'), closing the Phase 58 model/service/provider-only gap for those two features; HomeScreen now has a Tournament card and a notification bell with unread-count badge Complete ✅
+- 2026-09-19 | Implemented live board sync for spectators (SpectatorSession gains stones/isBlackTurn/lastMove fields, streamed via spectatorSessionStreamProvider, pushed every move from applyMoveProvider) and the new SpectatorViewScreen; found and fixed a real bug where the board would have been written as a Firestore nested array (unsupported) — rows are digit-string-encoded instead Complete ✅
+- 2026-09-19 | Implemented the PvP game system (pvp_game.dart/pvp_game_service.dart/pvp_game_provider.dart/pvp_game_screen.dart): real-time 2-player games reusing GoRules inside a Firestore transaction, wired into MatchingScreen ("対局を開始する" after a match, plus resuming past matches) and NotificationScreen (tapping a pvp_challenge notification); also fixed a pre-existing null-safety bug in matching_screen.dart (passing `User?` where `User` was expected) Complete ✅
