@@ -1,0 +1,223 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logger/logger.dart';
+import 'package:goen/models/index.dart';
+import 'package:goen/viewmodels/index.dart';
+
+final _logger = Logger();
+
+/// 実力マッチングEngine画面 - レートの近い相手との「運命の対戦」
+class MatchingScreen extends ConsumerStatefulWidget {
+  const MatchingScreen({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<MatchingScreen> createState() => _MatchingScreenState();
+}
+
+class _MatchingScreenState extends ConsumerState<MatchingScreen> {
+  int _boardSize = 19;
+  bool _isSearching = false;
+  MatchResult? _foundMatch;
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) {
+    final currentUser = ref.watch(currentUserProvider);
+    final uid = currentUser?.uid;
+
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      appBar: AppBar(
+        title: const Text('実力マッチング'),
+        backgroundColor: Colors.grey[900],
+        elevation: 0,
+      ),
+      body: uid == null
+          ? const Center(
+              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'レートが近い相手を探して、運命の対戦を始めましょう',
+                    style: TextStyle(color: Colors.grey[400]),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildBoardSizeSelector(),
+                  const SizedBox(height: 20),
+                  if (_foundMatch != null) _buildMatchFoundCard(_foundMatch!),
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                    ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isSearching ? null : () => _findMatch(uid, currentUser),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber[600],
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: _isSearching
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(
+                              '対戦相手を探す',
+                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'これまでの対戦',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMatchHistory(uid),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildBoardSizeSelector() {
+    return Row(
+      children: [9, 13, 19].map((size) {
+        final selected = _boardSize == size;
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: ChoiceChip(
+            label: Text('$size路盤'),
+            selected: selected,
+            onSelected: (_) => setState(() => _boardSize = size),
+            selectedColor: Colors.amber[600],
+            backgroundColor: Colors.grey[800],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMatchFoundCard(MatchResult match) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.amber[600]!, width: 2),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.amber[600]?.withOpacity(0.1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.handshake, color: Colors.amber[600]),
+              const SizedBox(width: 8),
+              const Text(
+                '運命の対戦が見つかりました！',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${match.player1DisplayName} (${match.player1Rating}) vs '
+            '${match.player2DisplayName} (${match.player2Rating})',
+            style: const TextStyle(color: Colors.white70),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'レート差: ${match.ratingDiff} / ${match.boardSize}路盤',
+            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMatchHistory(String uid) {
+    final historyAsync = ref.watch(matchHistoryProvider(uid));
+    return historyAsync.when(
+      data: (matches) {
+        if (matches.isEmpty) {
+          return Text('まだ対戦履歴がありません', style: TextStyle(color: Colors.grey[500]));
+        }
+        return Column(
+          children: matches.map((match) {
+            final isPlayer1 = match.player1Uid == uid;
+            final opponentName = isPlayer1 ? match.player2DisplayName : match.player1DisplayName;
+            final opponentRating = isPlayer1 ? match.player2Rating : match.player1Rating;
+            return Card(
+              color: Colors.grey[900],
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: const Icon(Icons.person, color: Colors.white70),
+                title: Text(opponentName, style: const TextStyle(color: Colors.white)),
+                subtitle: Text(
+                  'レート $opponentRating / ${match.boardSize}路盤',
+                  style: TextStyle(color: Colors.grey[400]),
+                ),
+                trailing: match.gameId != null
+                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    : null,
+              ),
+            );
+          }).toList(),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) {
+        _logger.e('Match history error: $err');
+        return Text('エラー: $err', style: const TextStyle(color: Colors.redAccent));
+      },
+    );
+  }
+
+  Future<void> _findMatch(String uid, User currentUser) async {
+    setState(() {
+      _isSearching = true;
+      _error = null;
+    });
+
+    try {
+      final rankEntry = await ref.read(userLeaderboardRankProvider(
+        (uid: uid, period: LeaderboardPeriod.allTime, type: LeaderboardType.rating),
+      ).future);
+      final rating = rankEntry?.rating ?? 1200;
+      final displayName = currentUser.displayName ?? 'Player';
+
+      await ref.read(joinMatchmakingQueueProvider)(uid, displayName, rating, _boardSize);
+      final match = await ref.read(findMatchProvider)(uid, displayName, rating, _boardSize);
+
+      if (!mounted) return;
+      setState(() {
+        _foundMatch = match;
+        _error = match == null ? '今は条件に合う相手が見つかりませんでした。また試してください' : null;
+      });
+
+      if (match != null) {
+        ref.invalidate(matchHistoryProvider(uid));
+      }
+    } catch (e) {
+      _logger.e('Error finding match: $e');
+      if (mounted) {
+        setState(() => _error = 'エラーが発生しました: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSearching = false);
+      }
+    }
+  }
+}

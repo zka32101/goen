@@ -32,3 +32,13 @@ export 'friends_screen.dart';
 export 'leaderboard_screen.dart';
 export 'game_preset_manager_screen.dart';
 export 'analytics_dashboard_screen.dart';
+
+// 縁 (En) features
+export 'en_hub_screen.dart';
+export 'matching_screen.dart';
+export 'playstyle_screen.dart';
+export 'position_echo_screen.dart';
+export 'live_friends_screen.dart';
+export 'fateful_moves_screen.dart';
+export 'concurrent_players_screen.dart';
+export 'en_score_screen.dart';

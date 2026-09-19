@@ -67,6 +67,8 @@ class GoEnApp extends ConsumerWidget {
         '/leaderboard': (_) => const LeaderboardScreen(),
         '/game-preset-manager': (_) => const GamePresetManagerScreen(),
         '/analytics-dashboard': (_) => const AnalyticsDashboardScreen(),
+        // 縁 (En) features
+        '/en-hub': (_) => const EnHubScreen(),
       },
       onUnknownRoute: (_) {
         return MaterialPageRoute(

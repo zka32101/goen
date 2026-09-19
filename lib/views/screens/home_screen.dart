@@ -148,6 +148,17 @@ class HomeScreen extends ConsumerWidget {
                     color: Colors.purple[400]!,
                     onTap: () => _navigateToGameHistory(context),
                   ),
+                  const SizedBox(height: 16),
+
+                  // 縁 (En) hub
+                  _buildActionCard(
+                    context,
+                    title: '縁',
+                    subtitle: '碁を通じたつながりを見る',
+                    icon: Icons.favorite,
+                    color: Colors.pink[300]!,
+                    onTap: () => _navigateToEnHub(context),
+                  ),
                 ],
               ),
             ),
@@ -464,6 +475,11 @@ class HomeScreen extends ConsumerWidget {
   void _navigateToGameHistory(BuildContext context) {
     _logger.i('Navigating to Game History');
     Navigator.of(context).pushNamed('/game-history');
+  }
+
+  void _navigateToEnHub(BuildContext context) {
+    _logger.i('Navigating to En Hub');
+    Navigator.of(context).pushNamed('/en-hub');
   }
 
   void _navigateToSettings(BuildContext context) {
