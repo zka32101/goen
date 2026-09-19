@@ -40,8 +40,6 @@ final createPvpGameProvider = Provider((ref) {
     String whiteUid,
     String whiteDisplayName, {
     String? matchId,
-    String? tournamentId,
-    String? tournamentMatchId,
   }) async {
     final service = ref.watch(pvpGameServiceProvider);
     try {
@@ -52,27 +50,44 @@ final createPvpGameProvider = Provider((ref) {
         whiteUid: whiteUid,
         whiteDisplayName: whiteDisplayName,
         matchId: matchId,
-        tournamentId: tournamentId,
-        tournamentMatchId: tournamentMatchId,
       );
       _logger.i('Created PvP game: ${game.id}');
-
-      if (tournamentId != null && tournamentMatchId != null) {
-        try {
-          final tournamentService = ref.read(tournamentServiceProvider);
-          await tournamentService.attachGameToMatch(
-            tournamentId: tournamentId,
-            matchId: tournamentMatchId,
-            gameId: game.id,
-          );
-        } catch (e) {
-          _logger.w('Failed to attach PvP game to tournament match (non-fatal): $e');
-        }
-      }
-
       return game;
     } catch (e) {
       _logger.e('Error creating PvP game: $e');
+      rethrow;
+    }
+  };
+});
+
+/// トーナメント試合用の対局作成。両対局者がほぼ同時に開始しても
+/// 対局が2つ作られないよう、Firestoreトランザクションで排他制御される
+/// （PvpGameService.createGameForTournamentMatch参照）。
+final createTournamentGameProvider = Provider((ref) {
+  return (
+    String tournamentId,
+    String matchId,
+    int boardSize,
+    String blackUid,
+    String blackDisplayName,
+    String whiteUid,
+    String whiteDisplayName,
+  ) async {
+    final service = ref.watch(pvpGameServiceProvider);
+    try {
+      final gameId = await service.createGameForTournamentMatch(
+        tournamentId: tournamentId,
+        matchId: matchId,
+        boardSize: boardSize,
+        blackUid: blackUid,
+        blackDisplayName: blackDisplayName,
+        whiteUid: whiteUid,
+        whiteDisplayName: whiteDisplayName,
+      );
+      _logger.i('Tournament game ready: $gameId');
+      return gameId;
+    } catch (e) {
+      _logger.e('Error creating tournament game: $e');
       rethrow;
     }
   };

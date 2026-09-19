@@ -14,6 +14,8 @@ class PvpGameService {
   CollectionReference<Map<String, dynamic>> get _games =>
       _firestore.collection('pvp_games');
 
+  /// マッチングエンジン経由の対局を作成する。トーナメント試合の対局は
+  /// 排他制御が必要なため createGameForTournamentMatch を使うこと。
   Future<PvpGame> createGame({
     required int boardSize,
     required String blackUid,
@@ -21,8 +23,6 @@ class PvpGameService {
     required String whiteUid,
     required String whiteDisplayName,
     String? matchId,
-    String? tournamentId,
-    String? tournamentMatchId,
   }) async {
     try {
       final docRef = _games.doc();
@@ -41,8 +41,6 @@ class PvpGameService {
         consecutivePasses: 0,
         status: 'active',
         matchId: matchId,
-        tournamentId: tournamentId,
-        tournamentMatchId: tournamentMatchId,
         createdAt: DateTime.now(),
       );
       await docRef.set(game.toFirestore());
@@ -50,6 +48,64 @@ class PvpGameService {
       return game;
     } catch (e) {
       _logger.e('Error creating PvP game: $e');
+      rethrow;
+    }
+  }
+
+  /// トーナメント試合に対する対局を作成する。両対局者がほぼ同時に
+  /// 「対局を開始する」を押しても対局が2つ作られないよう、
+  /// 「試合にまだgameIdが無ければ作成する」をFirestoreトランザクションで
+  /// アトミックに行う。既に対局が存在すれば新規作成せずそのgameIdを返す。
+  Future<String> createGameForTournamentMatch({
+    required String tournamentId,
+    required String matchId,
+    required int boardSize,
+    required String blackUid,
+    required String blackDisplayName,
+    required String whiteUid,
+    required String whiteDisplayName,
+  }) async {
+    try {
+      return await _firestore.runTransaction<String>((transaction) async {
+        final matchRef = _firestore
+            .collection('tournaments')
+            .doc(tournamentId)
+            .collection('matches')
+            .doc(matchId);
+        final matchDoc = await transaction.get(matchRef);
+        final existingGameId = matchDoc.data()?['gameId'] as String?;
+        if (existingGameId != null) {
+          _logger.i('Tournament match $matchId already has a game: $existingGameId');
+          return existingGameId;
+        }
+
+        final gameRef = _games.doc();
+        final game = PvpGame(
+          id: gameRef.id,
+          boardSize: boardSize,
+          blackUid: blackUid,
+          blackDisplayName: blackDisplayName,
+          whiteUid: whiteUid,
+          whiteDisplayName: whiteDisplayName,
+          stones: List.generate(boardSize, (_) => List.filled(boardSize, 0)),
+          isBlackTurn: true,
+          capturedBlack: 0,
+          capturedWhite: 0,
+          movesCount: 0,
+          consecutivePasses: 0,
+          status: 'active',
+          tournamentId: tournamentId,
+          tournamentMatchId: matchId,
+          createdAt: DateTime.now(),
+        );
+        transaction.set(gameRef, game.toFirestore());
+        transaction.update(matchRef, {'gameId': gameRef.id, 'status': 'in_progress'});
+
+        _logger.i('Created PvP game ${gameRef.id} for tournament match $matchId');
+        return gameRef.id;
+      });
+    } catch (e) {
+      _logger.e('Error creating game for tournament match: $e');
       rethrow;
     }
   }

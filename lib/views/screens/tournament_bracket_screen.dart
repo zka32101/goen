@@ -104,7 +104,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (widget.tournament.isCompleted) _buildChampionBanner(),
+        if (widget.tournament.isCompleted) _buildChampionBanner(matches),
         for (final round in rounds) ...[
           Text(
             round == rounds.last && widget.tournament.isCompleted ? '決勝' : '第$round回戦',
@@ -118,7 +118,10 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
     );
   }
 
-  Widget _buildChampionBanner() {
+  Widget _buildChampionBanner(List<TournamentMatch> matches) {
+    final winnerId = widget.tournament.winnerId;
+    final championName = winnerId == null ? null : _resolveDisplayName(matches, winnerId);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
@@ -133,15 +136,26 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              widget.tournament.winnerId != null
-                  ? '優勝: ${widget.tournament.winnerId}'
-                  : 'トーナメント終了',
+              championName != null ? '優勝: $championName' : 'トーナメント終了',
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// 試合一覧のplayer1/player2表示名から、指定uidの表示名を探す。
+  String? _resolveDisplayName(List<TournamentMatch> matches, String uid) {
+    for (final match in matches) {
+      if (match.player1Uid == uid && match.player1DisplayName != null) {
+        return match.player1DisplayName;
+      }
+      if (match.player2Uid == uid && match.player2DisplayName != null) {
+        return match.player2DisplayName;
+      }
+    }
+    return null;
   }
 
   Widget _buildMatchCard(
@@ -259,21 +273,23 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
       // 対戦カード内でUIDの小さい方を黒番にする（両対局者が同じ結果になるようにするため）。
       // Tournamentモデルは盤面サイズを持たないため、標準の19路盤で対局する。
       final amIBlack = uid.compareTo(opponentUid) < 0;
-      final game = await ref.read(createPvpGameProvider)(
+      // トランザクションで排他制御されるため、両対局者がほぼ同時にタップしても
+      // 対局は1つしか作られず、後から来た方は同じgameIdを受け取る。
+      final gameId = await ref.read(createTournamentGameProvider)(
+        widget.tournament.id,
+        match.id,
         19,
         amIBlack ? uid : opponentUid,
         amIBlack ? myDisplayName : opponentName,
         amIBlack ? opponentUid : uid,
         amIBlack ? opponentName : myDisplayName,
-        tournamentId: widget.tournament.id,
-        tournamentMatchId: match.id,
       );
 
       ref.invalidate(tournamentMatchesProvider((tournamentId: widget.tournament.id, round: null)));
 
       if (!mounted) return;
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PvpGameScreen(gameId: game.id, uid: uid)),
+        MaterialPageRoute(builder: (_) => PvpGameScreen(gameId: gameId, uid: uid)),
       );
     } catch (e) {
       _logger.e('Error starting tournament match: $e');
