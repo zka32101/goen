@@ -2,7 +2,7 @@
 
 **Project**: 碁縁（GoEn） - Premium adult Go learning app
 **Status**: Phase 163 (Ultimate Boundless Infinity & Perfect Infinite Transcendence) - 7,988 total tests ✅
-**Last Updated**: 2026-09-11
+**Last Updated**: 2026-09-19 (added the 7 "縁" (En) connection features on top of Phase 58 — see that section below — and fixed several pre-existing compile errors found while wiring them up; no test suite has actually been run against this codebase, since dart/flutter aren't available in this sandbox)
 
 ## Quick Reference
 
@@ -594,6 +594,31 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 - [x] **Total: 5 feature groups with complete MVVM implementation**
 - [x] **Cumulative implementations: Leaderboard, Friends, Tournaments, Notifications, Spectator Mode all production-ready**
 
+**縁 (En) Features — Connection & Serendipity System - Complete ✅**
+
+碁縁（GoEn）の名を体現する7つのつながり機能。Model → Service → Provider → UI画面 → 実対局統合まで全レイヤー実装済み。
+
+- [x] 実力マッチングEngine (`matching.dart`/`matching_service.dart`/`matching_provider.dart`/`matching_screen.dart`) - レート差200以内のプレイヤーを自動マッチング。`matchmaking_queue`/`match_results` コレクション
+- [x] 棋風の相性 (`playstyle.dart`/`playstyle_service.dart`/`playstyle_provider.dart`/`playstyle_screen.dart`) - 対局記録から攻撃性/地合い重視度/捨て石率を分析し、フレンドとの「補完型」「類似型」相性を診断。`playstyle_profiles` コレクション
+- [x] 局面の轍 (`position_echo.dart`/`position_echo_service.dart`/`position_echo_provider.dart`/`position_echo_screen.dart`) - 盤面ハッシュを名局ライブラリ(`kifuLibrary`)と照合し、歴史的名局と同じ局面への到達を検出。`position_echoes` コレクション
+- [x] ライブ観戦フレンド (`friend_activity.dart`/`friend_activity_service.dart`/`friend_activity_provider.dart`/`live_friends_screen.dart`) - フレンドの対局開始を通知し、いま観戦可能な対局を一覧表示。Phase 58のFriendService/SpectatorServiceを利用
+- [x] 運命の一手通知 (`fateful_move.dart`/`fateful_move_service.dart`/`fateful_move_provider.dart`/`fateful_moves_screen.dart`) - 大石捕獲・妙手・劫・死活の劇的瞬間をヒューリスティックで検出しフレンドにシェア。`fateful_moves` コレクション
+- [x] 同時刻の碁盤 (`concurrent_session.dart`/`concurrent_session_service.dart`/`concurrent_session_provider.dart`/`concurrent_players_screen.dart`) - ハートビート方式でいま対局中のプレイヤー数・一覧を可視化。`active_play_sessions` コレクション
+- [x] 縁スコア (`en_score.dart`/`en_score_service.dart`/`en_score_provider.dart`/`en_score_screen.dart`) - 友情期間・対戦数・共同観戦・局面共有から0-100点のつながりスコアを算出。`en_scores/{uid}/connections/{friendUid}` コレクション
+- [x] 縁ハブ画面 (`en_hub_screen.dart`) - 7機能への入り口。HomeScreenに「縁」カード追加、ルート `/en-hub`
+- [x] ゲームプレイ統合 (`game_provider.dart`) - `startNewGameProvider`(対局開始時: 同時刻セッション登録+観戦セッション作成+フレンド通知)、`applyMoveProvider`(捕獲時: 運命の一手検出)、`saveGameRecordProvider`(対局終了時: 局面の轍記録+セッション終了)にbest-effortでフック。Firestore書き込み失敗はtry/catchで握りつぶし、ゲームプレイ本体をブロックしない
+- [x] **既知の制約**: マッチング成立後の実際のPvP対局画面は未実装（AIGameScreenのみ）。観戦セッションは作成・通知されるが、観戦者がリアルタイムで盤面を見るためのライブボード同期は未実装（将来拡張）
+- [x] **Total: 7 connection features, full stack (Model/Service/Provider/UI/Game integration)**
+
+**既存コードベースのバグ修正 (縁機能実装時に発見・対応) - Complete ✅**
+
+7フェーズにわたる大量の自動生成コードの中で、実際に`dart analyze`/`flutter build`が一度も走っていなかったため蓄積していた不整合を発見・修正（dart/flutterツールがサンドボックス環境に存在しないため grep ベースの静的検証で対応）。
+
+- [x] `models/index.dart`のバレルexport名衝突を解消 - `Friend`(3箇所: friend.dart/extended_game_models.dart/sns_models.dart)、`GameRecord`(2箇所)、`LeaderboardEntry`(3箇所)、`Tournament`(2箇所)、`GameInvitation`(2箇所)、`GameModeType`(2箇所)。実際に画面/サービスが使っている側を特定した上で`hide`句で解消
+- [x] `viewmodels/index.dart`のバレルexport名衝突を解消 - `friendServiceProvider`等5つ(friend_provider.dartの未配線スタブ vs social_features_provider.dartの実装)、`GameModeUIState`/`GameModeUINotifier`/`gameModeUIProvider`(game_mode_provider.dart vs game_modes_provider.dartの無関係な同名機能)
+- [x] `social_features_provider.dart`の7つのリーダーボードプロバイダーを削除 - Phase 58で`services/leaderboard_service.dart`のAPIが刷新され、存在しないメソッド(`getTopPlayers`等)を呼んでいたためコンパイル不能だった。UIから未参照であることを確認の上削除（`leaderboard_provider.dart`が同等機能を提供）
+- [x] `game_mode_provider.dart`の無効なDart構文を修正 - `Provider<(GameMode mode) -> void>`のようなTypeScript風構文が混入しコンパイル不能だった。`Provider<void Function(GameMode mode)>`に修正。併せて`GameModeService`に未実装だった`updateGameMode`/`deleteGameMode`を追加
+
 **Phase 128 (Ultimate Quantum Integration & Transcendent Reality Engineering) - Complete ✅**
 - [x] Quantum Computing Integration & Superposition Systems (10 tests) - Quantum algorithm verification, superposition state management, quantum entanglement validation, coherence testing, quantum error correction
 - [x] Next-Generation AI System Synthesis (10 tests) - Advanced neural architecture validation, meta-learning systems, federated learning verification, continual learning frameworks, transfer learning optimization
@@ -818,3 +843,6 @@ None yet - track here as they arise.
 - 2026-09-02 | Phase 21 (Autonomous Agent Orchestration & Multi-Agent Systems) Complete ✅
 - 2026-09-02 | Phase 22 (Sustainable & Ethical AI Systems) Complete ✅
 - 2026-09-02 | Phase 23 (Next-Generation Intelligence & Autonomous Capabilities) Complete ✅
+- 2026-09-18 | Phase 58 (SNS Integration & Next-Generation Game Modes) Complete ✅
+- 2026-09-19 | 縁 (En) Features — 7 connection features (matching, playstyle compatibility, position echo, live friend spectate, fateful moves, concurrent players, En score), full Model/Service/Provider/UI/gameplay-integration stack Complete ✅
+- 2026-09-19 | Fixed pre-existing barrel-export ambiguities and compile errors (models/index.dart, viewmodels/index.dart, social_features_provider.dart, game_mode_provider.dart) discovered while integrating the En features Complete ✅
