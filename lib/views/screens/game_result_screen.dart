@@ -5,6 +5,8 @@ import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
 import 'package:goen/services/index.dart' show GameAnalysis;
+import 'package:goen/utils/shoji_transition.dart';
+import 'ai_game_screen.dart';
 
 final _logger = Logger();
 
@@ -481,7 +483,7 @@ class GameResultScreen extends ConsumerWidget {
     // AIGameScreen's lifecycle — without this, the new game would start
     // by showing the just-finished board instead of an empty one.
     ref.read(startNewGameProvider)();
-    Navigator.of(context).pushReplacementNamed('/ai-game');
+    Navigator.of(context).pushReplacement(shojiTransitionRoute(const AIGameScreen()));
   }
 
   void _handleBackToHome(BuildContext context) {

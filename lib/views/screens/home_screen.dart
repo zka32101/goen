@@ -5,6 +5,7 @@ import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/shoji_transition.dart';
 import 'ai_game_screen.dart';
+import 'game_mode_selector_screen.dart';
 
 final _logger = Logger();
 
@@ -114,7 +115,7 @@ class HomeScreen extends ConsumerWidget {
                     context,
                     title: 'Play AI Game',
                     subtitle: 'Challenge the Go engine',
-                    icon: Icons.gaming_esports,
+                    icon: Icons.smart_toy,
                     color: Colors.amber[500]!,
                     onTap: () => _navigateToAiGame(context, ref),
                   ),

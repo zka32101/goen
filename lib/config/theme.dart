@@ -58,6 +58,24 @@ class AppTheme {
           fontWeight: FontWeight.bold,
           color: AppColors.white,
         ),
+        // headlineSmall is the most-referenced variant across the app
+        // (33 call sites) — was missing entirely, so it silently fell
+        // back to Flutter's default font on every screen using it.
+        headlineLarge: GoogleFonts.notoSerifJp(
+          fontSize: 30,
+          fontWeight: FontWeight.bold,
+          color: AppColors.white,
+        ),
+        headlineMedium: GoogleFonts.notoSerifJp(
+          fontSize: 26,
+          fontWeight: FontWeight.bold,
+          color: AppColors.white,
+        ),
+        headlineSmall: GoogleFonts.notoSerifJp(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: AppColors.white,
+        ),
         titleLarge: GoogleFonts.notoSerifJp(
           fontSize: 22,
           fontWeight: FontWeight.w600,

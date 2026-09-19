@@ -59,15 +59,20 @@ class _ShojiPanel extends StatelessWidget {
         color: Color(0xFFFFFBF0), // 和紙色
       ),
       child: CustomPaint(
-        painter: _ShojiGridPainter(),
+        painter: _ShojiGridPainter(alignRight: alignRight),
         size: Size.infinite,
       ),
     );
   }
 }
 
-/// 障子の格子（組子）模様。
+/// 障子の格子（組子）模様。左右のパネルが同一パターンに見えないよう、
+/// 右パネルは半セル分ずらして組子の位相を変える。
 class _ShojiGridPainter extends CustomPainter {
+  final bool alignRight;
+
+  const _ShojiGridPainter({required this.alignRight});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -75,7 +80,8 @@ class _ShojiGridPainter extends CustomPainter {
       ..strokeWidth = 3;
 
     const cellSize = 40.0;
-    for (double x = 0; x <= size.width; x += cellSize) {
+    final xOffset = alignRight ? cellSize / 2 : 0.0;
+    for (double x = xOffset; x <= size.width; x += cellSize) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
     for (double y = 0; y <= size.height; y += cellSize) {
