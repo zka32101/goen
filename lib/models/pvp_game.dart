@@ -22,6 +22,8 @@ class PvpGame {
   final String? winnerUid;
   final String? result; // 'resignation', 'score', null(進行中)
   final String? matchId; // matching engineのMatchResult.idとの紐付け（あれば）
+  final String? tournamentId; // トーナメント試合の場合の大会ID
+  final String? tournamentMatchId; // トーナメント試合の場合のTournamentMatch ID
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -46,6 +48,8 @@ class PvpGame {
     this.winnerUid,
     this.result,
     this.matchId,
+    this.tournamentId,
+    this.tournamentMatchId,
     required this.createdAt,
     this.updatedAt,
   });
@@ -97,6 +101,8 @@ class PvpGame {
       winnerUid: data['winnerUid'] as String?,
       result: data['result'] as String?,
       matchId: data['matchId'] as String?,
+      tournamentId: data['tournamentId'] as String?,
+      tournamentMatchId: data['tournamentMatchId'] as String?,
       createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -125,6 +131,8 @@ class PvpGame {
       'winnerUid': winnerUid,
       'result': result,
       'matchId': matchId,
+      'tournamentId': tournamentId,
+      'tournamentMatchId': tournamentMatchId,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
     };

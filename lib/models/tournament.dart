@@ -132,10 +132,13 @@ class TournamentMatch {
   final String id;
   final String tournamentId;
   final String? player1Uid;
+  final String? player1DisplayName;
   final String? player2Uid;
+  final String? player2DisplayName;
   final int round;
   final String? winnerUid;
   final String status; // 'pending', 'in_progress', 'completed'
+  final String? gameId; // 紐付けられたPvpGameのID（試合開始後に設定）
   final DateTime scheduledAt;
   final DateTime? completedAt;
 
@@ -143,13 +146,19 @@ class TournamentMatch {
     required this.id,
     required this.tournamentId,
     this.player1Uid,
+    this.player1DisplayName,
     this.player2Uid,
+    this.player2DisplayName,
     required this.round,
     this.winnerUid,
     required this.status,
+    this.gameId,
     required this.scheduledAt,
     this.completedAt,
   });
+
+  /// 相手が不在（不戦勝）の枠
+  bool get isBye => player1Uid == null || player2Uid == null;
 
   factory TournamentMatch.fromFirestore(
       DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -158,10 +167,13 @@ class TournamentMatch {
       id: doc.id,
       tournamentId: data['tournamentId'] ?? '',
       player1Uid: data['player1Uid'],
+      player1DisplayName: data['player1DisplayName'],
       player2Uid: data['player2Uid'],
+      player2DisplayName: data['player2DisplayName'],
       round: data['round'] ?? 1,
       winnerUid: data['winnerUid'],
       status: data['status'] ?? 'pending',
+      gameId: data['gameId'],
       scheduledAt: data['scheduledAt'] is Timestamp
           ? (data['scheduledAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -175,10 +187,13 @@ class TournamentMatch {
     return {
       'tournamentId': tournamentId,
       'player1Uid': player1Uid,
+      'player1DisplayName': player1DisplayName,
       'player2Uid': player2Uid,
+      'player2DisplayName': player2DisplayName,
       'round': round,
       'winnerUid': winnerUid,
       'status': status,
+      'gameId': gameId,
       'scheduledAt': Timestamp.fromDate(scheduledAt),
       'completedAt':
           completedAt != null ? Timestamp.fromDate(completedAt!) : null,

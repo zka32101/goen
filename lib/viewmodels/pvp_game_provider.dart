@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import '../models/pvp_game.dart';
 import '../services/pvp_game_service.dart';
+import 'tournament_provider.dart';
 
 final _logger = Logger();
 
@@ -39,6 +40,8 @@ final createPvpGameProvider = Provider((ref) {
     String whiteUid,
     String whiteDisplayName, {
     String? matchId,
+    String? tournamentId,
+    String? tournamentMatchId,
   }) async {
     final service = ref.watch(pvpGameServiceProvider);
     try {
@@ -49,8 +52,24 @@ final createPvpGameProvider = Provider((ref) {
         whiteUid: whiteUid,
         whiteDisplayName: whiteDisplayName,
         matchId: matchId,
+        tournamentId: tournamentId,
+        tournamentMatchId: tournamentMatchId,
       );
       _logger.i('Created PvP game: ${game.id}');
+
+      if (tournamentId != null && tournamentMatchId != null) {
+        try {
+          final tournamentService = ref.read(tournamentServiceProvider);
+          await tournamentService.attachGameToMatch(
+            tournamentId: tournamentId,
+            matchId: tournamentMatchId,
+            gameId: game.id,
+          );
+        } catch (e) {
+          _logger.w('Failed to attach PvP game to tournament match (non-fatal): $e');
+        }
+      }
+
       return game;
     } catch (e) {
       _logger.e('Error creating PvP game: $e');
@@ -75,7 +94,14 @@ final passPvpGameProvider = Provider((ref) {
   return (String gameId, String uid) async {
     final service = ref.watch(pvpGameServiceProvider);
     try {
-      return await service.pass(gameId: gameId, uid: uid);
+      // pass()'s return value is whether the pass itself was accepted
+      // (legal turn), not whether it ended the game — the game-over check
+      // happens inside _reportTournamentResultIfNeeded via game.isFinished.
+      final accepted = await service.pass(gameId: gameId, uid: uid);
+      if (accepted) {
+        await _reportTournamentResultIfNeeded(ref, service, gameId);
+      }
+      return accepted;
     } catch (e) {
       _logger.e('Error passing PvP game: $e');
       rethrow;
@@ -89,9 +115,34 @@ final resignPvpGameProvider = Provider((ref) {
     try {
       await service.resign(gameId: gameId, uid: uid);
       _logger.i('Resigned PvP game: $gameId');
+      await _reportTournamentResultIfNeeded(ref, service, gameId);
     } catch (e) {
       _logger.e('Error resigning PvP game: $e');
       rethrow;
     }
   };
 });
+
+/// 対局がトーナメント試合に紐づいていれば、確定した勝者を
+/// TournamentServiceへ反映する（ラウンド完結・次ラウンド生成のトリガー）。
+Future<void> _reportTournamentResultIfNeeded(
+  Ref ref,
+  PvpGameService service,
+  String gameId,
+) async {
+  try {
+    final game = await service.getGame(gameId);
+    if (game == null || game.tournamentId == null || game.tournamentMatchId == null) return;
+    if (!game.isFinished || game.winnerUid == null) return; // 未終局、または引き分けなら反映しない
+
+    final tournamentService = ref.read(tournamentServiceProvider);
+    await tournamentService.recordMatchResult(
+      tournamentId: game.tournamentId!,
+      matchId: game.tournamentMatchId!,
+      winnerUid: game.winnerUid!,
+    );
+    _logger.i('Reported tournament result for match ${game.tournamentMatchId}');
+  } catch (e) {
+    _logger.w('Failed to report tournament result (non-fatal): $e');
+  }
+}

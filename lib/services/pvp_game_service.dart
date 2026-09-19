@@ -21,6 +21,8 @@ class PvpGameService {
     required String whiteUid,
     required String whiteDisplayName,
     String? matchId,
+    String? tournamentId,
+    String? tournamentMatchId,
   }) async {
     try {
       final docRef = _games.doc();
@@ -39,6 +41,8 @@ class PvpGameService {
         consecutivePasses: 0,
         status: 'active',
         matchId: matchId,
+        tournamentId: tournamentId,
+        tournamentMatchId: tournamentMatchId,
         createdAt: DateTime.now(),
       );
       await docRef.set(game.toFirestore());

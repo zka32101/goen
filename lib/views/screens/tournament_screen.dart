@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/tournament.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'tournament_bracket_screen.dart';
 
 final _logger = Logger();
 
@@ -119,68 +120,73 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
 
     return Card(
       color: Colors.grey[900],
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    tournament.name,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => TournamentBracketScreen(tournament: tournament)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      tournament.name,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                  _buildStatusChip(tournament),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(tournament.description, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(Icons.group, size: 16, color: Colors.grey[500]),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${tournament.participantUids.length}/${tournament.maxParticipants}人',
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  ),
+                  const SizedBox(width: 16),
+                  Icon(Icons.format_list_bulleted, size: 16, color: Colors.grey[500]),
+                  const SizedBox(width: 4),
+                  Text(_formatFormat(tournament.format), style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${_formatDate(tournament.startDate)} 〜 ${_formatDate(tournament.endDate)}',
+                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+              ),
+              if (tournament.isUpcoming && uid != null && !alreadyJoined && !tournament.isFull) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[600]),
+                    onPressed: () => _joinTournament(context, tournament),
+                    child: const Text('参加する', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                   ),
                 ),
-                _buildStatusChip(tournament),
               ],
-            ),
-            const SizedBox(height: 6),
-            Text(tournament.description, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(Icons.group, size: 16, color: Colors.grey[500]),
-                const SizedBox(width: 4),
-                Text(
-                  '${tournament.participantUids.length}/${tournament.maxParticipants}人',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              if (alreadyJoined)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.greenAccent, size: 18),
+                      const SizedBox(width: 6),
+                      Text('参加済み', style: TextStyle(color: Colors.greenAccent[100])),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 16),
-                Icon(Icons.format_list_bulleted, size: 16, color: Colors.grey[500]),
-                const SizedBox(width: 4),
-                Text(_formatFormat(tournament.format), style: TextStyle(color: Colors.grey[400], fontSize: 12)),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${_formatDate(tournament.startDate)} 〜 ${_formatDate(tournament.endDate)}',
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
-            ),
-            if (tournament.isUpcoming && uid != null && !alreadyJoined && !tournament.isFull) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[600]),
-                  onPressed: () => _joinTournament(context, tournament),
-                  child: const Text('参加する', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                ),
-              ),
             ],
-            if (alreadyJoined)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.greenAccent, size: 18),
-                    const SizedBox(width: 6),
-                    Text('参加済み', style: TextStyle(color: Colors.greenAccent[100])),
-                  ],
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );

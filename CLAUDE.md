@@ -607,7 +607,7 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 - [x] 縁スコア (`en_score.dart`/`en_score_service.dart`/`en_score_provider.dart`/`en_score_screen.dart`) - 友情期間・対戦数・共同観戦・局面共有から0-100点のつながりスコアを算出。`en_scores/{uid}/connections/{friendUid}` コレクション
 - [x] 縁ハブ画面 (`en_hub_screen.dart`) - 7機能への入り口。HomeScreenに「縁」カード追加、ルート `/en-hub`
 - [x] ゲームプレイ統合 (`game_provider.dart`) - `startNewGameProvider`(対局開始時: 同時刻セッション登録+観戦セッション作成+フレンド通知)、`applyMoveProvider`(捕獲時: 運命の一手検出)、`saveGameRecordProvider`(対局終了時: 局面の轍記録+セッション終了)にbest-effortでフック。Firestore書き込み失敗はtry/catchで握りつぶし、ゲームプレイ本体をブロックしない
-- [x] **既知の制約**: トーナメント参加者同士の実対局（ブラケット消化）はPvpGameへ未接続（マッチングエンジン経由のみ対局作成に繋がる）。ライブ観戦フレンド機能はAI対局のみが観戦対象（PvP対局を観戦する機能は未実装）。SpectatorSession/PvpGameの盤面フィールド（`stones`）はいずれもFirestoreの配列のネスト禁止制約のため、各行を数字文字列にエンコードして保存している（`toFirestore`/`fromFirestore`参照）
+- [x] **既知の制約**: ライブ観戦フレンド機能はAI対局のみが観戦対象（PvP対局を観戦する機能は未実装）。SpectatorSession/PvpGameの盤面フィールド（`stones`）はいずれもFirestoreの配列のネスト禁止制約のため、各行を数字文字列にエンコードして保存している（`toFirestore`/`fromFirestore`参照）
 
 **PvP対局システム — Complete ✅**
 
@@ -620,6 +620,18 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 - [x] `notification_screen.dart`: `pvp_challenge`通知をタップすると該当のPvpGameScreenへ遷移
 - [x] `pvpGameStreamProvider`/`userActivePvpGamesProvider`は用意済みだが、後者向けの専用一覧画面はまだ無い（通知またはマッチ履歴経由でのみ対局に戻れる）
 - [x] **Total: 7 connection features, full stack (Model/Service/Provider/UI/Game integration)**
+
+**トーナメントのブラケット消化 — Complete ✅**
+
+トーナメント参加者同士が実際にPvpGameで対局し、勝ち上がっていく仕組み。シングルエリミネーション形式のみ対応（round_robin/swissは`TournamentService.startTournament`が例外を投げる未実装）。
+
+- [x] `Tournament.startTournament(tournamentId)`: 参加者リストから1回戦のブラケット（`TournamentMatch`群）を生成しstatusを'active'に。奇数人数なら最後の1人が不戦勝で即座に次ラウンドへ（`TournamentMatch.isBye`）
+- [x] `TournamentMatch`に`player1DisplayName`/`player2DisplayName`/`gameId`を追加（表示名の解決とPvpGame紐付けのため）
+- [x] `PvpGame`に`tournamentId`/`tournamentMatchId`を追加。`createPvpGameProvider`にこれらを渡すと、生成直後に`TournamentService.attachGameToMatch`で`TournamentMatch.gameId`へ自動で紐付く
+- [x] `pvp_game_provider.dart`の`passPvpGameProvider`/`resignPvpGameProvider`: 対局が終局し勝者が確定すると、紐づくトーナメント試合があれば`TournamentService.recordMatchResult`を自動で呼ぶ（サービス層同士を直接結合させず、プロバイダー層でオーケストレーション）
+- [x] `TournamentService.recordMatchResult`→`_advanceRoundIfComplete`: そのラウンドの全試合が完了したら勝者同士で次ラウンドを自動生成。勝者が1人になったらトーナメントを`status: 'completed'`にして`winnerId`を確定
+- [x] `TournamentBracketScreen`（新規、トーナメント一覧のカードから遷移）: ラウンドごとの対戦カード表示、`isUpcoming`なら「トーナメントを開始する」ボタン、自分の試合で未対局なら「対局を開始する」（UIDの辞書順が小さい方を黒番に固定し、両対局者が同じ結果になるようにしている）、対局済みなら「対局を見る」
+- [x] **既知の制約**: 対局作成は排他制御なし（両対局者がほぼ同時に「対局を開始する」を押すと2つのPvpGameが作られ得る）。トーナメントの盤面サイズは19路盤固定（`Tournament`モデルに`boardSize`が無いため）。優勝者表示は`winnerId`（uid）のみでdisplayName解決は未実装
 
 **既存コードベースのバグ修正 (縁機能実装時に発見・対応) - Complete ✅**
 
@@ -860,3 +872,4 @@ None yet - track here as they arise.
 - 2026-09-19 | Added TournamentScreen and NotificationScreen (route '/tournament', '/notifications'), closing the Phase 58 model/service/provider-only gap for those two features; HomeScreen now has a Tournament card and a notification bell with unread-count badge Complete ✅
 - 2026-09-19 | Implemented live board sync for spectators (SpectatorSession gains stones/isBlackTurn/lastMove fields, streamed via spectatorSessionStreamProvider, pushed every move from applyMoveProvider) and the new SpectatorViewScreen; found and fixed a real bug where the board would have been written as a Firestore nested array (unsupported) — rows are digit-string-encoded instead Complete ✅
 - 2026-09-19 | Implemented the PvP game system (pvp_game.dart/pvp_game_service.dart/pvp_game_provider.dart/pvp_game_screen.dart): real-time 2-player games reusing GoRules inside a Firestore transaction, wired into MatchingScreen ("対局を開始する" after a match, plus resuming past matches) and NotificationScreen (tapping a pvp_challenge notification); also fixed a pre-existing null-safety bug in matching_screen.dart (passing `User?` where `User` was expected) Complete ✅
+- 2026-09-19 | Implemented tournament bracket progression (single elimination only): TournamentService.startTournament generates round 1 from participants (bye for odd counts), recordMatchResult auto-advances to the next round or completes the tournament once a round finishes, PvpGame gained tournamentId/tournamentMatchId so match results report back automatically, and the new TournamentBracketScreen lets participants start/resume their matches Complete ✅

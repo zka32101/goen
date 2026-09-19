@@ -100,6 +100,22 @@ final createTournamentProvider = Provider<
   };
 });
 
+/// トーナメント開始（1回戦のブラケットを自動生成し、statusをactiveへ）
+final startTournamentProvider = Provider<Future<void> Function(String)>((ref) {
+  final service = ref.read(tournamentServiceProvider);
+
+  return (String tournamentId) async {
+    _logger.i('Starting tournament: $tournamentId');
+    try {
+      await service.startTournament(tournamentId);
+      _logger.i('✅ Tournament started');
+    } catch (e) {
+      _logger.e('❌ Failed to start tournament: $e');
+      rethrow;
+    }
+  };
+});
+
 /// トーナメント参加
 final joinTournamentProvider = Provider<
     Future<bool> Function({
