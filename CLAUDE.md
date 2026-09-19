@@ -588,7 +588,7 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 - [x] Twitter/X Integration & Content Optimization (Models/Services/Providers) - Social share models, SNS API service, share provider with OAuth integration
 - [x] Multi-Platform SNS & Unified Share Experience (Models/Services/Providers) - Multi-platform share models, SNS service supporting Facebook/Instagram/WhatsApp/TikTok, unified share provider
 - [x] New Game Modes & Gameplay Innovation (Models/Services/Providers) - Game mode models (Blitz/Correspondence/Team/PuzzleRush), game mode service with scheduling, game mode provider with state management
-- [x] Social Features & Community Building (Models/Services/Providers) - Leaderboard (models/service/provider), Friend system (models/service/provider), Tournament (models/service/provider), Notification (models/service/provider)
+- [x] Social Features & Community Building (Models/Services/Providers/UI) - Leaderboard (models/service/provider/`leaderboard_screen.dart`), Friend system (models/service/provider/`friends_screen.dart`), Tournament (models/service/provider/`tournament_screen.dart`), Notification (models/service/provider/`notification_screen.dart`) — Tournament and Notification screens were added after the fact (2026-09-19); see the Timeline
 - [x] Spectator Mode & Observation Features (Models/Services/Providers) - Spectator session models, spectator service with join/leave/comment operations, spectator provider with live sync
 - [x] Complete implementation (README_PHASE_58.md) - All MVVM layers complete for SNS, game modes, social features, notifications, spectator mode
 - [x] **Total: 5 feature groups with complete MVVM implementation**
@@ -607,7 +607,7 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 - [x] 縁スコア (`en_score.dart`/`en_score_service.dart`/`en_score_provider.dart`/`en_score_screen.dart`) - 友情期間・対戦数・共同観戦・局面共有から0-100点のつながりスコアを算出。`en_scores/{uid}/connections/{friendUid}` コレクション
 - [x] 縁ハブ画面 (`en_hub_screen.dart`) - 7機能への入り口。HomeScreenに「縁」カード追加、ルート `/en-hub`
 - [x] ゲームプレイ統合 (`game_provider.dart`) - `startNewGameProvider`(対局開始時: 同時刻セッション登録+観戦セッション作成+フレンド通知)、`applyMoveProvider`(捕獲時: 運命の一手検出)、`saveGameRecordProvider`(対局終了時: 局面の轍記録+セッション終了)にbest-effortでフック。Firestore書き込み失敗はtry/catchで握りつぶし、ゲームプレイ本体をブロックしない
-- [x] **既知の制約**: マッチング成立後の実際のPvP対局画面は未実装（AIGameScreenのみ）。観戦セッションは作成・通知されるが、観戦者がリアルタイムで盤面を見るためのライブボード同期は未実装（将来拡張）
+- [x] **既知の制約**: マッチング成立後の実際のPvP対局画面は未実装（AIGameScreenのみ）。観戦セッションは作成・通知されるが、観戦者がリアルタイムで盤面を見るためのライブボード同期は未実装（将来拡張）。トーナメント参加者同士の実対局（ブラケット消化）も同様に未接続
 - [x] **Total: 7 connection features, full stack (Model/Service/Provider/UI/Game integration)**
 
 **既存コードベースのバグ修正 (縁機能実装時に発見・対応) - Complete ✅**
@@ -846,3 +846,4 @@ None yet - track here as they arise.
 - 2026-09-18 | Phase 58 (SNS Integration & Next-Generation Game Modes) Complete ✅
 - 2026-09-19 | 縁 (En) Features — 7 connection features (matching, playstyle compatibility, position echo, live friend spectate, fateful moves, concurrent players, En score), full Model/Service/Provider/UI/gameplay-integration stack Complete ✅
 - 2026-09-19 | Fixed pre-existing barrel-export ambiguities and compile errors (models/index.dart, viewmodels/index.dart, social_features_provider.dart, game_mode_provider.dart) discovered while integrating the En features Complete ✅
+- 2026-09-19 | Added TournamentScreen and NotificationScreen (route '/tournament', '/notifications'), closing the Phase 58 model/service/provider-only gap for those two features; HomeScreen now has a Tournament card and a notification bell with unread-count badge Complete ✅
