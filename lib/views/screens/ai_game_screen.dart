@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/utils/stone_feedback.dart';
 
 final _logger = Logger();
 
@@ -62,10 +63,21 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         return;
       }
 
+      final beforeCaptures = (
+        black: ref.read(gameBoardStateProvider).capturedBlack,
+        white: ref.read(gameBoardStateProvider).capturedWhite,
+      );
       final applied = ref.read(applyMoveProvider)(aiMove.row, aiMove.col);
       if (!applied) {
         _logger.e('❌ AI returned an illegal move: [${aiMove.row},${aiMove.col}]');
         return;
+      }
+      final afterState = ref.read(gameBoardStateProvider);
+      if (afterState.capturedBlack != beforeCaptures.black ||
+          afterState.capturedWhite != beforeCaptures.white) {
+        playCaptureFeedback();
+      } else {
+        playStonePlaceFeedback();
       }
 
       ref.read(logCustomEventProvider)(
@@ -266,10 +278,26 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         height: 300,
         decoration: BoxDecoration(
           border: Border.all(
-            color: Colors.amber[600]!,
-            width: 2,
+            color: Colors.amber[900]!,
+            width: 3,
           ),
-          color: Colors.amber[100]?.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(4),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.amber[700]!.withOpacity(0.35),
+              Colors.brown[700]!.withOpacity(0.45),
+              Colors.amber[800]!.withOpacity(0.35),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Stack(
           children: [
@@ -320,11 +348,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         final stone = stones[row][col];
         if (stone != 0) {
           // 0 = empty, 1 = black, 2 = white
-          final color = stone == 1 ? Colors.black : Colors.white;
-          final border = stone == 1 ? null : Border.all(
-            color: Colors.black,
-            width: 1,
-          );
+          final isBlack = stone == 1;
+          final border = isBlack
+              ? null
+              : Border.all(color: Colors.grey[400]!, width: 0.5);
 
           stoneWidgets.add(
             Positioned(
@@ -335,13 +362,21 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 height: stoneRadius * 2,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color,
                   border: border,
+                  // 光源が左上にあるガラス/石のような艶を出すため、
+                  // ハイライトを左上にずらしたradialGradientにする。
+                  gradient: RadialGradient(
+                    center: const Alignment(-0.35, -0.4),
+                    radius: 0.9,
+                    colors: isBlack
+                        ? [Colors.grey[700]!, Colors.black]
+                        : [Colors.white, Colors.grey[350]!],
+                  ),
                   boxShadow: const [
                     BoxShadow(
-                      color: Colors.black38,
-                      blurRadius: 4,
-                      offset: Offset(2, 2),
+                      color: Colors.black45,
+                      blurRadius: 5,
+                      offset: Offset(1.5, 2.5),
                     ),
                   ],
                 ),
@@ -365,10 +400,15 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
     // Applies the move (occupancy/suicide/ko checked internally) and, on
     // success, updates stones, captures, turn and the ko point.
+    final beforeCaptures = (
+      black: ref.read(gameBoardStateProvider).capturedBlack,
+      white: ref.read(gameBoardStateProvider).capturedWhite,
+    );
     final applied = ref.read(applyMoveProvider)(row, col);
 
     if (!applied) {
       _logger.w('Illegal move attempt: [$row,$col]');
+      playIllegalMoveFeedback();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('That move is illegal (occupied, suicide, or ko)'),
@@ -376,6 +416,14 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         ),
       );
       return;
+    }
+
+    final afterState = ref.read(gameBoardStateProvider);
+    if (afterState.capturedBlack != beforeCaptures.black ||
+        afterState.capturedWhite != beforeCaptures.white) {
+      playCaptureFeedback();
+    } else {
+      playStonePlaceFeedback();
     }
 
     _logger.i('Legal move applied: [$row,$col]');
@@ -659,19 +707,23 @@ class _GoGridPainter extends CustomPainter {
       );
     }
 
-    // Star points (hoshi) for 9x9 board
-    if (boardSize == 9) {
+    // Star points (hoshi) - standard positions per board size, matching
+    // real Go boards instead of only having them on 9x9.
+    final starPositions = switch (boardSize) {
+      9 => const [(2, 2), (2, 6), (4, 4), (6, 2), (6, 6)],
+      13 => const [(3, 3), (3, 9), (6, 6), (9, 3), (9, 9)],
+      19 => const [
+          (3, 3), (3, 9), (3, 15),
+          (9, 3), (9, 9), (9, 15),
+          (15, 3), (15, 9), (15, 15),
+        ],
+      _ => const <(int, int)>[],
+    };
+
+    if (starPositions.isNotEmpty) {
       final starPaint = Paint()
         ..color = Colors.white60
         ..strokeWidth = 0;
-
-      final starPositions = [
-        (2, 2),
-        (2, 6),
-        (4, 4),
-        (6, 2),
-        (6, 6),
-      ];
 
       for (final (row, col) in starPositions) {
         canvas.drawCircle(

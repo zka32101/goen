@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/pvp_game.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/utils/stone_feedback.dart';
 
 final _logger = Logger();
 
@@ -126,8 +127,27 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
         width: boardPixelSize,
         height: boardPixelSize,
         decoration: BoxDecoration(
-          border: Border.all(color: isMyTurn ? Colors.amber[600]! : Colors.grey[700]!, width: 2),
-          color: Colors.amber[100]?.withOpacity(0.1),
+          border: Border.all(
+            color: isMyTurn ? Colors.amber[600]! : Colors.grey[700]!,
+            width: isMyTurn ? 3 : 2,
+          ),
+          borderRadius: BorderRadius.circular(4),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.amber[700]!.withOpacity(0.35),
+              Colors.brown[700]!.withOpacity(0.45),
+              Colors.amber[800]!.withOpacity(0.35),
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
         child: Stack(
           children: [
@@ -163,8 +183,8 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
       for (int col = 0; col < boardSize; col++) {
         final stone = stones[row][col];
         if (stone != 0) {
-          final color = stone == 1 ? Colors.black : Colors.white;
-          final border = stone == 1 ? null : Border.all(color: Colors.black, width: 1);
+          final isBlack = stone == 1;
+          final border = isBlack ? null : Border.all(color: Colors.grey[400]!, width: 0.5);
           stoneWidgets.add(
             Positioned(
               left: col * cellSize + cellSize / 2 - stoneRadius,
@@ -174,10 +194,16 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
                 height: stoneRadius * 2,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color,
                   border: border,
+                  gradient: RadialGradient(
+                    center: const Alignment(-0.35, -0.4),
+                    radius: 0.9,
+                    colors: isBlack
+                        ? [Colors.grey[700]!, Colors.black]
+                        : [Colors.white, Colors.grey[350]!],
+                  ),
                   boxShadow: const [
-                    BoxShadow(color: Colors.black38, blurRadius: 4, offset: Offset(2, 2)),
+                    BoxShadow(color: Colors.black45, blurRadius: 5, offset: Offset(1.5, 2.5)),
                   ],
                 ),
               ),
@@ -213,10 +239,15 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
     setState(() => _isSubmittingMove = true);
     try {
       final success = await ref.read(applyPvpMoveProvider)(widget.gameId, widget.uid, row, col);
-      if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('その手は打てません')),
-        );
+      if (success) {
+        playStonePlaceFeedback();
+      } else {
+        playIllegalMoveFeedback();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('その手は打てません')),
+          );
+        }
       }
     } catch (e) {
       _logger.e('Error applying move: $e');
@@ -313,6 +344,28 @@ class _PvpGridPainter extends CustomPainter {
       final offset = cellSize * i + cellSize / 2;
       canvas.drawLine(Offset(offset, cellSize / 2), Offset(offset, size.height - cellSize / 2), paint);
       canvas.drawLine(Offset(cellSize / 2, offset), Offset(size.width - cellSize / 2, offset), paint);
+    }
+
+    // 星（hoshi） - 実際の碁盤に合わせた標準位置
+    final starPositions = switch (boardSize) {
+      9 => const [(2, 2), (2, 6), (4, 4), (6, 2), (6, 6)],
+      13 => const [(3, 3), (3, 9), (6, 6), (9, 3), (9, 9)],
+      19 => const [
+          (3, 3), (3, 9), (3, 15),
+          (9, 3), (9, 9), (9, 15),
+          (15, 3), (15, 9), (15, 15),
+        ],
+      _ => const <(int, int)>[],
+    };
+    if (starPositions.isNotEmpty) {
+      final starPaint = Paint()..color = Colors.black54;
+      for (final (row, col) in starPositions) {
+        canvas.drawCircle(
+          Offset(col * cellSize + cellSize / 2, row * cellSize + cellSize / 2),
+          3,
+          starPaint,
+        );
+      }
     }
   }
 
