@@ -35,6 +35,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
 
   @override
   Widget build(BuildContext context) {
+    // currentUserProvider is a plain Provider<User?> (not an AsyncValue).
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
@@ -52,31 +53,23 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
           ],
         ),
       ),
-      body: currentUser.when(
-        data: (user) {
-          if (user == null) {
-            return Center(
-              child: Text('ログインしてください'),
-            );
-          }
-
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildFriendsList(user.uid),
-              _buildPendingRequests(user.uid),
-              _buildBlockedUsers(user.uid),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('エラー: $err')),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showSearchDialog(context),
-        backgroundColor: Colors.amber[700],
-        child: const Icon(Icons.person_add),
-      ),
+      body: currentUser == null
+          ? const Center(child: Text('ログインしてください'))
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildFriendsList(currentUser.uid),
+                _buildPendingRequests(currentUser.uid),
+                _buildBlockedUsers(currentUser.uid),
+              ],
+            ),
+      floatingActionButton: currentUser == null
+          ? null
+          : FloatingActionButton(
+              onPressed: () => _showSearchDialog(context),
+              backgroundColor: Colors.amber[700],
+              child: const Icon(Icons.person_add),
+            ),
     );
   }
 

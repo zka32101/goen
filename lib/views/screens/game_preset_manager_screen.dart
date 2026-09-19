@@ -18,6 +18,8 @@ class _GamePresetManagerScreenState
 
   @override
   Widget build(BuildContext context) {
+    // currentUserProvider is a plain Provider<User?> (not an AsyncValue),
+    // so this reads the user directly rather than through AsyncValue.when.
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
@@ -27,49 +29,42 @@ class _GamePresetManagerScreenState
         backgroundColor: Colors.grey[900],
         elevation: 0,
       ),
-      body: currentUser.when(
-        data: (user) {
-          if (user == null) {
-            return Center(child: Text('ログインしてください'));
-          }
-
-          return Column(
-            children: [
-              // Game mode filter
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildModeChip('blitz', 'ブリッツ'),
-                      const SizedBox(width: 8),
-                      _buildModeChip('correspondence', '対局'),
-                      const SizedBox(width: 8),
-                      _buildModeChip('team', 'チーム'),
-                      const SizedBox(width: 8),
-                      _buildModeChip('puzzle', 'パズル'),
-                    ],
+      body: currentUser == null
+          ? const Center(child: Text('ログインしてください'))
+          : Column(
+              children: [
+                // Game mode filter
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildModeChip('blitz', 'ブリッツ'),
+                        const SizedBox(width: 8),
+                        _buildModeChip('correspondence', '対局'),
+                        const SizedBox(width: 8),
+                        _buildModeChip('team', 'チーム'),
+                        const SizedBox(width: 8),
+                        _buildModeChip('puzzle', 'パズル'),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              // Presets list
-              Expanded(
-                child: _buildPresetsList(user.uid),
-              ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('エラー: $err')),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () =>
-            _showCreatePresetDialog(context, currentUser.value?.uid ?? ''),
-        backgroundColor: Colors.amber[700],
-        child: const Icon(Icons.add),
-      ),
+                // Presets list
+                Expanded(
+                  child: _buildPresetsList(currentUser.uid),
+                ),
+              ],
+            ),
+      floatingActionButton: currentUser == null
+          ? null
+          : FloatingActionButton(
+              onPressed: () => _showCreatePresetDialog(context, currentUser.uid),
+              backgroundColor: Colors.amber[700],
+              child: const Icon(Icons.add),
+            ),
     );
   }
 
@@ -165,7 +160,7 @@ class _GamePresetManagerScreenState
                             ),
                             child: Text(
                               'Level ${preset.aiLevel}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.blue[300],
                                 fontSize: 12,
                               ),
@@ -184,7 +179,7 @@ class _GamePresetManagerScreenState
                               ),
                               child: Text(
                                 '置碁${preset.handicap!.handicapStones}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.orange[300],
                                   fontSize: 12,
                                 ),
@@ -245,7 +240,7 @@ class _GamePresetManagerScreenState
       ),
       child: Text(
         '$emoji ${boardSize}×$boardSize',
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.purple[300],
           fontSize: 12,
         ),
@@ -270,50 +265,110 @@ class _GamePresetManagerScreenState
     final nameController = TextEditingController();
     int selectedBoardSize = 19;
     int selectedAiLevel = 5;
+    int handicapStones = 0; // 0 = 互先（ハンディなし）
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text('新しいプリセットを作成'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  hintText: 'プリセット名',
-                  hintStyle: TextStyle(color: Colors.grey[500]),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.amber[700]!),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: const Text('新しいプリセットを作成'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    hintText: 'プリセット名',
+                    hintStyle: TextStyle(color: Colors.grey[500]),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.amber[700]!),
+                    ),
                   ),
+                  style: const TextStyle(color: Colors.white),
                 ),
-                style: const TextStyle(color: Colors.white),
-              ),
-              const SizedBox(height: 16),
-              // TODO: Add board size, AI level, handicap options
-              Text('詳細設定は後で実装予定',
-                  style: TextStyle(color: Colors.grey[500])),
-            ],
+                const SizedBox(height: 20),
+                Text('盤の大きさ', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [9, 13, 19].map((size) {
+                    return ChoiceChip(
+                      label: Text('$size路盤'),
+                      selected: selectedBoardSize == size,
+                      onSelected: (_) => setDialogState(() => selectedBoardSize = size),
+                      backgroundColor: Colors.grey[800],
+                      selectedColor: Colors.amber[700],
+                      labelStyle: TextStyle(
+                        color: selectedBoardSize == size ? Colors.black : Colors.white,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'AIレベル: $selectedAiLevel',
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                ),
+                Slider(
+                  value: selectedAiLevel.toDouble(),
+                  min: 1,
+                  max: 10,
+                  divisions: 9,
+                  label: '$selectedAiLevel',
+                  activeColor: Colors.amber[700],
+                  onChanged: (value) =>
+                      setDialogState(() => selectedAiLevel = value.toInt()),
+                ),
+                const SizedBox(height: 12),
+                Text('置き碁（ハンディキャップ）', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [0, 2, 3, 4, 5, 6, 7, 8, 9].map((stones) {
+                    final label = stones == 0 ? '互先' : '$stones子';
+                    return ChoiceChip(
+                      label: Text(label),
+                      selected: handicapStones == stones,
+                      onSelected: (_) => setDialogState(() => handicapStones = stones),
+                      backgroundColor: Colors.grey[800],
+                      selectedColor: Colors.orange[800],
+                      labelStyle: TextStyle(
+                        color: handicapStones == stones ? Colors.black : Colors.white,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (nameController.text.isNotEmpty) {
+                  _createPreset(
+                    context,
+                    userId,
+                    nameController.text,
+                    selectedBoardSize,
+                    selectedAiLevel,
+                    handicapStones > 0
+                        ? HandicapSettings(handicapStones: handicapStones)
+                        : null,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700]),
+              child: const Text('作成'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('キャンセル'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (nameController.text.isNotEmpty) {
-                _createPreset(context, userId, nameController.text,
-                    selectedBoardSize, selectedAiLevel);
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700]),
-            child: const Text('作成'),
-          ),
-        ],
       ),
     );
   }
@@ -324,6 +379,7 @@ class _GamePresetManagerScreenState
     String name,
     int boardSize,
     int aiLevel,
+    HandicapSettings? handicap,
   ) async {
     final success = await ref.read(
       createGamePresetProvider((
@@ -333,7 +389,7 @@ class _GamePresetManagerScreenState
         boardSize: boardSize,
         aiLevel: aiLevel,
         playerColor: 'black',
-        handicap: null,
+        handicap: handicap,
       )).future,
     );
 

@@ -10,6 +10,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // currentUserProvider is a plain Provider<User?> (not an AsyncValue).
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
@@ -19,41 +20,33 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
         backgroundColor: Colors.grey[900],
         elevation: 0,
       ),
-      body: currentUser.when(
-        data: (user) {
-          if (user == null) {
-            return Center(child: Text('ログインしてください'));
-          }
+      body: currentUser == null
+          ? const Center(child: Text('ログインしてください'))
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Summary cards
+                  _buildSummarySection(ref, currentUser.uid),
 
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                // Summary cards
-                _buildSummarySection(ref, user.uid),
+                  const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                  // Win rate by board size
+                  _buildWinRateByBoardSize(ref, currentUser.uid),
 
-                // Win rate by board size
-                _buildWinRateByBoardSize(ref, user.uid),
+                  const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                  // Win rate by AI level
+                  _buildWinRateByAiLevel(ref, currentUser.uid),
 
-                // Win rate by AI level
-                _buildWinRateByAiLevel(ref, user.uid),
+                  const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                  // Achievements
+                  _buildAchievementsSection(ref, currentUser.uid),
 
-                // Achievements
-                _buildAchievementsSection(ref, user.uid),
-
-                const SizedBox(height: 24),
-              ],
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('エラー: $err')),
-      ),
     );
   }
 
