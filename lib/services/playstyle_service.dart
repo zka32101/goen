@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
-// Import specific model files rather than the barrel: `Friend` and
-// `GameRecord` are ambiguous through models/index.dart because
-// extended_game_models.dart (and sns_models.dart, for Friend) declare
-// same-named classes with different shapes.
 import '../models/game_record.dart';
-import '../models/friend.dart';
+// `Friend` here is extended_game_models.dart's (uid/displayName/status) —
+// the shape actually returned by FriendService.getFriends, which is what
+// every real friends feature (friends_screen.dart, social_features_provider.dart)
+// uses. It's exported unambiguously via models/index.dart (see that
+// barrel's comments on the Friend collision), but importing it directly
+// here keeps this file's dependency explicit.
+import '../models/extended_game_models.dart';
 import '../models/playstyle.dart';
 
 final _logger = Logger();
@@ -107,8 +109,8 @@ class PlaystyleService {
       final results = <PlaystyleCompatibility>[];
 
       for (final friend in friends) {
-        if (friend.isBlocked) continue;
-        final otherProfile = await getProfile(friend.friendUid);
+        if (friend.status == 'blocked') continue;
+        final otherProfile = await getProfile(friend.uid);
 
         final aggressivenessDiff = (myProfile.aggressiveness - otherProfile.aggressiveness).abs();
         final territorialityDiff = (myProfile.territoriality - otherProfile.territoriality).abs();
@@ -120,7 +122,7 @@ class PlaystyleService {
 
         results.add(PlaystyleCompatibility(
           uid: uid,
-          otherUid: friend.friendUid,
+          otherUid: friend.uid,
           otherDisplayName: friend.displayName,
           compatibilityScore: compatibilityScore.clamp(0.0, 1.0),
           compatibilityType: compatibilityType,

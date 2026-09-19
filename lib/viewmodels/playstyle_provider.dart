@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-// `Friend` is ambiguous through models/index.dart (see playstyle_service.dart);
-// import the specific model files instead.
-import '../models/friend.dart';
+// `Friend` here is extended_game_models.dart's — see playstyle_service.dart.
+import '../models/extended_game_models.dart';
 import '../models/playstyle.dart';
 import '../services/index.dart';
 
