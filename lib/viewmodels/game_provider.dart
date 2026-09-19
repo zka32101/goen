@@ -4,6 +4,12 @@ import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart';
 import 'package:goen/services/fuego_engine_service.dart';
 import 'package:goen/services/go_rules.dart';
+import 'package:goen/viewmodels/auth_provider.dart';
+import 'package:goen/viewmodels/fateful_move_provider.dart';
+import 'package:goen/viewmodels/concurrent_session_provider.dart';
+import 'package:goen/viewmodels/position_echo_provider.dart';
+import 'package:goen/viewmodels/spectator_provider.dart';
+import 'package:goen/viewmodels/friend_activity_provider.dart';
 
 final _logger = Logger();
 
@@ -65,6 +71,13 @@ final gameResultProvider = StateProvider<GameEndResult?>((ref) {
   return null;
 });
 
+/// 縁機能: 現在の対局に紐づく観戦セッションID（ライブ観戦フレンド用）。
+/// Set by startNewGameProvider once the spectator session is created,
+/// cleared when the session is ended at game-record-save time.
+final currentSpectatorSessionIdProvider = StateProvider<String?>((ref) {
+  return null;
+});
+
 /// Resets all per-game state and marks the game active. This is the only
 /// correct way to start a fresh game: the game state providers above are
 /// plain (non-autoDispose) globals, so simply navigating to a new
@@ -79,10 +92,58 @@ final startNewGameProvider = Provider<void Function()>((ref) {
     ref.invalidate(gameResultProvider);
     ref.invalidate(consecutivePassesProvider);
     ref.invalidate(lastPlayerPassedProvider);
+    ref.invalidate(currentSpectatorSessionIdProvider);
     ref.read(isGameActiveProvider.notifier).state = true;
     _logger.i('🆕 New game started');
+
+    _startEnSessionTracking(ref);
   };
 });
+
+/// 縁機能: 対局開始を「同時刻の碁盤」に登録し、観戦セッションを開くことで
+/// フレンドがライブ観戦できるようにする。Best-effort: failures are logged
+/// and never block gameplay (no `await`, errors are caught and swallowed).
+void _startEnSessionTracking(Ref ref) {
+  final user = ref.read(currentUserProvider);
+  if (user == null) return;
+
+  final boardSize = ref.read(gameBoardStateProvider).boardSize;
+  final displayName = user.displayName ?? 'Player';
+
+  () async {
+    try {
+      await ref.read(startPlaySessionProvider)(user.uid, displayName, boardSize, 'ai_game');
+    } catch (e) {
+      _logger.w('縁: play session start failed (non-fatal): $e');
+    }
+  }();
+
+  () async {
+    try {
+      final session = await ref.read(createSpectatorSessionProvider)(
+        DateTime.now().millisecondsSinceEpoch.toString(),
+        'ai_game',
+        user.uid,
+        displayName,
+        true,
+      );
+      ref.read(currentSpectatorSessionIdProvider.notifier).state = session.id;
+
+      try {
+        await ref.read(notifyFriendsOfLiveSessionProvider)(
+          user.uid,
+          displayName,
+          session.id,
+          'ai_game',
+        );
+      } catch (e) {
+        _logger.w('縁: friend live-session notification failed (non-fatal): $e');
+      }
+    } catch (e) {
+      _logger.w('縁: spectator session creation failed (non-fatal): $e');
+    }
+  }();
+}
 
 // ================== AI MOVE REQUESTS ==================
 
@@ -190,9 +251,43 @@ final applyMoveProvider = Provider<bool Function(int row, int col)>((ref) {
     _logger.i(
       '✅ Move applied: player=$player [$row,$col] captured=${result.capturedCount}',
     );
+
+    // 縁機能: この一手が「運命の一手」（大石を仕留めた・劫を制した等）に
+    // 当たるか検出し、該当すればフレンドにシェアする。Player's move only —
+    // the AI's own captures aren't the human player's "fateful moment".
+    if (player == 1 && result.capturedCount > 0) {
+      _detectFatefulMove(ref, result.capturedCount, board.koRow != null);
+    }
+
     return true;
   };
 });
+
+/// 縁機能: best-effort fateful-move detection; never blocks gameplay.
+void _detectFatefulMove(Ref ref, int capturedCount, bool wasKoResolved) {
+  final user = ref.read(currentUserProvider);
+  if (user == null) return;
+
+  final movesCount = ref.read(movesCountProvider);
+  final boardSize = ref.read(gameBoardStateProvider).boardSize;
+  final displayName = user.displayName ?? 'Player';
+
+  () async {
+    try {
+      await ref.read(detectAndShareFatefulMoveProvider)(
+        user.uid,
+        displayName,
+        null,
+        movesCount,
+        boardSize,
+        capturedCount,
+        wasKoResolved,
+      );
+    } catch (e) {
+      _logger.w('縁: fateful move detection failed (non-fatal): $e');
+    }
+  }();
+}
 
 /// Passes for whichever color's turn it currently is: flips the turn,
 /// clears any ko restriction, and increments the consecutive-pass count.
@@ -312,6 +407,9 @@ final saveGameRecordProvider = Provider<
     try {
       final gameId = await firestoreService.saveGameRecord(gameRecord);
       _logger.i('✅ Game record saved: $gameId');
+
+      _finalizeEnSession(ref, uid, boardState, movesCount);
+
       return gameId;
     } catch (e) {
       _logger.e('❌ Game record save failed: $e');
@@ -319,6 +417,42 @@ final saveGameRecordProvider = Provider<
     }
   };
 });
+
+/// 縁機能: ゲーム終了時に局面の轍を記録し、「同時刻の碁盤」「ライブ観戦
+/// フレンド」のセッションを閉じる。Best-effort: never blocks the (already
+/// successful) game-record save.
+void _finalizeEnSession(Ref ref, String uid, BoardState boardState, int movesCount) {
+  final user = ref.read(currentUserProvider);
+  final displayName = user?.displayName ?? 'Player';
+
+  () async {
+    try {
+      await ref.read(recordPositionReachedProvider)(uid, displayName, boardState, movesCount);
+    } catch (e) {
+      _logger.w('縁: position echo recording failed (non-fatal): $e');
+    }
+  }();
+
+  () async {
+    try {
+      await ref.read(endPlaySessionProvider)(uid);
+    } catch (e) {
+      _logger.w('縁: play session end failed (non-fatal): $e');
+    }
+  }();
+
+  final sessionId = ref.read(currentSpectatorSessionIdProvider);
+  if (sessionId != null) {
+    () async {
+      try {
+        await ref.read(endSpectatorSessionProvider)(sessionId);
+      } catch (e) {
+        _logger.w('縁: spectator session end failed (non-fatal): $e');
+      }
+    }();
+    ref.read(currentSpectatorSessionIdProvider.notifier).state = null;
+  }
+}
 
 /// Helper: parse result string to GameResult enum
 GameResult _parseResult(String result) {
