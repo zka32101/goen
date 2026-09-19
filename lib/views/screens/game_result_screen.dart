@@ -74,37 +74,40 @@ class GameResultScreen extends ConsumerWidget {
                 child: Column(
                   children: [
                     // Win/lose indicator
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: winner == 'player'
-                            ? Colors.green[700]?.withOpacity(0.2)
-                            : winner == 'ai'
-                            ? Colors.red[700]?.withOpacity(0.2)
-                            : Colors.amber[600]?.withOpacity(0.2),
-                        border: Border.all(
+                    _maybeWithVictoryGlow(
+                      isVictory: winner == 'player',
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
                           color: winner == 'player'
-                              ? Colors.green[400]!
+                              ? Colors.green[700]?.withOpacity(0.2)
                               : winner == 'ai'
-                              ? Colors.red[400]!
-                              : Colors.amber[600]!,
-                          width: 3,
+                              ? Colors.red[700]?.withOpacity(0.2)
+                              : Colors.amber[600]?.withOpacity(0.2),
+                          border: Border.all(
+                            color: winner == 'player'
+                                ? Colors.green[400]!
+                                : winner == 'ai'
+                                ? Colors.red[400]!
+                                : Colors.amber[600]!,
+                            width: 3,
+                          ),
                         ),
-                      ),
-                      child: Icon(
-                        winner == 'player'
-                            ? Icons.emoji_events
-                            : winner == 'ai'
-                            ? Icons.sentiment_dissatisfied
-                            : Icons.balance,
-                        size: 50,
-                        color: winner == 'player'
-                            ? Colors.green[400]
-                            : winner == 'ai'
-                            ? Colors.red[400]
-                            : Colors.amber[600],
+                        child: Icon(
+                          winner == 'player'
+                              ? Icons.emoji_events
+                              : winner == 'ai'
+                              ? Icons.sentiment_dissatisfied
+                              : Icons.balance,
+                          size: 50,
+                          color: winner == 'player'
+                              ? Colors.green[400]
+                              : winner == 'ai'
+                              ? Colors.red[400]
+                              : Colors.amber[600],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -231,6 +234,12 @@ class GameResultScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// 勝った時だけ、勝敗アイコンにゆっくり明滅する後光を付ける。
+  Widget _maybeWithVictoryGlow({required bool isVictory, required Widget child}) {
+    if (!isVictory) return child;
+    return _VictoryGlow(child: child);
   }
 
   /// Score section showing final positions
@@ -599,6 +608,61 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// 勝利時のトロフィーアイコンをゆっくり明滅させる、控えめな祝福演出。
+/// ゲームらしい楽しさを足す一方、派手な紙吹雪などは「大人向けプレミアム」
+/// というトーンに合わないため、光量が上下するだけのシンプルな後光に留める。
+class _VictoryGlow extends StatefulWidget {
+  final Widget child;
+
+  const _VictoryGlow({required this.child});
+
+  @override
+  State<_VictoryGlow> createState() => _VictoryGlowState();
+}
+
+class _VictoryGlowState extends State<_VictoryGlow> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final glow = 0.25 + _controller.value * 0.35;
+        return Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.amber[400]!.withOpacity(glow),
+                blurRadius: 24,
+                spreadRadius: 4,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
     );
   }
 }

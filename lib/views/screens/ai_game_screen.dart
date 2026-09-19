@@ -29,12 +29,25 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
   late int _selectedRow;
   late int _selectedCol;
 
+  // 捕獲演出用 — イベントIDをキーにしたAnimatedSwitcherで、連続で
+  // 石を取ってもその都度新しいアニメーションとして表示させる。
+  int _captureEventId = 0;
+  int? _captureFlashCount;
+
   @override
   void initState() {
     super.initState();
     _logger.i('AIGameScreen initialized');
     _selectedRow = -1;
     _selectedCol = -1;
+  }
+
+  void _triggerCaptureFlash(int count) {
+    if (count <= 0) return;
+    setState(() {
+      _captureEventId++;
+      _captureFlashCount = count;
+    });
   }
 
   @override
@@ -73,9 +86,11 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         return;
       }
       final afterState = ref.read(gameBoardStateProvider);
-      if (afterState.capturedBlack != beforeCaptures.black ||
-          afterState.capturedWhite != beforeCaptures.white) {
+      final capturedDelta = (afterState.capturedBlack - beforeCaptures.black) +
+          (afterState.capturedWhite - beforeCaptures.white);
+      if (capturedDelta > 0) {
         playCaptureFeedback();
+        _triggerCaptureFlash(capturedDelta);
       } else {
         playStonePlaceFeedback();
       }
@@ -328,6 +343,20 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                   ),
                 ),
               ),
+
+            // Capture celebration flash
+            if (_captureFlashCount != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: _CaptureFlash(
+                    key: ValueKey(_captureEventId),
+                    count: _captureFlashCount!,
+                    onDone: () {
+                      if (mounted) setState(() => _captureFlashCount = null);
+                    },
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -419,9 +448,11 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     }
 
     final afterState = ref.read(gameBoardStateProvider);
-    if (afterState.capturedBlack != beforeCaptures.black ||
-        afterState.capturedWhite != beforeCaptures.white) {
+    final capturedDelta = (afterState.capturedBlack - beforeCaptures.black) +
+        (afterState.capturedWhite - beforeCaptures.white);
+    if (capturedDelta > 0) {
       playCaptureFeedback();
+      _triggerCaptureFlash(capturedDelta);
     } else {
       playStonePlaceFeedback();
     }
@@ -738,4 +769,65 @@ class _GoGridPainter extends CustomPainter {
   @override
   bool shouldRepaint(_GoGridPainter oldDelegate) =>
       oldDelegate.boardSize != boardSize;
+}
+
+/// 捕獲時の演出。「アゲハマができた瞬間」を気持ちよく見せるための、
+/// フェードイン→少し留まる→フェードアウトするだけの軽量な演出。
+/// AnimationController/TickerProviderは使わず、Future.delayed +
+/// AnimatedOpacity/AnimatedScaleだけで完結させている。
+class _CaptureFlash extends StatefulWidget {
+  final int count;
+  final VoidCallback onDone;
+
+  const _CaptureFlash({super.key, required this.count, required this.onDone});
+
+  @override
+  State<_CaptureFlash> createState() => _CaptureFlashState();
+}
+
+class _CaptureFlashState extends State<_CaptureFlash> {
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _visible = true);
+    });
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) setState(() => _visible = false);
+    });
+    Future.delayed(const Duration(milliseconds: 1300), widget.onDone);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: AnimatedOpacity(
+        opacity: _visible ? 1 : 0,
+        duration: const Duration(milliseconds: 250),
+        child: AnimatedScale(
+          scale: _visible ? 1.0 : 0.7,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutBack,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.amber[400]!, width: 2),
+            ),
+            child: Text(
+              widget.count > 1 ? '${widget.count}石 捕獲！' : '捕獲！',
+              style: TextStyle(
+                color: Colors.amber[300],
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

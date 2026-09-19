@@ -22,9 +22,33 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
   bool _isSubmittingMove = false;
   bool _resultShown = false;
 
+  // 捕獲演出用。どちらのプレイヤーが打っても、両者の画面で捕獲の瞬間が
+  // 見えるようにストリームの値そのものを監視して検知する。
+  int? _lastCapturedBlack;
+  int? _lastCapturedWhite;
+  int _captureEventId = 0;
+  int? _captureFlashCount;
+
   @override
   Widget build(BuildContext context) {
     final gameAsync = ref.watch(pvpGameStreamProvider(widget.gameId));
+
+    ref.listen<AsyncValue<PvpGame?>>(pvpGameStreamProvider(widget.gameId), (previous, next) {
+      final game = next.valueOrNull;
+      if (game == null) return;
+      if (_lastCapturedBlack != null && _lastCapturedWhite != null) {
+        final delta = (game.capturedBlack - _lastCapturedBlack!) +
+            (game.capturedWhite - _lastCapturedWhite!);
+        if (delta > 0) {
+          setState(() {
+            _captureEventId++;
+            _captureFlashCount = delta;
+          });
+        }
+      }
+      _lastCapturedBlack = game.capturedBlack;
+      _lastCapturedWhite = game.capturedWhite;
+    });
 
     return Scaffold(
       backgroundColor: Colors.black87,
@@ -166,6 +190,18 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.redAccent, width: 2),
+                  ),
+                ),
+              ),
+            if (_captureFlashCount != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: _CaptureFlash(
+                    key: ValueKey(_captureEventId),
+                    count: _captureFlashCount!,
+                    onDone: () {
+                      if (mounted) setState(() => _captureFlashCount = null);
+                    },
                   ),
                 ),
               ),
@@ -371,4 +407,64 @@ class _PvpGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PvpGridPainter oldDelegate) => oldDelegate.boardSize != boardSize;
+}
+
+/// 捕獲時の演出。ai_game_screen.dartの同名ウィジェットと同じ内容だが、
+/// privateクラスなので共有できず、このファイル内に複製している
+/// （_PvpGridPainter/_GoGridPainterと同じ分割方針）。
+class _CaptureFlash extends StatefulWidget {
+  final int count;
+  final VoidCallback onDone;
+
+  const _CaptureFlash({super.key, required this.count, required this.onDone});
+
+  @override
+  State<_CaptureFlash> createState() => _CaptureFlashState();
+}
+
+class _CaptureFlashState extends State<_CaptureFlash> {
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _visible = true);
+    });
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted) setState(() => _visible = false);
+    });
+    Future.delayed(const Duration(milliseconds: 1300), widget.onDone);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: AnimatedOpacity(
+        opacity: _visible ? 1 : 0,
+        duration: const Duration(milliseconds: 250),
+        child: AnimatedScale(
+          scale: _visible ? 1.0 : 0.7,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutBack,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.amber[400]!, width: 2),
+            ),
+            child: Text(
+              widget.count > 1 ? '${widget.count}石 捕獲！' : '捕獲！',
+              style: TextStyle(
+                color: Colors.amber[300],
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
