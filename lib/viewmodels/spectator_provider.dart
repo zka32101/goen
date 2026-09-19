@@ -112,8 +112,9 @@ final createSpectatorSessionProvider = Provider((ref) {
     String gameType,
     String hostUid,
     String hostDisplayName,
-    bool isLive,
-  ) async {
+    bool isLive, {
+    int boardSize = 19,
+  }) async {
     final service = ref.watch(spectatorServiceProvider);
     try {
       final session = await service.createSpectatorSession(
@@ -122,11 +123,46 @@ final createSpectatorSessionProvider = Provider((ref) {
         hostUid: hostUid,
         hostDisplayName: hostDisplayName,
         isLive: isLive,
+        boardSize: boardSize,
       );
       _logger.i('Created spectator session: ${session.id}');
       return session;
     } catch (e) {
       _logger.e('Error creating spectator session: $e');
+      rethrow;
+    }
+  };
+});
+
+/// 観戦者向け: 対局のライブ盤面をリアルタイムに購読する
+final spectatorSessionStreamProvider =
+    StreamProvider.family<SpectatorSession?, String>((ref, sessionId) {
+  final service = ref.watch(spectatorServiceProvider);
+  return service.streamSpectatorSession(sessionId);
+});
+
+/// ホスト側: 一手ごとに観戦セッションの盤面を更新する
+final updateSpectatorBoardStateProvider = Provider((ref) {
+  return (
+    String sessionId,
+    int moveIndex,
+    List<List<int>> stones,
+    bool isBlackTurn,
+    int? lastMoveRow,
+    int? lastMoveCol,
+  ) async {
+    final service = ref.watch(spectatorServiceProvider);
+    try {
+      await service.updateBoardState(
+        sessionId: sessionId,
+        moveIndex: moveIndex,
+        stones: stones,
+        isBlackTurn: isBlackTurn,
+        lastMoveRow: lastMoveRow,
+        lastMoveCol: lastMoveCol,
+      );
+    } catch (e) {
+      _logger.e('Error updating spectator board state: $e');
       rethrow;
     }
   };

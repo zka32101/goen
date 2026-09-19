@@ -13,6 +13,12 @@ class SpectatorSession {
   final DateTime createdAt;
   final DateTime? updatedAt;
   final DateTime? endedAt;
+  // ライブ盤面同期用（観戦者がリアルタイムで盤面を見られるようにする）
+  final int boardSize;
+  final List<List<int>>? stones; // 0=空, 1=黒, 2=白
+  final bool isBlackTurn;
+  final int? lastMoveRow;
+  final int? lastMoveCol;
 
   SpectatorSession({
     required this.id,
@@ -27,6 +33,11 @@ class SpectatorSession {
     required this.createdAt,
     this.updatedAt,
     this.endedAt,
+    this.boardSize = 19,
+    this.stones,
+    this.isBlackTurn = true,
+    this.lastMoveRow,
+    this.lastMoveCol,
   });
 
   bool get isActive => endedAt == null && isLive;
@@ -35,6 +46,12 @@ class SpectatorSession {
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final data = doc.data() ?? {};
+    // Firestore doesn't support arrays-of-arrays, so each row is stored as a
+    // digit string (e.g. "0120...") and decoded back into List<int> here.
+    final rawRows = data['stones'] as List<dynamic>?;
+    final rawStones = rawRows
+        ?.map((row) => (row as String).split('').map(int.parse).toList())
+        .toList();
     return SpectatorSession(
       id: doc.id,
       gameId: data['gameId'] as String? ?? '',
@@ -54,6 +71,11 @@ class SpectatorSession {
       endedAt: data['endedAt'] != null
           ? (data['endedAt'] as Timestamp).toDate()
           : null,
+      boardSize: data['boardSize'] as int? ?? 19,
+      stones: rawStones,
+      isBlackTurn: data['isBlackTurn'] as bool? ?? true,
+      lastMoveRow: data['lastMoveRow'] as int?,
+      lastMoveCol: data['lastMoveCol'] as int?,
     );
   }
 
@@ -70,6 +92,13 @@ class SpectatorSession {
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
       'endedAt': endedAt != null ? Timestamp.fromDate(endedAt!) : null,
+      'boardSize': boardSize,
+      // Firestore doesn't support arrays-of-arrays: encode each row as a
+      // digit string ("0120...") instead of List<List<int>>.
+      'stones': stones?.map((row) => row.join()).toList(),
+      'isBlackTurn': isBlackTurn,
+      'lastMoveRow': lastMoveRow,
+      'lastMoveCol': lastMoveCol,
     };
   }
 }

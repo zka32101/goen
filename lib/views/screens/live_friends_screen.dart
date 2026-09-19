@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'spectator_view_screen.dart';
 
 final _logger = Logger();
 
@@ -96,8 +97,8 @@ class LiveFriendsScreen extends ConsumerWidget {
     try {
       await ref.read(joinSpectatorSessionProvider)(sessionId, uid);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('観戦を開始しました')),
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => SpectatorViewScreen(sessionId: sessionId)),
         );
       }
     } catch (e) {

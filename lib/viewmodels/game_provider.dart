@@ -126,6 +126,7 @@ void _startEnSessionTracking(Ref ref) {
         user.uid,
         displayName,
         true,
+        boardSize: boardSize,
       );
       ref.read(currentSpectatorSessionIdProvider.notifier).state = session.id;
 
@@ -259,9 +260,37 @@ final applyMoveProvider = Provider<bool Function(int row, int col)>((ref) {
       _detectFatefulMove(ref, result.capturedCount, board.koRow != null);
     }
 
+    // 縁機能: ライブ観戦フレンドが盤面をリアルタイムで見られるよう、
+    // 開いている観戦セッションがあれば毎手同期する。
+    _syncSpectatorBoard(ref, row, col);
+
     return true;
   };
 });
+
+/// 縁機能: best-effort spectator board sync; never blocks gameplay.
+void _syncSpectatorBoard(Ref ref, int lastMoveRow, int lastMoveCol) {
+  final sessionId = ref.read(currentSpectatorSessionIdProvider);
+  if (sessionId == null) return;
+
+  final board = ref.read(gameBoardStateProvider);
+  final movesCount = ref.read(movesCountProvider);
+
+  () async {
+    try {
+      await ref.read(updateSpectatorBoardStateProvider)(
+        sessionId,
+        movesCount,
+        board.stones,
+        board.isBlackTurn,
+        lastMoveRow,
+        lastMoveCol,
+      );
+    } catch (e) {
+      _logger.w('縁: spectator board sync failed (non-fatal): $e');
+    }
+  }();
+}
 
 /// 縁機能: best-effort fateful-move detection; never blocks gameplay.
 void _detectFatefulMove(Ref ref, int capturedCount, bool wasKoResolved) {

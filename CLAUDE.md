@@ -601,13 +601,13 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 - [x] 実力マッチングEngine (`matching.dart`/`matching_service.dart`/`matching_provider.dart`/`matching_screen.dart`) - レート差200以内のプレイヤーを自動マッチング。`matchmaking_queue`/`match_results` コレクション
 - [x] 棋風の相性 (`playstyle.dart`/`playstyle_service.dart`/`playstyle_provider.dart`/`playstyle_screen.dart`) - 対局記録から攻撃性/地合い重視度/捨て石率を分析し、フレンドとの「補完型」「類似型」相性を診断。`playstyle_profiles` コレクション
 - [x] 局面の轍 (`position_echo.dart`/`position_echo_service.dart`/`position_echo_provider.dart`/`position_echo_screen.dart`) - 盤面ハッシュを名局ライブラリ(`kifuLibrary`)と照合し、歴史的名局と同じ局面への到達を検出。`position_echoes` コレクション
-- [x] ライブ観戦フレンド (`friend_activity.dart`/`friend_activity_service.dart`/`friend_activity_provider.dart`/`live_friends_screen.dart`) - フレンドの対局開始を通知し、いま観戦可能な対局を一覧表示。Phase 58のFriendService/SpectatorServiceを利用
+- [x] ライブ観戦フレンド (`friend_activity.dart`/`friend_activity_service.dart`/`friend_activity_provider.dart`/`live_friends_screen.dart`/`spectator_view_screen.dart`) - フレンドの対局開始を通知し、いま観戦可能な対局を一覧表示。「観戦する」を押すとSpectatorViewScreenでホストの盤面を`spectatorSessionStreamProvider`経由でリアルタイム表示（毎手`applyMoveProvider`から`updateSpectatorBoardStateProvider`で同期）。Phase 58のFriendService/SpectatorServiceを利用
 - [x] 運命の一手通知 (`fateful_move.dart`/`fateful_move_service.dart`/`fateful_move_provider.dart`/`fateful_moves_screen.dart`) - 大石捕獲・妙手・劫・死活の劇的瞬間をヒューリスティックで検出しフレンドにシェア。`fateful_moves` コレクション
 - [x] 同時刻の碁盤 (`concurrent_session.dart`/`concurrent_session_service.dart`/`concurrent_session_provider.dart`/`concurrent_players_screen.dart`) - ハートビート方式でいま対局中のプレイヤー数・一覧を可視化。`active_play_sessions` コレクション
 - [x] 縁スコア (`en_score.dart`/`en_score_service.dart`/`en_score_provider.dart`/`en_score_screen.dart`) - 友情期間・対戦数・共同観戦・局面共有から0-100点のつながりスコアを算出。`en_scores/{uid}/connections/{friendUid}` コレクション
 - [x] 縁ハブ画面 (`en_hub_screen.dart`) - 7機能への入り口。HomeScreenに「縁」カード追加、ルート `/en-hub`
 - [x] ゲームプレイ統合 (`game_provider.dart`) - `startNewGameProvider`(対局開始時: 同時刻セッション登録+観戦セッション作成+フレンド通知)、`applyMoveProvider`(捕獲時: 運命の一手検出)、`saveGameRecordProvider`(対局終了時: 局面の轍記録+セッション終了)にbest-effortでフック。Firestore書き込み失敗はtry/catchで握りつぶし、ゲームプレイ本体をブロックしない
-- [x] **既知の制約**: マッチング成立後の実際のPvP対局画面は未実装（AIGameScreenのみ）。観戦セッションは作成・通知されるが、観戦者がリアルタイムで盤面を見るためのライブボード同期は未実装（将来拡張）。トーナメント参加者同士の実対局（ブラケット消化）も同様に未接続
+- [x] **既知の制約**: マッチング成立後の実際のPvP対局画面は未実装（AIGameScreenのみ、観戦できるのはAI対局のみ）。トーナメント参加者同士の実対局（ブラケット消化）も同様に未接続。SpectatorSessionの盤面フィールド（`stones`）はFirestoreの配列のネスト禁止制約のため、各行を数字文字列にエンコードして保存している（`SpectatorSession.toFirestore`/`fromFirestore`参照）
 - [x] **Total: 7 connection features, full stack (Model/Service/Provider/UI/Game integration)**
 
 **既存コードベースのバグ修正 (縁機能実装時に発見・対応) - Complete ✅**

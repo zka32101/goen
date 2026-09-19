@@ -15,6 +15,7 @@ class SpectatorService {
     required String hostUid,
     required String hostDisplayName,
     required bool isLive,
+    int boardSize = 19,
   }) async {
     try {
       final docRef = _firestore.collection('spectator_sessions').doc();
@@ -29,6 +30,8 @@ class SpectatorService {
         moveIndex: 0,
         isLive: isLive,
         createdAt: DateTime.now(),
+        boardSize: boardSize,
+        stones: List.generate(boardSize, (_) => List.filled(boardSize, 0)),
       );
       await docRef.set(session.toFirestore());
       _logger.i('Created spectator session: ${docRef.id}');
@@ -49,6 +52,42 @@ class SpectatorService {
       return SpectatorSession.fromFirestore(doc);
     } catch (e) {
       _logger.e('Error getting spectator session: $e');
+      rethrow;
+    }
+  }
+
+  /// 観戦者がリアルタイムに盤面を購読するためのストリーム
+  Stream<SpectatorSession?> streamSpectatorSession(String sessionId) {
+    return _firestore
+        .collection('spectator_sessions')
+        .doc(sessionId)
+        .snapshots()
+        .map((doc) => doc.exists ? SpectatorSession.fromFirestore(doc) : null);
+  }
+
+  /// 対局の一手ごとに盤面を同期する（ライブ観戦フレンド用）
+  Future<void> updateBoardState({
+    required String sessionId,
+    required int moveIndex,
+    required List<List<int>> stones,
+    required bool isBlackTurn,
+    int? lastMoveRow,
+    int? lastMoveCol,
+  }) async {
+    try {
+      await _firestore.collection('spectator_sessions').doc(sessionId).update({
+        'moveIndex': moveIndex,
+        // Firestore doesn't support arrays-of-arrays: encode each row as a
+        // digit string ("0120...") instead of List<List<int>> (see
+        // SpectatorSession.toFirestore/fromFirestore for the same encoding).
+        'stones': stones.map((row) => row.join()).toList(),
+        'isBlackTurn': isBlackTurn,
+        'lastMoveRow': lastMoveRow,
+        'lastMoveCol': lastMoveCol,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      _logger.e('Error updating board state: $e');
       rethrow;
     }
   }
