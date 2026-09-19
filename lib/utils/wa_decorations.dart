@@ -1,6 +1,52 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+/// 円相（えんそう）風の一筆書きの円。禅画・書道で悟りや無限を表す図案で、
+/// 完全な円にせず、筆を持ち上げる際のかすれ・重なりを表現するために
+/// 開始角より少し回り込ませて終わらせている。アプリのロゴ代わりに使う。
+class EnsoPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidthFactor;
+
+  const EnsoPainter({required this.color, this.strokeWidthFactor = 0.09});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 * 0.82;
+    final strokeWidth = size.width * strokeWidthFactor;
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = strokeWidth;
+
+    // 筆致に強弱をつけるため、円弧を数回に分けて太さを変えながら描く。
+    const startAngle = -math.pi * 0.62;
+    const sweepAngle = math.pi * 1.68; // 一周弱で、右上に筆を抜いた隙間を残す
+    const segments = 5;
+    for (int i = 0; i < segments; i++) {
+      final segStart = startAngle + sweepAngle * i / segments;
+      final segSweep = sweepAngle / segments;
+      // 描き始めは太く、抜けるにつれ少し細くする。
+      final widthScale = 1.0 - 0.35 * (i / segments);
+      paint.strokeWidth = strokeWidth * widthScale;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        segStart,
+        segSweep,
+        false,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(EnsoPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.strokeWidthFactor != strokeWidthFactor;
+}
+
 /// 青海波（せいがいは）風の背景パターン。半円を規則的に重ねて描く、
 /// 波を模した和柄。装飾用途なので、上に乗る文字や碁盤を邪魔しないよう
 /// 低い不透明度で使うことを想定している。

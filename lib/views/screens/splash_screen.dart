@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
+import 'package:goen/utils/wa_decorations.dart';
 
 final _logger = Logger();
 
@@ -27,82 +29,28 @@ class SplashScreen extends ConsumerWidget {
       // Loading state
       loading: () {
         _logger.i('Auth state loading...');
-        return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.grey[900]!,
-                  Colors.black87,
-                ],
+        return _buildBackground(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLogo(context),
+              const SizedBox(height: 60),
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(AppColors.accent),
+                  strokeWidth: 3,
+                ),
               ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo placeholder
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
-                      border: Border.all(
-                        color: Colors.amber[600]!,
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.pets,
-                      size: 40,
-                      color: Colors.amber[600],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  // App title
-                  Text(
-                    '碁縁',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Text(
-                    'GoEn - Premium Go Learning',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.amber[600],
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: 60),
-
-                  // Loading indicator
-                  SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation(Colors.amber[600]!),
-                      strokeWidth: 3,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  Text(
-                    'Initializing...',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 20),
+              Text(
+                '開いています...',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.grey300,
+                ),
               ),
-            ),
+            ],
           ),
         );
       },
@@ -110,53 +58,42 @@ class SplashScreen extends ConsumerWidget {
       // Error state
       error: (error, stack) {
         _logger.e('Auth state error: $error\n$stack');
-        return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.grey[900]!, Colors.black87],
+        return _buildBackground(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.red[400],
               ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.red[400],
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Initialization Error',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      error.toString(),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 36),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Retry by refreshing auth state
-                      ref.refresh(authStateProvider);
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
+              const SizedBox(height: 24),
+              Text(
+                'Initialization Error',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: AppColors.white,
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  error.toString(),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.grey300,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 36),
+              ElevatedButton(
+                onPressed: () {
+                  // Retry by refreshing auth state
+                  ref.refresh(authStateProvider);
+                },
+                child: const Text('Retry'),
+              ),
+            ],
           ),
         );
       },
@@ -168,64 +105,84 @@ class SplashScreen extends ConsumerWidget {
         // If user is logged in, route to Home
         if (user != null) {
           _logger.i('User authenticated, routing to HomeScreen');
-          // Navigate to HomeScreen (will be implemented in Phase 4)
           Future.microtask(() {
             _routeToHome(context);
           });
         } else {
           _logger.i('User not authenticated, routing to OnboardingScreen');
-          // Navigate to OnboardingScreen (will be implemented in Phase 4)
           Future.microtask(() {
             _routeToOnboarding(context);
           });
         }
 
         // Show loading screen while navigation happens
-        return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.grey[900]!, Colors.black87],
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
-                      border: Border.all(
-                        color: Colors.amber[600]!,
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.pets,
-                      size: 40,
-                      color: Colors.amber[600],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Text(
-                    '碁縁',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return _buildBackground(
+          child: _buildLogo(context),
         );
       },
+    );
+  }
+
+  /// 全ステート共通の背景（墨色のグラデーション）。
+  Widget _buildBackground({required Widget child}) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.primaryLight, AppColors.primaryDark],
+          ),
+        ),
+        child: Center(child: child),
+      ),
+    );
+  }
+
+  /// 円相（一筆書きの円）を背景に、アプリ名を筆文字風の大きな明朝体で
+  /// 重ねたロゴ。以前の汎用的な肉球アイコンから、和のモチーフに差し替えた。
+  Widget _buildLogo(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 120,
+          height: 120,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              CustomPaint(
+                size: const Size(120, 120),
+                painter: EnsoPainter(color: AppColors.accent.withOpacity(0.85)),
+              ),
+              Text(
+                '碁',
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 32),
+        Text(
+          '碁縁',
+          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+            color: AppColors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 4,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          '碁を通じて、人と人とを結ぶ',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: AppColors.accent,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 
