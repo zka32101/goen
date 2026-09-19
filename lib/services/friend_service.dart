@@ -8,10 +8,8 @@ final _logger = Logger();
 class FriendService {
   final FirebaseFirestore _firestore;
 
-  const FriendService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? _firestore;
-
-  static final _firestore = FirebaseFirestore.instance;
+  FriendService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Add a friend (sends pending request)
   Future<bool> addFriend({

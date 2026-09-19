@@ -7,7 +7,7 @@ final _logger = Logger();
 
 /// Friend Service プロバイダー
 final friendServiceProvider = Provider<FriendService>((ref) {
-  return const FriendService();
+  return FriendService();
 });
 
 /// ユーザーの友達リストを取得

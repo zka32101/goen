@@ -8,7 +8,7 @@ import '../services/game_invitation_service.dart';
 
 /// Friend Service Provider
 final friendServiceProvider = Provider<FriendService>((ref) {
-  return const FriendService();
+  return FriendService();
 });
 
 /// Game Invitation Service Provider

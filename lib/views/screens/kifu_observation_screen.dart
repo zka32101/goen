@@ -50,7 +50,6 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   @override
   Widget build(BuildContext context) {
     final kifuLibrary = ref.watch(kifuLibraryProvider);
-    final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       backgroundColor: Colors.black87,
