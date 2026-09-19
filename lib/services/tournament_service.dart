@@ -20,6 +20,7 @@ class TournamentService {
     required DateTime endDate,
     required int maxParticipants,
     required String format,
+    int boardSize = 19,
   }) async {
     try {
       _logger.i('Creating tournament: $name');
@@ -35,6 +36,7 @@ class TournamentService {
         format: format,
         status: 'upcoming',
         participantUids: [],
+        boardSize: boardSize,
         createdAt: DateTime.now(),
       );
 

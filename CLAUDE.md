@@ -633,7 +633,10 @@ Import providers via: `import 'package:goen/viewmodels/index.dart';`
 - [x] `TournamentBracketScreen`（新規、トーナメント一覧のカードから遷移）: ラウンドごとの対戦カード表示、`isUpcoming`なら「トーナメントを開始する」ボタン、自分の試合で未対局なら「対局を開始する」（UIDの辞書順が小さい方を黒番に固定し、両対局者が同じ結果になるようにしている）、対局済みなら「対局を見る」
 - [x] `PvpGameService.createGameForTournamentMatch`: Firestoreトランザクションで「試合にまだgameIdが無ければ作成」をアトミックに行い、両対局者がほぼ同時に「対局を開始する」を押しても対局が2つ作られない（先に成立した方のgameIdを両者が受け取る）。マッチングエンジン経由の`createGame`とは別メソッドに分離（サービス層の責務を分けるため）
 - [x] `TournamentBracketScreen`の優勝者表示は試合一覧の`player1DisplayName`/`player2DisplayName`から`winnerId`を解決するように修正（以前は生のuidを表示していた）
-- [x] **既知の制約**: トーナメントの盤面サイズは19路盤固定（`Tournament`モデルに`boardSize`が無いため）。**トーナメント自体を作成するUI画面が無い**（`createTournamentProvider`は存在するがどの画面からも呼ばれておらず、現状はFirestoreへの直接操作でしかトーナメントを作れない）
+- [x] `Tournament`に`boardSize`フィールドを追加（デフォルト19）。`createTournament`/`createTournamentProvider`に`boardSize`引数を追加し、`TournamentBracketScreen`の対局作成は固定の19ではなく`tournament.boardSize`を使うよう修正
+- [x] `TournamentCreateScreen`（新規、`TournamentScreen`右下のFABから遷移）: 大会名・説明・碁盤サイズ(9/13/19)・最大参加人数(4/8/16/32)・開始日/終了日を入力して`createTournamentProvider`を呼ぶ。形式はシングルエリミネーション固定（round_robin/swissは未実装のため選択肢を出さない）
+- [x] トーナメント一覧カードに碁盤サイズを表示するアイコン+テキストを追加
+- [x] **既知の制約**: 大会の削除・編集・キャンセル機能は無い。参加者数が上限に達しても`startTournament`は誰でも呼べる（主催者という概念自体が無い）
 
 **既存コードベースのバグ修正 (縁機能実装時に発見・対応) - Complete ✅**
 
@@ -876,3 +879,4 @@ None yet - track here as they arise.
 - 2026-09-19 | Implemented the PvP game system (pvp_game.dart/pvp_game_service.dart/pvp_game_provider.dart/pvp_game_screen.dart): real-time 2-player games reusing GoRules inside a Firestore transaction, wired into MatchingScreen ("対局を開始する" after a match, plus resuming past matches) and NotificationScreen (tapping a pvp_challenge notification); also fixed a pre-existing null-safety bug in matching_screen.dart (passing `User?` where `User` was expected) Complete ✅
 - 2026-09-19 | Implemented tournament bracket progression (single elimination only): TournamentService.startTournament generates round 1 from participants (bye for odd counts), recordMatchResult auto-advances to the next round or completes the tournament once a round finishes, PvpGame gained tournamentId/tournamentMatchId so match results report back automatically, and the new TournamentBracketScreen lets participants start/resume their matches Complete ✅
 - 2026-09-19 | Fixed a real race condition in tournament match creation: added PvpGameService.createGameForTournamentMatch, which uses a Firestore transaction to only create a game if the match doesn't already have one, so two players tapping "対局を開始する" near-simultaneously share one game instead of creating two; also fixed the champion banner showing a raw uid instead of a resolved display name. Found (but did not fix, scope) that no screen ever calls createTournamentProvider — there's no UI to create a tournament at all Complete ✅
+- 2026-09-19 | Added TournamentCreateScreen (new FAB on TournamentScreen), closing the gap found in the previous entry: Tournament gained a boardSize field (createTournament/createTournamentProvider take it, defaulting to 19; TournamentBracketScreen now uses it instead of a hardcoded 19), and the tournament list cards show the board size Complete ✅

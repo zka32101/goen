@@ -271,14 +271,13 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
           (match.player1Uid == uid ? match.player2DisplayName : match.player1DisplayName) ?? 'Player';
 
       // 対戦カード内でUIDの小さい方を黒番にする（両対局者が同じ結果になるようにするため）。
-      // Tournamentモデルは盤面サイズを持たないため、標準の19路盤で対局する。
       final amIBlack = uid.compareTo(opponentUid) < 0;
       // トランザクションで排他制御されるため、両対局者がほぼ同時にタップしても
       // 対局は1つしか作られず、後から来た方は同じgameIdを受け取る。
       final gameId = await ref.read(createTournamentGameProvider)(
         widget.tournament.id,
         match.id,
-        19,
+        widget.tournament.boardSize,
         amIBlack ? uid : opponentUid,
         amIBlack ? myDisplayName : opponentName,
         amIBlack ? opponentUid : uid,

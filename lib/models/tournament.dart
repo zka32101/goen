@@ -12,6 +12,7 @@ class Tournament {
   final String status; // 'upcoming', 'active', 'completed'
   final List<String> participantUids;
   final String? winnerId;
+  final int boardSize; // 対局に使う碁盤サイズ（9/13/19）
   final DateTime createdAt;
 
   Tournament({
@@ -25,6 +26,7 @@ class Tournament {
     required this.status,
     required this.participantUids,
     this.winnerId,
+    this.boardSize = 19,
     required this.createdAt,
   });
 
@@ -45,6 +47,7 @@ class Tournament {
       status: data['status'] ?? 'upcoming',
       participantUids: List<String>.from(data['participantUids'] ?? []),
       winnerId: data['winnerId'],
+      boardSize: data['boardSize'] as int? ?? 19,
       createdAt: data['createdAt'] is Timestamp
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -62,6 +65,7 @@ class Tournament {
       'status': status,
       'participantUids': participantUids,
       'winnerId': winnerId,
+      'boardSize': boardSize,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }

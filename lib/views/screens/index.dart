@@ -34,6 +34,7 @@ export 'game_preset_manager_screen.dart';
 export 'analytics_dashboard_screen.dart';
 export 'tournament_screen.dart';
 export 'tournament_bracket_screen.dart';
+export 'tournament_create_screen.dart';
 export 'notification_screen.dart';
 
 // 縁 (En) features

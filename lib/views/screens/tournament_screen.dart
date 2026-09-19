@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/tournament.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'tournament_bracket_screen.dart';
+import 'tournament_create_screen.dart';
 
 final _logger = Logger();
 
@@ -53,6 +54,16 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
           ],
         ),
       ),
+      floatingActionButton: uid == null
+          ? null
+          : FloatingActionButton.extended(
+              backgroundColor: Colors.amber[600],
+              icon: const Icon(Icons.add, color: Colors.black),
+              label: const Text('大会を作成', style: TextStyle(color: Colors.black)),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const TournamentCreateScreen()),
+              ),
+            ),
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -156,6 +167,10 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
                   Icon(Icons.format_list_bulleted, size: 16, color: Colors.grey[500]),
                   const SizedBox(width: 4),
                   Text(_formatFormat(tournament.format), style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                  const SizedBox(width: 16),
+                  Icon(Icons.grid_on, size: 16, color: Colors.grey[500]),
+                  const SizedBox(width: 4),
+                  Text('${tournament.boardSize}路盤', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
                 ],
               ),
               const SizedBox(height: 4),
