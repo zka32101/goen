@@ -3,7 +3,14 @@
 export 'auth_provider.dart';
 export 'game_provider.dart';
 export 'game_mode_provider.dart';
-export 'game_modes_provider.dart';
+// game_modes_provider.dart independently declares its own
+// GameModeUIState/GameModeUINotifier/gameModeUIProvider (a different shape,
+// for the Blitz/Correspondence/Team/PuzzleRush mode picker) that collide
+// with game_mode_provider.dart's — the ones game_mode_selector_screen.dart
+// actually calls (`.selectMode`, not `.selectGameMode`). Nothing references
+// game_modes_provider.dart's versions, so hide them here.
+export 'game_modes_provider.dart'
+    hide GameModeUIState, GameModeUINotifier, gameModeUIProvider;
 export 'game_settings_provider.dart';
 export 'tsume_go_provider.dart';
 export 'kifu_go_provider.dart';
@@ -14,7 +21,19 @@ export 'game_result_share_provider.dart';
 export 'social_features_provider.dart';
 export 'game_modes_analytics_provider.dart';
 export 'leaderboard_provider.dart';
-export 'friend_provider.dart';
+// friend_provider.dart's friendServiceProvider/addFriendProvider/
+// acceptFriendRequestProvider/blockFriendProvider/pendingFriendRequestsProvider
+// are unwired stubs (see friend_provider.dart) that collide with
+// social_features_provider.dart's working versions of the same names,
+// which is what friends_screen.dart actually calls; hide the stubs and
+// keep userFriendsProvider/rejectFriendRequestProvider (unique to this file).
+export 'friend_provider.dart'
+    hide
+        friendServiceProvider,
+        addFriendProvider,
+        acceptFriendRequestProvider,
+        blockFriendProvider,
+        pendingFriendRequestsProvider;
 export 'tournament_provider.dart';
 export 'notification_provider.dart';
 export 'spectator_provider.dart';
