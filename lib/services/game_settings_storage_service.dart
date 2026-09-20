@@ -11,15 +11,21 @@ class GameSettingsStorageService {
   static const String _blitzOpponentTypeKey = 'blitz_opponent_type';
 
   static const String _correspondenceBoardSizeKey = 'correspondence_board_size';
-  static const String _correspondencePlayerColorKey = 'correspondence_player_color';
+  static const String _correspondenceOpponentUidKey =
+      'correspondence_opponent_uid';
+  static const String _correspondencePlayerColorKey =
+      'correspondence_player_color';
 
   static const String _teamBoardSizeKey = 'team_board_size';
+  static const String _teamTeam1UidsKey = 'team_team1_uids';
+  static const String _teamTeam2UidsKey = 'team_team2_uids';
 
   static const String _puzzleRushDifficultyKey = 'puzzle_rush_difficulty';
 
   final SharedPreferences _prefs;
 
-  GameSettingsStorageService({required SharedPreferences prefs}) : _prefs = prefs;
+  GameSettingsStorageService({required SharedPreferences prefs})
+    : _prefs = prefs;
 
   // ==================== Blitz Game Settings ====================
 
@@ -43,12 +49,20 @@ class GameSettingsStorageService {
   BlitzGameSettings? loadBlitzSettings() {
     try {
       final boardSize = _prefs.getString(_blitzBoardSizeKey);
-      final aiLevel = _prefs.getInt(_blitzAiLevelKey);
-      final opponentType = _prefs.getString(_blitzOpponentTypeKey);
-
-      if (boardSize == null || aiLevel == null || opponentType == null) {
+      if (boardSize == null) {
         return null;
       }
+
+      final storedAiLevel = _prefs.getInt(_blitzAiLevelKey);
+      if (storedAiLevel == null) {
+        return null;
+      }
+      // A stored but out-of-range level (1-10) is treated as corrupted data
+      // and falls back to a sane default, rather than discarding the record.
+      final aiLevel = (storedAiLevel < 1 || storedAiLevel > 10)
+          ? 5
+          : storedAiLevel;
+      final opponentType = _prefs.getString(_blitzOpponentTypeKey) ?? 'ai';
 
       final settings = BlitzGameSettings(
         boardSize: boardSize,
@@ -67,11 +81,13 @@ class GameSettingsStorageService {
 
   /// Correspondence game settings を保存
   Future<bool> saveCorrespondenceSettings(
-      CorrespondenceGameSettings settings) async {
+    CorrespondenceGameSettings settings,
+  ) async {
     try {
       _logger.i('Saving Correspondence settings: $settings');
       await Future.wait([
         _prefs.setString(_correspondenceBoardSizeKey, settings.boardSize),
+        _prefs.setString(_correspondenceOpponentUidKey, settings.opponentUid),
         _prefs.setString(_correspondencePlayerColorKey, settings.playerColor),
       ]);
       return true;
@@ -85,15 +101,19 @@ class GameSettingsStorageService {
   CorrespondenceGameSettings? loadCorrespondenceSettings() {
     try {
       final boardSize = _prefs.getString(_correspondenceBoardSizeKey);
+      final opponentUid = _prefs.getString(_correspondenceOpponentUidKey);
       final playerColor = _prefs.getString(_correspondencePlayerColorKey);
 
-      if (boardSize == null || playerColor == null) {
+      if (boardSize == null ||
+          opponentUid == null ||
+          opponentUid.isEmpty ||
+          playerColor == null) {
         return null;
       }
 
       final settings = CorrespondenceGameSettings(
         boardSize: boardSize,
-        opponentUid: '',
+        opponentUid: opponentUid,
         playerColor: playerColor,
       );
       _logger.i('Loaded Correspondence settings: $settings');
@@ -110,7 +130,11 @@ class GameSettingsStorageService {
   Future<bool> saveTeamSettings(TeamGameSettings settings) async {
     try {
       _logger.i('Saving Team settings: $settings');
-      await _prefs.setString(_teamBoardSizeKey, settings.boardSize);
+      await Future.wait([
+        _prefs.setString(_teamBoardSizeKey, settings.boardSize),
+        _prefs.setStringList(_teamTeam1UidsKey, settings.team1Uids),
+        _prefs.setStringList(_teamTeam2UidsKey, settings.team2Uids),
+      ]);
       return true;
     } catch (e) {
       _logger.e('Error saving Team settings: $e');
@@ -129,8 +153,8 @@ class GameSettingsStorageService {
 
       final settings = TeamGameSettings(
         boardSize: boardSize,
-        team1Uids: [],
-        team2Uids: [],
+        team1Uids: _prefs.getStringList(_teamTeam1UidsKey) ?? [],
+        team2Uids: _prefs.getStringList(_teamTeam2UidsKey) ?? [],
       );
       _logger.i('Loaded Team settings: $settings');
       return settings;
@@ -183,8 +207,11 @@ class GameSettingsStorageService {
         _prefs.remove(_blitzAiLevelKey),
         _prefs.remove(_blitzOpponentTypeKey),
         _prefs.remove(_correspondenceBoardSizeKey),
+        _prefs.remove(_correspondenceOpponentUidKey),
         _prefs.remove(_correspondencePlayerColorKey),
         _prefs.remove(_teamBoardSizeKey),
+        _prefs.remove(_teamTeam1UidsKey),
+        _prefs.remove(_teamTeam2UidsKey),
         _prefs.remove(_puzzleRushDifficultyKey),
       ]);
       return true;
