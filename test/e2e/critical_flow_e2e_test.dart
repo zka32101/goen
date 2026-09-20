@@ -1,12 +1,105 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:goen/views/screens/splash_screen.dart';
-import 'package:goen/views/screens/home_screen.dart';
-import 'package:goen/views/screens/ai_game_screen.dart';
-import 'package:goen/views/screens/game_result_screen.dart';
+import 'package:goen/main.dart' show GameResultScreenRouter;
+import 'package:goen/models/index.dart';
+import 'package:goen/viewmodels/index.dart';
+import 'package:goen/views/screens/index.dart';
 import '../test_utils.dart';
 import '../fixtures/test_data.dart';
+
+/// Fixture puzzle/kifu so TsumeGoScreen/KifuObservationScreen (both
+/// otherwise backed by real Firestore-hitting FutureProviders that never
+/// resolve under `flutter_test`) have something real to render instead of
+/// spinning forever and timing out pumpAndSettle.
+final _testTsumeProblem = TsumeGoProblem(
+  id: 'e2e-tsumego-1',
+  difficulty: 2,
+  sgfData: '(;GM[1]SZ[9]AB[cc][dd]AW[cd])',
+  solutionSgf: '(;GM[1]SZ[9];B[dc])',
+  explanation: 'テスト用の解説文です。',
+  source: 'Test Collection',
+  version: 1,
+  createdAt: DateTime.now(),
+  expectedMoves: 1,
+);
+
+final _testKifu = KifuLibrary(
+  id: 'e2e-kifu-1',
+  title: '本因坊道策 vs 本因坊算悦',
+  blackPlayer: 'Honinbo Shusaku',
+  whitePlayer: 'Inoue Genan Inseki',
+  sgfData: '(;GM[1]SZ[9];B[cc];W[gg];B[ce];W[ge])',
+  aiCommentaryData: null,
+  category: KifuCategory.copyrightFree,
+  isPremium: false,
+  source: 'Public Domain',
+  gameDate: DateTime(1846),
+  createdAt: DateTime.now(),
+);
+
+final _testGameRecord = GameRecord(
+  id: 'e2e-game-1',
+  uid: TestData.testUser.uid,
+  boardSize: 9,
+  sgfData: '(;GM[1]SZ[9];B[cc];W[gg];B[ce];W[ge])',
+  result: GameResult.playerWin,
+  aiLevel: 5,
+  playedAt: DateTime(2026, 1, 1),
+  movesCount: 4,
+  gameDuration: const Duration(minutes: 12),
+  blackScore: 45.5,
+  whiteScore: 30.5,
+);
+
+/// A HomeScreen container with every real Firestore-backed provider its
+/// reachable destination screens need overridden with fixture data, so
+/// navigating to any of them doesn't hang forever waiting on Firestore.
+ProviderContainer richHomeContainer() {
+  return ProviderContainer(
+    overrides: [
+      currentUserProvider.overrideWithValue(TestData.testUser),
+      isSubscriptionActiveProvider.overrideWithValue(false),
+      todaysTsumeProblemProvider.overrideWith(
+        (ref) async => _testTsumeProblem,
+      ),
+      kifuLibraryProvider.overrideWith((ref) async => [_testKifu]),
+      userGameRecordsProvider(
+        TestData.testUser.uid,
+      ).overrideWith((ref) async => [_testGameRecord]),
+    ],
+  );
+}
+
+/// HomeScreen/SplashScreen/AIGameScreen navigate via several *named* routes
+/// (e.g. '/kifu-observation', '/game-history', '/game-result',
+/// '/onboarding'), which only resolve if the test's MaterialApp actually
+/// registers them - TestUtils.buildTestableWidget only sets `home:`, so any
+/// named push crashes with "Could not find a generator for route". This
+/// local wrapper mirrors the subset of main.dart's route table this file's
+/// flows actually reach.
+Widget _buildTestableApp({
+  required Widget child,
+  required ProviderContainer container,
+}) {
+  return UncontrolledProviderScope(
+    container: container,
+    child: MaterialApp(
+      home: child,
+      theme: ThemeData.dark(),
+      routes: {
+        '/onboarding': (_) => const OnboardingScreen(),
+        '/home': (_) => const HomeScreen(),
+        '/tsume-go': (_) => const TsumeGoScreen(),
+        '/kifu-observation': (_) => const KifuObservationScreen(),
+        '/game-history': (_) => const GameHistoryScreen(),
+        '/game-result': (_) => GameResultScreenRouter(),
+        '/settings': (_) => const SettingsScreen(),
+        '/paywall': (_) => const PaywallScreen(),
+      },
+    ),
+  );
+}
 
 void main() {
   group('E2E: Critical User Flows', () {
@@ -18,12 +111,28 @@ void main() {
       );
     });
 
+    /// SplashScreen routes based on authStateProvider (a real
+    /// FirebaseAuth-backed stream, which never emits a user in a plain
+    /// flutter test process) rather than currentUserProvider - override it
+    /// too so Splash actually reaches HomeScreen instead of OnboardingScreen.
+    ProviderContainer signedInContainer() {
+      return ProviderContainer(
+        overrides: [
+          currentUserProvider.overrideWithValue(TestData.testUser),
+          isSubscriptionActiveProvider.overrideWithValue(false),
+          authStateProvider.overrideWith(
+            (ref) => Stream.value(TestData.testUser),
+          ),
+        ],
+      );
+    }
+
     testWidgets('🔄 E2E: Splash → Home → AI Game flow',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
+        _buildTestableApp(
           child: const SplashScreen(),
-          container: container,
+          container: signedInContainer(),
         ),
       );
 
@@ -33,7 +142,8 @@ void main() {
       // Wait for navigation to complete
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Should navigate to home or onboarding based on tutorialCompleted
+      // Should navigate to home since the signed-in user has completed
+      // the tutorial
       expect(
         find.byType(HomeScreen),
         findsWidgets,
@@ -44,17 +154,14 @@ void main() {
     testWidgets('🎮 E2E: Home → Play AI Game → Result screen',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const HomeScreen(),
-          container: container,
-        ),
+        _buildTestableApp(child: const HomeScreen(), container: container),
       );
 
-      // Verify home screen elements
-      expect(find.text('Home'), findsWidgets);
+      // Verify home screen elements (real app bar title, not "Home")
+      expect(find.text('碁縁'), findsWidgets);
 
-      // Find and tap "Play AI Game" button
-      await TestUtils.tap(tester, find.text('Play').first);
+      // Find and tap "Play AI Game" card
+      await TestUtils.tap(tester, find.text('Play AI Game'));
       await tester.pumpAndSettle();
 
       // Should show AI game screen
@@ -67,10 +174,7 @@ void main() {
     testWidgets('📊 E2E: Complete AI game and view results',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const AIGameScreen(),
-          container: container,
-        ),
+        _buildTestableApp(child: const AIGameScreen(), container: container),
       );
 
       // Game should be rendered
@@ -80,8 +184,13 @@ void main() {
       await TestUtils.tap(tester, find.byType(GestureDetector).first);
       await tester.pumpAndSettle();
 
-      // Simulate resign to end game
+      // Tap "Resign" to open the confirmation dialog
       await TestUtils.tap(tester, find.text('Resign'));
+      await tester.pumpAndSettle();
+
+      // Confirm resignation inside the dialog (the dialog's own "Resign"
+      // button, now the last match once the original is showing behind it)
+      await TestUtils.tap(tester, find.text('Resign').last);
       await tester.pumpAndSettle();
 
       // Should show game result screen
@@ -93,17 +202,17 @@ void main() {
 
     testWidgets('🧩 E2E: Daily puzzle solve flow', (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
+        _buildTestableApp(
           child: const HomeScreen(),
-          container: container,
+          container: richHomeContainer(),
         ),
       );
 
       // Verify home screen
-      expect(find.text('Home'), findsWidgets);
+      expect(find.text('碁縁'), findsWidgets);
 
-      // Tap puzzle action
-      final puzzleButton = find.text('Daily Puzzle');
+      // Tap puzzle action (real card title is "Today's Puzzle")
+      final puzzleButton = find.text("Today's Puzzle");
       if (puzzleButton.evaluate().isNotEmpty) {
         await TestUtils.tap(tester, puzzleButton);
         await tester.pumpAndSettle();
@@ -116,14 +225,14 @@ void main() {
     testWidgets('📚 E2E: Browse and watch historical game',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
+        _buildTestableApp(
           child: const HomeScreen(),
-          container: container,
+          container: richHomeContainer(),
         ),
       );
 
       // Verify home screen
-      expect(find.text('Home'), findsWidgets);
+      expect(find.text('碁縁'), findsWidgets);
 
       // Tap watch & learn action
       final watchButton = find.text('Watch & Learn');
@@ -140,16 +249,16 @@ void main() {
         (WidgetTester tester) async {
       // Start from home
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
+        _buildTestableApp(
           child: const HomeScreen(),
-          container: container,
+          container: richHomeContainer(),
         ),
       );
 
-      // Navigate to different screens
+      // Navigate to different screens (real card titles)
       final screens = [
         'Play AI Game',
-        'Daily Puzzle',
+        "Today's Puzzle",
         'Watch & Learn',
         'My Games',
       ];
@@ -176,14 +285,11 @@ void main() {
     testWidgets('💾 E2E: Data persistence across navigation',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const HomeScreen(),
-          container: container,
-        ),
+        _buildTestableApp(child: const HomeScreen(), container: container),
       );
 
       // Navigate to a game
-      await TestUtils.tap(tester, find.text('Play').first);
+      await TestUtils.tap(tester, find.text('Play AI Game'));
       await tester.pumpAndSettle();
 
       // Make a move
@@ -198,7 +304,7 @@ void main() {
       }
 
       // Navigate to game again
-      await TestUtils.tap(tester, find.text('Play').first);
+      await TestUtils.tap(tester, find.text('Play AI Game'));
       await tester.pumpAndSettle();
 
       // Game state should be preserved (or new game started)
@@ -208,17 +314,13 @@ void main() {
     testWidgets('⚡ E2E: Rapid screen transitions',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const HomeScreen(),
-          container: container,
-        ),
+        _buildTestableApp(child: const HomeScreen(), container: container),
       );
 
       // Rapidly navigate between screens
       for (int i = 0; i < 3; i++) {
         // Go to game
-        final playButton = find.text('Play').first;
-        await TestUtils.tap(tester, playButton);
+        await TestUtils.tap(tester, find.text('Play AI Game'));
         await tester.pumpAndSettle();
 
         // Go back
@@ -237,19 +339,16 @@ void main() {
         (WidgetTester tester) async {
       // Start authenticated
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const HomeScreen(),
-          container: container,
-        ),
+        _buildTestableApp(child: const HomeScreen(), container: container),
       );
 
-      expect(find.text('Home'), findsWidgets);
+      expect(find.text('碁縁'), findsWidgets);
 
       // Verify user-specific content is visible
       expect(find.byType(Text), findsWidgets);
 
-      // Navigate to settings
-      final settingsButton = find.text('Settings');
+      // Navigate to settings (icon-only button; no text label exists)
+      final settingsButton = find.byIcon(Icons.settings);
       if (settingsButton.evaluate().isNotEmpty) {
         await TestUtils.tap(tester, settingsButton);
         await tester.pumpAndSettle();
@@ -262,10 +361,7 @@ void main() {
     testWidgets('📊 E2E: Game history tracking across sessions',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const HomeScreen(),
-          container: container,
-        ),
+        _buildTestableApp(child: const HomeScreen(), container: container),
       );
 
       // Navigate to history
@@ -290,7 +386,7 @@ void main() {
       );
 
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
+        _buildTestableApp(
           child: const HomeScreen(),
           container: freeUserContainer,
         ),
@@ -323,9 +419,9 @@ void main() {
 
       // Start at splash
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
+        _buildTestableApp(
           child: const SplashScreen(),
-          container: container,
+          container: signedInContainer(),
         ),
       );
 
@@ -336,7 +432,7 @@ void main() {
       expect(find.byType(HomeScreen), findsWidgets);
 
       // Tap play
-      await TestUtils.tap(tester, find.text('Play').first);
+      await TestUtils.tap(tester, find.text('Play AI Game'));
       await tester.pumpAndSettle();
 
       // Should show game
@@ -353,14 +449,11 @@ void main() {
     testWidgets('🔄 E2E: Error recovery and retry',
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const HomeScreen(),
-          container: container,
-        ),
+        _buildTestableApp(child: const HomeScreen(), container: container),
       );
 
       // Navigate to game
-      await TestUtils.tap(tester, find.text('Play').first);
+      await TestUtils.tap(tester, find.text('Play AI Game'));
       await tester.pumpAndSettle();
 
       // Simulate an error scenario by navigating back and forth
@@ -372,7 +465,7 @@ void main() {
         }
 
         // Retry
-        final playButton = find.text('Play').first;
+        final playButton = find.text('Play AI Game');
         if (playButton.evaluate().isNotEmpty) {
           await TestUtils.tap(tester, playButton);
           await tester.pumpAndSettle();
@@ -385,23 +478,26 @@ void main() {
 
     testWidgets('📱 E2E: Responsive layout across game flow',
         (WidgetTester tester) async {
-      // Set device size to mobile
-      addTearDown(TestWidgetsFlutterBinding.instance.window.clearPhysicalSizeTestValue);
-
+      // Set device size to mobile. physicalSizeTestValue is in physical
+      // pixels, divided by devicePixelRatio to get the logical size the
+      // layout actually sees - without pinning the ratio to 1.0 too, the
+      // default test devicePixelRatio (3.0) shrinks this to an unrealistic
+      // ~133x266 logical window and produces spurious overflow errors that
+      // no real device would ever hit.
+      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      addTearDown(tester.binding.window.clearDevicePixelRatioTestValue);
+      tester.binding.window.devicePixelRatioTestValue = 1.0;
       tester.binding.window.physicalSizeTestValue = const Size(400, 800);
 
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const HomeScreen(),
-          container: container,
-        ),
+        _buildTestableApp(child: const HomeScreen(), container: container),
       );
 
       // Verify layout at mobile size
       expect(find.byType(SingleChildScrollView), findsWidgets);
 
       // Navigate through screens
-      await TestUtils.tap(tester, find.text('Play').first);
+      await TestUtils.tap(tester, find.text('Play AI Game'));
       await tester.pumpAndSettle();
 
       // Verify game layout is responsive

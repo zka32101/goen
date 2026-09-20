@@ -313,20 +313,24 @@ class HomeScreen extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem(
-            context,
-            label: 'Games Played',
-            value: '${user.gamesPlayedCount}',
+          Expanded(
+            child: _buildStatItem(
+              context,
+              label: 'Games Played',
+              value: '${user.gamesPlayedCount}',
+            ),
           ),
           Container(
             width: 1,
             height: 40,
             color: Colors.white10,
           ),
-          _buildStatItem(
-            context,
-            label: 'Member Since',
-            value: _formatDate(user.createdAt),
+          Expanded(
+            child: _buildStatItem(
+              context,
+              label: 'Member Since',
+              value: _formatDate(user.createdAt),
+            ),
           ),
         ],
       ),

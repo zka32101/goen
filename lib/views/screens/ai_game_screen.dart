@@ -37,6 +37,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
   // 石を取ってもその都度新しいアニメーションとして表示させる。
   int _captureEventId = 0;
   int? _captureFlashCount;
+  Timer? _aiMoveRequestTimer;
 
   @override
   void initState() {
@@ -44,6 +45,12 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     _logger.i('AIGameScreen initialized');
     _selectedRow = -1;
     _selectedCol = -1;
+  }
+
+  @override
+  void dispose() {
+    _aiMoveRequestTimer?.cancel();
+    super.dispose();
   }
 
   void _triggerCaptureFlash(int count) {
@@ -522,7 +529,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     // stone land before the AI responds. `aiMoveProvider` itself checks
     // whose turn it is, so an invalidate here is a no-op if this move
     // somehow didn't flip the turn.
-    Future.delayed(const Duration(milliseconds: 500), () {
+    _aiMoveRequestTimer?.cancel();
+    _aiMoveRequestTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
         ref.invalidate(aiMoveProvider);
       }
@@ -553,7 +561,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     );
 
     // Let the AI respond, same pacing as after a stone placement.
-    Future.delayed(const Duration(milliseconds: 500), () {
+    _aiMoveRequestTimer?.cancel();
+    _aiMoveRequestTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
         ref.invalidate(aiMoveProvider);
       }
