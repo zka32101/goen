@@ -148,7 +148,13 @@ class ShareUINotifier extends StateNotifier<ShareUIState> {
   }
 
   void closeShareDialog() {
-    state = state.copyWith(isShareDialogOpen: false, errorMessage: null);
+    // copyWith uses `?? this.field`, which can't distinguish "explicitly
+    // null" from "not provided" - construct directly to actually clear it.
+    state = ShareUIState(
+      isShareDialogOpen: false,
+      isLoading: state.isLoading,
+      errorMessage: null,
+    );
   }
 
   void setLoading(bool loading) {
@@ -156,7 +162,11 @@ class ShareUINotifier extends StateNotifier<ShareUIState> {
   }
 
   void setError(String? error) {
-    state = state.copyWith(errorMessage: error);
+    state = ShareUIState(
+      isShareDialogOpen: state.isShareDialogOpen,
+      isLoading: state.isLoading,
+      errorMessage: error,
+    );
   }
 }
 

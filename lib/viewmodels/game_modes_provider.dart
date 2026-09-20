@@ -332,7 +332,14 @@ class GameModeUINotifier extends StateNotifier<GameModeUIState> {
 
   void selectGameMode(String mode) {
     _logger.i('Selecting game mode: $mode');
-    state = state.copyWith(selectedGameMode: mode, errorMessage: null);
+    // copyWith uses `?? this.field`, which can't distinguish "explicitly
+    // null" from "not provided" - construct directly to actually clear it.
+    state = GameModeUIState(
+      isLoading: state.isLoading,
+      selectedGameMode: mode,
+      errorMessage: null,
+      currentStep: state.currentStep,
+    );
   }
 
   void setError(String message) {
@@ -341,7 +348,12 @@ class GameModeUINotifier extends StateNotifier<GameModeUIState> {
   }
 
   void clearError() {
-    state = state.copyWith(errorMessage: null);
+    state = GameModeUIState(
+      isLoading: state.isLoading,
+      selectedGameMode: state.selectedGameMode,
+      errorMessage: null,
+      currentStep: state.currentStep,
+    );
   }
 
   void advanceStep(int newStep) {

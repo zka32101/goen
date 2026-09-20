@@ -205,19 +205,37 @@ class GameModeUINotifier extends StateNotifier<GameModeUIState> {
   GameModeUINotifier() : super(GameModeUIState());
 
   void setLoading(bool loading) {
-    state = state.copyWith(isLoading: loading, error: null);
+    // copyWith uses `?? this.field`, which can't distinguish "explicitly
+    // null" from "not provided" - construct directly to actually clear it.
+    state = GameModeUIState(
+      isLoading: loading,
+      error: null,
+      selectedMode: state.selectedMode,
+    );
   }
 
   void setError(String? error) {
-    state = state.copyWith(error: error, isLoading: false);
+    state = GameModeUIState(
+      isLoading: false,
+      error: error,
+      selectedMode: state.selectedMode,
+    );
   }
 
   void selectMode(GameMode mode) {
-    state = state.copyWith(selectedMode: mode, error: null);
+    state = GameModeUIState(
+      isLoading: state.isLoading,
+      error: null,
+      selectedMode: mode,
+    );
   }
 
   void clearSelection() {
-    state = state.copyWith(selectedMode: null, error: null);
+    state = GameModeUIState(
+      isLoading: state.isLoading,
+      error: null,
+      selectedMode: null,
+    );
   }
 }
 

@@ -413,11 +413,21 @@ class StreamingUINotifier extends StateNotifier<StreamingUIState> {
   StreamingUINotifier() : super(StreamingUIState());
 
   void setLoading(bool loading) {
-    state = state.copyWith(isLoading: loading, error: null);
+    // copyWith uses `?? this.field`, which can't distinguish "explicitly
+    // null" from "not provided" - construct directly to actually clear it.
+    state = StreamingUIState(
+      isLoading: loading,
+      error: null,
+      selectedTab: state.selectedTab,
+    );
   }
 
   void setError(String? error) {
-    state = state.copyWith(error: error, isLoading: false);
+    state = StreamingUIState(
+      isLoading: false,
+      error: error,
+      selectedTab: state.selectedTab,
+    );
   }
 
   void selectTab(String tab) {
