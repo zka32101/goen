@@ -193,8 +193,11 @@ void main() {
         ),
       );
 
-      // Should show current level
-      expect(find.text('Level'), findsWidgets);
+      // Slider.label only renders as a tooltip while actively being
+      // dragged, not as static text - check the widget's label property
+      // instead.
+      final slider = tester.widget<Slider>(find.byType(Slider).first);
+      expect(slider.label, contains('Level'));
     });
 
     testWidgets('shows difficulty labels (Beginner/Expert)', (WidgetTester tester) async {

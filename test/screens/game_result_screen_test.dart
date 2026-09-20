@@ -154,8 +154,11 @@ void main() {
         ),
       );
 
-      // Verify analysis section
-      expect(find.text('Move Analysis'), findsWidgets);
+      // The post-game analysis section was redesigned as an on-demand
+      // "AI振り返り" (AI review) card - it only fetches an analysis when
+      // its button is pressed, so there's no static "Move Analysis" text.
+      expect(find.text('AI振り返り'), findsWidgets);
+      expect(find.text('AIで振り返る'), findsWidgets);
     });
 
     testWidgets('displays action buttons', (WidgetTester tester) async {

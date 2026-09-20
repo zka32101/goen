@@ -55,8 +55,9 @@ void main() {
         ),
       );
 
-      // Verify card widgets exist (4 main cards)
-      expect(find.byType(Card), findsWidgets);
+      // The action "cards" are custom GestureDetector+Container widgets,
+      // not Material Card widgets.
+      expect(find.byType(GestureDetector), findsWidgets);
 
       // Verify action buttons/text
       expect(find.text('Play AI Game'), findsWidgets);

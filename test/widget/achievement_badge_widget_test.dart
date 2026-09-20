@@ -254,8 +254,14 @@ void main() {
         ),
       );
 
-      // Tap first achievement
-      await tester.tap(find.byType(AchievementBadgeWidget).first);
+      await tester.pump();
+
+      // Tap first achievement (via its emoji, which is guaranteed to sit
+      // inside the badge's own GestureDetector - find.byType's default
+      // center-of-bounding-box can miss when badges are laid out in a
+      // GridView, since a widget's Element bounds don't always match
+      // where its RenderObject actually paints)
+      await tester.tap(find.text('🥇'));
       expect(tapped, isTrue);
     });
 
