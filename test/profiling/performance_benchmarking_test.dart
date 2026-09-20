@@ -1,23 +1,25 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:goen/services/go_engine_service.dart';
+import 'package:goen/models/index.dart';
 
 void main() {
   group('Performance Benchmarking Tests', () {
     test('⚡ Benchmark: Board state encoding (1000 iterations)', () {
       final boardState = BoardState(
         boardSize: 19,
-        stones: List.generate(19, (r) => List.filled(19, -1)),
-        isPlayerBlack: true,
+        stones: List.generate(19, (r) => List.filled(19, 0)),
+        capturedBlack: 0,
+        capturedWhite: 0,
+        isBlackTurn: true,
       );
 
-      // Add some stones
-      boardState.stones[0][0] = 0;
-      boardState.stones[18][18] = 1;
+      // Add some stones (0=empty, 1=black, 2=white)
+      boardState.stones[0][0] = 1;
+      boardState.stones[18][18] = 2;
 
       final stopwatch = Stopwatch()..start();
 
       for (int i = 0; i < 1000; i++) {
-        final encoded = boardState.encodeboardState();
+        final encoded = boardState.toSgf();
         expect(encoded, isNotEmpty);
       }
 
@@ -33,8 +35,10 @@ void main() {
     test('⚡ Benchmark: Move validation (500 moves)', () {
       final boardState = BoardState(
         boardSize: 9,
-        stones: List.generate(9, (r) => List.filled(9, -1)),
-        isPlayerBlack: true,
+        stones: List.generate(9, (r) => List.filled(9, 0)),
+        capturedBlack: 0,
+        capturedWhite: 0,
+        isBlackTurn: true,
       );
 
       final stopwatch = Stopwatch()..start();
@@ -42,7 +46,7 @@ void main() {
       int validMoves = 0;
       for (int r = 0; r < 9; r++) {
         for (int c = 0; c < 9; c++) {
-          if (boardState.stones[r][c] == -1) {
+          if (boardState.stones[r][c] == 0) {
             validMoves++;
           }
         }

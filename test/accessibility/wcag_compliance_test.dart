@@ -129,18 +129,16 @@ void main() {
 
     testWidgets('🔤 Text scaling support', (WidgetTester tester) async {
       // Test that UI remains usable when text is scaled
-      addTearDown(
-          tester.binding.window.physicalSizeTestValue = null);
       addTearDown(TestWidgetsFlutterBinding.instance.window
           .clearPhysicalSizeTestValue);
 
-      tester.binding.window.physicalSizeTestValue = Size(400, 800);
+      tester.binding.window.physicalSizeTestValue = const Size(400, 800);
 
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: const Semantics(
+          child: Semantics(
             enabled: true,
-            child: HomeScreen(),
+            child: const HomeScreen(),
           ),
           container: container,
         ),
@@ -259,11 +257,10 @@ void main() {
     });
 
     testWidgets('🔤 Large text mode (up to 200%)', (WidgetTester tester) async {
-      addTearDown(tester.binding.window.physicalSizeTestValue = null);
       addTearDown(TestWidgetsFlutterBinding.instance.window
           .clearPhysicalSizeTestValue);
 
-      tester.binding.window.physicalSizeTestValue = Size(400, 900);
+      tester.binding.window.physicalSizeTestValue = const Size(400, 900);
 
       await tester.pumpWidget(
         MaterialApp(

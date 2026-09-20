@@ -13,7 +13,7 @@ void main() {
       // appId should contain Android identifier
       expect(
         options.appId,
-        matchesPattern(RegExp(r'1:\d+:android:[a-f0-9]+')),
+        matches(RegExp(r'1:\d+:android:[a-f0-9]+')),
         reason: 'App ID should match pattern: 1:PROJECT_ID:android:APP_CODE',
       );
     });
@@ -48,7 +48,7 @@ void main() {
       // appId should contain iOS identifier
       expect(
         options.appId,
-        matchesPattern(RegExp(r'1:\d+:ios:[a-f0-9]+')),
+        matches(RegExp(r'1:\d+:ios:[a-f0-9]+')),
         reason: 'App ID should match pattern: 1:PROJECT_ID:ios:APP_CODE',
       );
     });
@@ -57,7 +57,7 @@ void main() {
       final options = DefaultFirebaseOptions.web;
 
       expect(options.appId, isNotEmpty);
-      expect(options.appId, matchesPattern(RegExp(r'1:\d+:web:[a-f0-9]+')));
+      expect(options.appId, matches(RegExp(r'1:\d+:web:[a-f0-9]+')));
     });
 
     test('All platforms should have goen-project as project ID', () {

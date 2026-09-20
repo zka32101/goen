@@ -56,7 +56,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider.overrideWithValue(AsyncValue.data(modes)),
+          activeGameModesProvider.overrideWith((ref) async => modes),
         ],
       );
 
@@ -77,7 +77,7 @@ void main() {
         (WidgetTester tester) async {
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider.overrideWithValue(const AsyncValue.data([])),
+          activeGameModesProvider.overrideWith((ref) async => <GameMode>[]),
         ],
       );
 
@@ -98,8 +98,9 @@ void main() {
         (WidgetTester tester) async {
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider
-              .overrideWithValue(AsyncValue.error('ネットワークエラー', StackTrace.current)),
+          activeGameModesProvider.overrideWith((ref) async {
+            throw 'ネットワークエラー';
+          }),
         ],
       );
 
@@ -133,7 +134,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider.overrideWithValue(AsyncValue.data(modes)),
+          activeGameModesProvider.overrideWith((ref) async => modes),
         ],
       );
 
@@ -179,7 +180,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider.overrideWithValue(AsyncValue.data(modes)),
+          activeGameModesProvider.overrideWith((ref) async => modes),
         ],
       );
 
@@ -213,7 +214,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider.overrideWithValue(AsyncValue.data(modes)),
+          activeGameModesProvider.overrideWith((ref) async => modes),
         ],
       );
 
@@ -246,7 +247,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider.overrideWithValue(AsyncValue.data(modes)),
+          activeGameModesProvider.overrideWith((ref) async => modes),
         ],
       );
 
@@ -278,7 +279,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider.overrideWithValue(AsyncValue.data(modes)),
+          activeGameModesProvider.overrideWith((ref) async => modes),
         ],
       );
 
@@ -325,7 +326,7 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          activeGameModesProvider.overrideWithValue(AsyncValue.data(modes)),
+          activeGameModesProvider.overrideWith((ref) async => modes),
         ],
       );
 
@@ -337,7 +338,7 @@ void main() {
       );
 
       // Verify icons appear (lightning for blitz, group for team)
-      expect(find.byIcon(Icons.lightning_bolt), findsOneWidget);
+      expect(find.byIcon(Icons.bolt), findsOneWidget);
       expect(find.byIcon(Icons.group), findsOneWidget);
     });
   });

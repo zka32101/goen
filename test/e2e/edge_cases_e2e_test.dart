@@ -130,10 +130,9 @@ void main() {
     });
 
     testWidgets('⚠️ E2E: Extreme text scaling', (WidgetTester tester) async {
-      addTearDown(tester.binding.window.physicalSizeTestValue = null);
       addTearDown(TestWidgetsFlutterBinding.instance.window.clearPhysicalSizeTestValue);
 
-      tester.binding.window.physicalSizeTestValue = Size(400, 800);
+      tester.binding.window.physicalSizeTestValue = const Size(400, 800);
 
       // Test with very large text scale
       await tester.pumpWidget(

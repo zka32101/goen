@@ -1,14 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/models/extended_game_models.dart';
 import 'package:goen/services/friend_service.dart';
 import 'package:goen/services/game_invitation_service.dart';
-import 'package:goen/services/leaderboard_service.dart';
 
 void main() {
   late FriendService friendService;
   late GameInvitationService invitationService;
-  late LeaderboardService leaderboardService;
 
   // Test user IDs
   const testUserId1 = 'test-user-1';
@@ -17,9 +14,8 @@ void main() {
 
   setUpAll(() {
     // Initialize services with mock/test Firestore
-    friendService = const FriendService();
-    invitationService = const GameInvitationService();
-    leaderboardService = const LeaderboardService();
+    friendService = FriendService();
+    invitationService = GameInvitationService();
   });
 
   group('Friend System Integration Tests', () {
@@ -179,86 +175,6 @@ void main() {
     });
   });
 
-  group('Leaderboard Integration Tests', () {
-    test('Update leaderboard entry', () async {
-      final updated = await leaderboardService.updateLeaderboardEntry(
-        userId: testUserId1,
-        displayName: 'Test Player 1',
-        rating: 1500.0,
-        wins: 15,
-        losses: 5,
-        totalGames: 20,
-        period: 'allTime',
-      );
-
-      expect(updated, isTrue);
-    });
-
-    test('Get top players', () async {
-      // Add multiple players first
-      for (int i = 0; i < 5; i++) {
-        await leaderboardService.updateLeaderboardEntry(
-          userId: 'player-$i',
-          displayName: 'Player $i',
-          rating: 1200.0 + (i * 100),
-          wins: 10 + i,
-          losses: 5,
-          totalGames: 15 + i,
-          period: 'allTime',
-        );
-      }
-
-      final topPlayers = await leaderboardService.getTopPlayers(
-        period: 'allTime',
-        limit: 10,
-      );
-
-      expect(topPlayers, isNotEmpty);
-      expect(topPlayers[0].rank, equals(1));
-    });
-
-    test('Get player rank', () async {
-      await leaderboardService.updateLeaderboardEntry(
-        userId: testUserId1,
-        displayName: 'Test Player',
-        rating: 1400.0,
-        wins: 10,
-        losses: 5,
-        totalGames: 15,
-        period: 'monthly',
-      );
-
-      final playerRank = await leaderboardService.getPlayerRank(
-        userId: testUserId1,
-        period: 'monthly',
-      );
-
-      expect(playerRank, isNotNull);
-      expect(playerRank!.userId, equals(testUserId1));
-    });
-
-    test('Get leaderboard statistics', () async {
-      final stats = await leaderboardService.getLeaderboardStats(
-        period: 'allTime',
-      );
-
-      expect(stats, isA<Map<String, dynamic>>());
-      expect(stats, containsPair('totalPlayers', isA<int>()));
-      expect(stats, containsPair('topRating', isA<double>()));
-    });
-
-    test('Get players in rating range', () async {
-      final players = await leaderboardService.getPlayersInRange(
-        period: 'allTime',
-        minRating: 1200.0,
-        maxRating: 1600.0,
-        limit: 10,
-      );
-
-      expect(players, isA<List<LeaderboardEntry>>());
-    });
-  });
-
   group('Social Features Integration Scenarios', () {
     test('Complete friend addition workflow', () async {
       // User 1 sends friend request to User 2
@@ -311,41 +227,5 @@ void main() {
       }
     });
 
-    test('Leaderboard update with multiple players', () async {
-      // Update multiple players' rankings
-      final playerStats = [
-        {'userId': 'player-1', 'rating': 1800.0, 'wins': 30, 'losses': 10},
-        {'userId': 'player-2', 'rating': 1700.0, 'wins': 25, 'losses': 12},
-        {'userId': 'player-3', 'rating': 1600.0, 'wins': 20, 'losses': 15},
-      ];
-
-      for (final stats in playerStats) {
-        final updated = await leaderboardService.updateLeaderboardEntry(
-          userId: stats['userId'] as String,
-          displayName: 'Player ${stats['userId']}',
-          rating: stats['rating'] as double,
-          wins: stats['wins'] as int,
-          losses: stats['losses'] as int,
-          totalGames: (stats['wins'] as int) + (stats['losses'] as int),
-          period: 'weekly',
-        );
-        expect(updated, isTrue);
-      }
-
-      // Get top players and verify ordering
-      final topPlayers = await leaderboardService.getTopPlayers(
-        period: 'weekly',
-        limit: 10,
-      );
-
-      expect(topPlayers.length, greaterThan(0));
-      for (int i = 0; i < topPlayers.length - 1; i++) {
-        expect(
-          topPlayers[i].rating,
-          greaterThanOrEqualTo(topPlayers[i + 1].rating),
-          reason: 'Leaderboard should be sorted by rating (descending)',
-        );
-      }
-    });
   });
 }

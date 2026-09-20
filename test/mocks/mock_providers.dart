@@ -4,14 +4,6 @@ import 'package:goen/viewmodels/index.dart';
 
 /// Mock providers for testing - override real providers with test data
 class MockProviders {
-  /// Mock authentication state
-  static final authStateProvider = StateProvider<AuthState>((ref) {
-    return const AuthState.authenticated(
-      uid: 'test-user-123',
-      email: 'test@example.com',
-    );
-  });
-
   /// Mock current user
   static final currentUserProvider = StateProvider<User?>((ref) {
     return User(
@@ -19,7 +11,9 @@ class MockProviders {
       email: 'test@example.com',
       displayName: 'Test Player',
       subscriptionActive: false,
+      subscriptionStartDate: DateTime.now(),
       tutorialCompleted: true,
+      gamesPlayedCount: 5,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -36,9 +30,11 @@ class MockProviders {
       boardSize: 9,
       stones: List.generate(
         9,
-        (row) => List.generate(9, (col) => -1), // Empty board
+        (row) => List.generate(9, (col) => 0), // Empty board
       ),
-      isPlayerBlack: true,
+      capturedBlack: 0,
+      capturedWhite: 0,
+      isBlackTurn: true,
     );
   });
 
@@ -67,6 +63,7 @@ class MockProviders {
       solutionSgf: '(;GM[1]FF[4];B[ee];W[de];B[df])',
       explanation: 'This is a test puzzle. Capture the white stone at D5.',
       source: 'Test Database',
+      version: 1,
       createdAt: DateTime.now(),
     );
   });
@@ -104,20 +101,24 @@ class MockProviders {
       KifuLibrary(
         id: 'kifu-001',
         title: 'Honinbo Shusaku vs Inoue Inseki',
-        players: ['Honinbo Shusaku', 'Inoue Inseki'],
+        blackPlayer: 'Honinbo Shusaku',
+        whitePlayer: 'Inoue Inseki',
         sgfData: '(;GM[1]FF[4]CA[UTF-8]AP[Sabaki:0.52.3]KM[0.5]SZ[19])',
         aiCommentaryData: null,
-        category: 'Historical',
+        category: KifuCategory.copyrightFree,
+        isPremium: false,
         source: 'Go Archives',
         createdAt: DateTime.now(),
       ),
       KifuLibrary(
         id: 'kifu-002',
         title: 'AlphaGo vs Lee Sedol Game 1',
-        players: ['AlphaGo', 'Lee Sedol'],
+        blackPlayer: 'AlphaGo',
+        whitePlayer: 'Lee Sedol',
         sgfData: '(;GM[1]FF[4]CA[UTF-8]AP[Sabaki:0.52.3]KM[7.5]SZ[19])',
         aiCommentaryData: null,
-        category: 'Modern',
+        category: KifuCategory.copyrightFree,
+        isPremium: false,
         source: 'DeepMind',
         createdAt: DateTime.now(),
       ),
@@ -133,7 +134,7 @@ class MockProviders {
         uid: 'test-user-123',
         boardSize: 9,
         sgfData: '(;GM[1]FF[4]CA[UTF-8])',
-        result: 'win',
+        result: GameResult.playerWin,
         blackScore: 45.5,
         whiteScore: 38.0,
         aiLevel: 3,
@@ -144,7 +145,7 @@ class MockProviders {
         uid: 'test-user-123',
         boardSize: 9,
         sgfData: '(;GM[1]FF[4]CA[UTF-8])',
-        result: 'loss',
+        result: GameResult.aiWin,
         blackScore: 35.0,
         whiteScore: 42.5,
         aiLevel: 5,

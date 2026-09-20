@@ -16,7 +16,7 @@ void main() {
         iconEmoji: '🥇',
         isUnlocked: true,
         unlockedAt: null,
-        progress: 100,
+        progressPercent: 100.0,
       );
 
       lockedAchievement = const Achievement(
@@ -26,7 +26,7 @@ void main() {
         iconEmoji: '💯',
         isUnlocked: false,
         unlockedAt: null,
-        progress: 45,
+        progressPercent: 45.0,
       );
     });
 
@@ -139,7 +139,7 @@ void main() {
         iconEmoji: '🎯',
         isUnlocked: false,
         unlockedAt: null,
-        progress: 0,
+        progressPercent: 0.0,
       );
     });
 
@@ -197,7 +197,7 @@ void main() {
           iconEmoji: '🥇',
           isUnlocked: true,
           unlockedAt: null,
-          progress: 100,
+          progressPercent: 100.0,
         ),
         const Achievement(
           id: 'achievement-2',
@@ -206,7 +206,7 @@ void main() {
           iconEmoji: '🥈',
           isUnlocked: false,
           unlockedAt: null,
-          progress: 50,
+          progressPercent: 50.0,
         ),
         const Achievement(
           id: 'achievement-3',
@@ -215,7 +215,7 @@ void main() {
           iconEmoji: '🥉',
           isUnlocked: true,
           unlockedAt: null,
-          progress: 100,
+          progressPercent: 100.0,
         ),
       ];
     });

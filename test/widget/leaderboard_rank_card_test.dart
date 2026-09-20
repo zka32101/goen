@@ -15,8 +15,9 @@ void main() {
         rating: 1850.5,
         wins: 150,
         losses: 80,
+        totalGames: 230,
+        period: 'weekly',
         winRate: 65.2,
-        lastUpdated: null,
         avatarUrl: null,
       );
     });
@@ -227,8 +228,9 @@ void main() {
         rating: 2000.0,
         wins: 200,
         losses: 50,
+        totalGames: 250,
+        period: 'weekly',
         winRate: 80.0,
-        lastUpdated: null,
         avatarUrl: null,
       );
     });
@@ -320,8 +322,9 @@ void main() {
           rating: 1500,
           wins: 100,
           losses: 50,
+          totalGames: 150,
+          period: 'weekly',
           winRate: 66.7,
-          lastUpdated: null,
           avatarUrl: null,
         ).copyWith(rank: rank);
 
@@ -352,8 +355,9 @@ void main() {
         rating: 1500,
         wins: 100,
         losses: 50,
+        totalGames: 150,
+        period: 'weekly',
         winRate: 66.7,
-        lastUpdated: null,
         avatarUrl: null,
       );
     });

@@ -76,7 +76,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.streaming), findsOneWidget);
+      expect(find.byIcon(Icons.live_tv), findsOneWidget);
       expect(find.text('Twitch チャンネルを接続'), findsOneWidget);
     });
 

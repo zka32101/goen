@@ -386,10 +386,9 @@ void main() {
     testWidgets('📱 E2E: Responsive layout across game flow',
         (WidgetTester tester) async {
       // Set device size to mobile
-      addTearDown(tester.binding.window.physicalSizeTestValue = null);
       addTearDown(TestWidgetsFlutterBinding.instance.window.clearPhysicalSizeTestValue);
 
-      tester.binding.window.physicalSizeTestValue = Size(400, 800);
+      tester.binding.window.physicalSizeTestValue = const Size(400, 800);
 
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(

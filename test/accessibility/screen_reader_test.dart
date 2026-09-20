@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/views/screens/home_screen.dart';
 import 'package:goen/views/screens/ai_game_screen.dart';
@@ -271,7 +272,6 @@ void main() {
                 Semantics(
                   enabled: true,
                   label: 'Main heading',
-                  enabled: true,
                   child: const Text('Go Learning',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 ),

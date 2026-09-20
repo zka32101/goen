@@ -127,7 +127,7 @@ void main() {
       final solvedContainer = ProviderContainer(
         overrides: [
           currentUserProvider.overrideWithValue(TestData.testUser),
-          isPuzzleSolvedProvider.overrideWithValue(true),
+          isPuzzleSolvedProvider.overrideWith((ref) => true),
         ],
       );
 
@@ -146,7 +146,7 @@ void main() {
       final solvedContainer = ProviderContainer(
         overrides: [
           currentUserProvider.overrideWithValue(TestData.testUser),
-          isPuzzleSolvedProvider.overrideWithValue(true),
+          isPuzzleSolvedProvider.overrideWith((ref) => true),
         ],
       );
 

@@ -12,6 +12,7 @@ class TestUtils {
     bool isSubscriptionActive = false,
     int aiLevel = 5,
     bool isGameActive = true,
+    int movesCount = 0,
     BoardState? boardState,
   }) {
     final container = ProviderContainer(
@@ -21,17 +22,21 @@ class TestUtils {
         isSubscriptionActiveProvider.overrideWithValue(isSubscriptionActive),
 
         // Override game providers
-        aiLevelProvider.overrideWithValue(aiLevel),
-        isGameActiveProvider.overrideWithValue(isGameActive),
-        gameBoardStateProvider.overrideWithValue(
-          boardState ??
+        aiLevelProvider.overrideWith((ref) => aiLevel),
+        isGameActiveProvider.overrideWith((ref) => isGameActive),
+        movesCountProvider.overrideWith((ref) => movesCount),
+        gameBoardStateProvider.overrideWith(
+          (ref) =>
+              boardState ??
               BoardState(
                 boardSize: 9,
                 stones: List.generate(
                   9,
-                  (row) => List.generate(9, (col) => -1),
+                  (row) => List.generate(9, (col) => 0),
                 ),
-                isPlayerBlack: true,
+                capturedBlack: 0,
+                capturedWhite: 0,
+                isBlackTurn: true,
               ),
         ),
       ],
@@ -124,7 +129,7 @@ class TestUtils {
   }
 
   /// Get binding for testing
-  static WidgetBinding getBinding() => WidgetsBinding.instance;
+  static WidgetsBinding getBinding() => WidgetsBinding.instance;
 }
 
 /// Extension on WidgetTester for convenience methods

@@ -79,7 +79,7 @@ void main() {
       // Step 8: Verify result screen
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: const GameResultScreen(),
+          child: const GameResultScreen(result: 'win'),
           container: container,
         ),
       );
@@ -135,7 +135,7 @@ void main() {
         // Scroll through list
         final listView = find.byType(ListView);
         if (listView.evaluate().isNotEmpty) {
-          await tester.scroll(listView.first, Offset(0, -300));
+          await tester.drag(listView.first, const Offset(0, -300));
           await tester.pumpAndSettle();
           print('✓ History scrolled');
         }
@@ -214,7 +214,7 @@ void main() {
       final screens = [
         (const HomeScreen(), 'Home'),
         (const AIGameScreen(), 'Game'),
-        (const GameResultScreen(), 'Result'),
+        (const GameResultScreen(result: 'win'), 'Result'),
       ];
 
       for (final (screen, name) in screens) {

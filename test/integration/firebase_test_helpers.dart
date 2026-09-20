@@ -1,6 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/services/firestore_service.dart';
 import 'package:goen/models/index.dart';
@@ -59,7 +59,7 @@ class FirebaseTestHelpers {
   static Future<void> cleanup() async {
     try {
       // Clear all data
-      await _clearFirestoreData();
+      await clearFirestoreData();
 
       // Sign out
       await testAuth.signOut();
@@ -72,7 +72,7 @@ class FirebaseTestHelpers {
   }
 
   /// Clear all Firestore collections
-  static Future<void> _clearFirestoreData() async {
+  static Future<void> clearFirestoreData() async {
     try {
       // Clear users collection
       final users = await testFirestore.collection('users').get();
@@ -146,11 +146,10 @@ class FirebaseTestHelpers {
       uid: uid,
       email: email,
       displayName: displayName,
-      photoUrl: null,
       subscriptionActive: false,
+      subscriptionStartDate: DateTime.now(),
       tutorialCompleted: false,
-      preferredBoardSize: 9,
-      defaultAiDifficulty: 5,
+      gamesPlayedCount: 0,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -158,7 +157,7 @@ class FirebaseTestHelpers {
     await testFirestore
         .collection('users')
         .doc(uid)
-        .set(user.toJson());
+        .set(user.toFirestore());
   }
 
   /// Create a test game record
@@ -172,21 +171,19 @@ class FirebaseTestHelpers {
       id: 'game-${DateTime.now().millisecondsSinceEpoch}',
       uid: uid,
       boardSize: boardSize,
-      sgfData: _generateTestSgf(boardSize, 30),
-      result: result,
+      sgfData: generateTestSgf(boardSize, 30),
+      result: result == 'win' ? GameResult.playerWin : GameResult.aiWin,
       aiLevel: aiLevel,
       playedAt: DateTime.now(),
-      duration: Duration(minutes: 15),
-      playerScore: 125.5,
-      aiScore: 120.0,
-      analyzedAt: null,
-      analysis: null,
+      gameDuration: const Duration(minutes: 15),
+      blackScore: 125.5,
+      whiteScore: 120.0,
     );
 
     await testFirestore
         .collection('gameRecords')
         .doc(game.id)
-        .set(game.toJson());
+        .set(game.toFirestore());
 
     return game.id;
   }
@@ -198,24 +195,24 @@ class FirebaseTestHelpers {
     final problem = TsumeGoProblem(
       id: 'problem-${DateTime.now().millisecondsSinceEpoch}',
       difficulty: difficulty,
-      sgfData: _generateTestSgf(9, 15),
-      solutionSgf: _generateTestSgf(9, 3),
+      sgfData: generateTestSgf(9, 15),
+      solutionSgf: generateTestSgf(9, 3),
       explanation: 'Test problem explanation',
       source: 'Test Collection',
+      version: 1,
       createdAt: DateTime.now(),
-      category: 'fundamentals',
     );
 
     await testFirestore
         .collection('tsumeGoProblems')
         .doc(problem.id)
-        .set(problem.toJson());
+        .set(problem.toFirestore());
 
     return problem.id;
   }
 
   /// Helper to generate test SGF data
-  static String _generateTestSgf(int boardSize, int moves) {
+  static String generateTestSgf(int boardSize, int moves) {
     final buffer = StringBuffer();
     buffer.write('(;GM[1]SZ[$boardSize]');
 
@@ -237,11 +234,10 @@ class FirebaseTestHelpers {
             uid: testAuth.currentUser!.uid,
             email: testAuth.currentUser!.email ?? '',
             displayName: testAuth.currentUser!.displayName ?? 'Test User',
-            photoUrl: testAuth.currentUser!.photoURL,
             subscriptionActive: false,
+            subscriptionStartDate: DateTime.now(),
             tutorialCompleted: false,
-            preferredBoardSize: 9,
-            defaultAiDifficulty: 5,
+            gamesPlayedCount: 0,
             createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
           )

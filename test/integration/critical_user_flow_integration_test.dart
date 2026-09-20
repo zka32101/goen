@@ -18,7 +18,7 @@ void main() {
 
     tearDown(() async {
       // Clean up data between tests
-      await FirebaseTestHelpers._clearFirestoreData();
+      await FirebaseTestHelpers.clearFirestoreData();
       // Sign out
       await FirebaseTestHelpers.testAuth.signOut();
     });
@@ -171,7 +171,7 @@ void main() {
       await kifuTransaction.write({
         'title': 'Honinbo Shusaku vs Iwasaki Kisaburo',
         'players': 'Honinbo Shusaku vs Iwasaki Kisaburo',
-        'sgfData': FirebaseTestHelpers._generateTestSgf(19, 200),
+        'sgfData': FirebaseTestHelpers.generateTestSgf(19, 200),
         'category': 'professional',
         'source': 'Go Server Archive',
         'createdAt': DateTime.now().toIso8601String(),

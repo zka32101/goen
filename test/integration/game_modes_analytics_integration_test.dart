@@ -10,8 +10,8 @@ void main() {
   const testUserId = 'test-user-analytics';
 
   setUpAll(() {
-    presetService = const GamePresetService();
-    analyticsService = const AnalyticsService();
+    presetService = GamePresetService();
+    analyticsService = AnalyticsService();
   });
 
   group('Game Preset Service Integration Tests', () {
