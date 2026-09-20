@@ -37,8 +37,8 @@ void main() {
       // Verify player rank is displayed
       expect(find.text('#5'), findsOneWidget);
 
-      // Verify rating is displayed
-      expect(find.text('1850'), findsOneWidget);
+      // Verify rating is displayed (1850.5 rounds up via toStringAsFixed(0))
+      expect(find.text('1851'), findsOneWidget);
 
       // Verify win/loss record is displayed
       expect(find.text('150W - 80L'), findsOneWidget);
@@ -252,11 +252,9 @@ void main() {
       // Verify player name is displayed
       expect(find.text('CompactPlayer'), findsOneWidget);
 
-      // Verify rating is displayed
-      expect(find.text('2000'), findsOneWidget);
-
-      // Verify win rate is displayed
-      expect(find.text('80.0%'), findsOneWidget);
+      // Rating and win rate render as one combined "2000 • 80.0%" text.
+      expect(find.textContaining('2000'), findsOneWidget);
+      expect(find.textContaining('80.0%'), findsOneWidget);
     });
 
     testWidgets('Calls onTap when tapped', (WidgetTester tester) async {
