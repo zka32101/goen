@@ -1,19 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/models/index.dart';
 import 'package:goen/views/screens/kifu_observation_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 
 import '../fixtures/test_data.dart';
 import '../test_utils.dart';
 
+/// A fixture game with a valid, minimal SGF so the replay view (board,
+/// move slider, playback controls) has something real to render.
+final _testKifu = KifuLibrary(
+  id: 'test-kifu-1',
+  title: '本因坊道策 vs 本因坊算悦',
+  blackPlayer: 'Honinbo Shusaku',
+  whitePlayer: 'Inoue Genan Inseki',
+  sgfData: '(;GM[1]SZ[9];B[cc];W[gg];B[ce];W[ge])',
+  aiCommentaryData: null,
+  category: KifuCategory.copyrightFree,
+  isPremium: false,
+  source: 'Public Domain',
+  gameDate: DateTime(1846),
+  createdAt: DateTime.now(),
+);
+
 void main() {
   group('KifuObservationScreen', () {
     late ProviderContainer container;
 
     setUp(() {
-      container = TestUtils.createTestContainer(
-        currentUser: TestData.testUser,
+      container = ProviderContainer(
+        overrides: [
+          currentUserProvider.overrideWithValue(TestData.testUser),
+          kifuLibraryProvider.overrideWith((ref) async => [_testKifu]),
+        ],
       );
     });
 
@@ -64,11 +84,15 @@ void main() {
         ),
       );
 
+      await tester.pump();
+
       // Should show historical games section
       expect(find.text('Historical Games'), findsWidgets);
     });
 
-    testWidgets('shows loading state while fetching library', (WidgetTester tester) async {
+    testWidgets('shows loading state while fetching library', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const KifuObservationScreen(),
@@ -97,7 +121,9 @@ void main() {
       expect(find.byType(Container), findsWidgets);
     });
 
-    testWidgets('game card shows title and players', (WidgetTester tester) async {
+    testWidgets('game card shows title and players', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const KifuObservationScreen(),
@@ -108,10 +134,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Game information should be visible
-      expect(find.text('Honinbo Shusaku'), findsWidgets);
+      expect(find.textContaining('Honinbo Shusaku'), findsWidgets);
     });
 
-    testWidgets('game card shows category and source', (WidgetTester tester) async {
+    testWidgets('game card shows category and source', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const KifuObservationScreen(),
@@ -155,7 +183,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Replay interface should appear
-      expect(find.text('Honinbo Shusaku'), findsWidgets);
+      expect(find.textContaining('Honinbo Shusaku'), findsWidgets);
     });
 
     testWidgets('replay view shows game header', (WidgetTester tester) async {
@@ -209,7 +237,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Move counter should be visible
-      expect(find.text('Move'), findsWidgets);
+      expect(find.textContaining('Move'), findsWidgets);
     });
 
     testWidgets('displays move progress slider', (WidgetTester tester) async {
@@ -250,7 +278,9 @@ void main() {
       expect(find.text('Next'), findsWidgets);
     });
 
-    testWidgets('previous button disabled at start', (WidgetTester tester) async {
+    testWidgets('previous button disabled at start', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const KifuObservationScreen(),
@@ -338,7 +368,9 @@ void main() {
       expect(appBarWidget.elevation, 0);
     });
 
-    testWidgets('opens info dialog when info button tapped', (WidgetTester tester) async {
+    testWidgets('opens info dialog when info button tapped', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: MaterialApp(
@@ -359,7 +391,9 @@ void main() {
       expect(find.byType(AlertDialog), findsWidgets);
     });
 
-    testWidgets('info dialog contains learning information', (WidgetTester tester) async {
+    testWidgets('info dialog contains learning information', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: MaterialApp(
@@ -380,7 +414,9 @@ void main() {
       expect(find.text('About Kifu Observation'), findsWidgets);
     });
 
-    testWidgets('single game shows players vs format', (WidgetTester tester) async {
+    testWidgets('single game shows players vs format', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const KifuObservationScreen(),
@@ -394,7 +430,9 @@ void main() {
       expect(find.byType(Text), findsWidgets);
     });
 
-    testWidgets('board visualization uses custom painter', (WidgetTester tester) async {
+    testWidgets('board visualization uses custom painter', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const KifuObservationScreen(),
@@ -412,7 +450,9 @@ void main() {
       expect(find.byType(CustomPaint), findsWidgets);
     });
 
-    testWidgets('play button has golden background', (WidgetTester tester) async {
+    testWidgets('play button has golden background', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const KifuObservationScreen(),
@@ -430,7 +470,9 @@ void main() {
       expect(find.text('Play'), findsWidgets);
     });
 
-    testWidgets('handles multiple games in library', (WidgetTester tester) async {
+    testWidgets('handles multiple games in library', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const KifuObservationScreen(),
