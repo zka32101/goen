@@ -1,139 +1,58 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' hide User;
-import 'package:flutter_test/flutter_test.dart';
-import 'package:goen/services/firestore_service.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:goen/models/index.dart';
 
-/// Test helpers for Firebase integration testing
+/// Test helpers for Firestore integration testing.
+///
+/// This suite never actually needs a real, live Firebase Auth backend -
+/// every test only needs a stable (uid, email) pair to attach Firestore
+/// documents to, never an actual credential check - so `createTestUser`
+/// fabricates one locally instead of calling `FirebaseAuth.instanceFor(...)`,
+/// which has no real backend (or emulator) to talk to under `flutter_test`
+/// and would throw a MissingPluginException. `testFirestore` uses
+/// `fake_cloud_firestore`'s in-memory implementation for the same reason.
 class FirebaseTestHelpers {
-  static late FirebaseApp testApp;
-  static late FirebaseFirestore testFirestore;
-  static late FirebaseAuth testAuth;
+  static late FakeFirebaseFirestore testFirestore;
+  static final _FakeTestAuth testAuth = _FakeTestAuth();
+  static int _uidCounter = 0;
 
-  /// Initialize Firebase for testing
-  ///
-  /// Uses emulator if available, falls back to production credentials
+  /// Initialize Firestore for testing (Firebase Core itself is already
+  /// mocked/initialized globally by test/flutter_test_config.dart).
   static Future<void> initializeFirebaseForTesting() async {
-    // Check if Firebase is already initialized
-    if (Firebase.apps.isNotEmpty) {
-      testApp = Firebase.apps.first;
-      testFirestore = FirebaseFirestore.instance;
-      testAuth = FirebaseAuth.instance;
-      return;
-    }
-
-    try {
-      // Initialize with default options
-      // In production tests, this would use flutterfire configure generated values
-      testApp = await Firebase.initializeApp(
-        name: 'goen-test-${DateTime.now().millisecondsSinceEpoch}',
-      );
-
-      testFirestore = FirebaseFirestore.instanceFor(app: testApp);
-      testAuth = FirebaseAuth.instanceFor(app: testApp);
-
-      // Try to connect to emulator if running
-      await _tryConnectToEmulator();
-    } catch (e) {
-      print('⚠️ Firebase initialization warning: $e');
-      // Continue with whatever initialization succeeded
-    }
-  }
-
-  /// Try to connect to Firestore and Auth emulators
-  static Future<void> _tryConnectToEmulator() async {
-    try {
-      // Firestore emulator
-      await testFirestore.waitForPendingWrites();
-
-      // Auth emulator - typically runs on port 9099
-      // This is a placeholder - actual emulator connection requires specific setup
-      print('✓ Firebase emulators configured');
-    } catch (e) {
-      print('ℹ️ Emulator not available: $e');
-    }
+    testFirestore = FakeFirebaseFirestore();
   }
 
   /// Clean up Firebase resources
   static Future<void> cleanup() async {
-    try {
-      // Clear all data
-      await clearFirestoreData();
-
-      // Sign out
-      await testAuth.signOut();
-
-      // Delete test app
-      await testApp.delete();
-    } catch (e) {
-      print('⚠️ Cleanup warning: $e');
-    }
+    testFirestore = FakeFirebaseFirestore();
+    testAuth._currentUser = null;
   }
 
-  /// Clear all Firestore collections
+  /// Clear all Firestore collections between tests by starting fresh -
+  /// simpler and more complete than deleting known collections one by one.
   static Future<void> clearFirestoreData() async {
-    try {
-      // Clear users collection
-      final users = await testFirestore.collection('users').get();
-      for (final doc in users.docs) {
-        await doc.reference.delete();
-      }
-
-      // Clear game records
-      final games = await testFirestore.collection('gameRecords').get();
-      for (final doc in games.docs) {
-        await doc.reference.delete();
-      }
-
-      // Clear other collections similarly
-      final collections = [
-        'tsumeGoProblems',
-        'userTsumeGoLogs',
-        'kifuLibrary',
-        'observationLogs',
-      ];
-
-      for (final collection in collections) {
-        final docs = await testFirestore.collection(collection).get();
-        for (final doc in docs.docs) {
-          await doc.reference.delete();
-        }
-      }
-    } catch (e) {
-      print('⚠️ Data clearing warning: $e');
-    }
+    testFirestore = FakeFirebaseFirestore();
   }
 
-  /// Create a test user in Firebase Auth
-  static Future<UserCredential> createTestUser({
+  /// Create a test user. Returns a small stand-in for [UserCredential]
+  /// with a freshly-generated uid - no real Firebase Auth call is made.
+  static Future<FakeUserCredential> createTestUser({
     required String email,
     required String password,
   }) async {
-    try {
-      return await testAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      print('⚠️ User creation warning: $e');
-      // Try signing in if user exists
-      return await testAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    }
+    final uid = 'test-uid-${_uidCounter++}-${DateTime.now().microsecondsSinceEpoch}';
+    final user = FakeTestUser(uid: uid, email: email);
+    testAuth._currentUser = user;
+    return FakeUserCredential(user);
   }
 
-  /// Sign in a test user
-  static Future<UserCredential> signInTestUser({
+  /// Sign in a test user (re-attaches the given email to a fresh fake uid,
+  /// since there is no real backend to look up an existing account by).
+  static Future<FakeUserCredential> signInTestUser({
     required String email,
     required String password,
   }) async {
-    return await testAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    return createTestUser(email: email, password: password);
   }
 
   /// Create a test user document in Firestore
@@ -168,7 +87,7 @@ class FirebaseTestHelpers {
     int aiLevel = 5,
   }) async {
     final game = GameRecord(
-      id: 'game-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'game-${DateTime.now().microsecondsSinceEpoch}-${_uidCounter++}',
       uid: uid,
       boardSize: boardSize,
       sgfData: generateTestSgf(boardSize, 30),
@@ -193,7 +112,7 @@ class FirebaseTestHelpers {
     int difficulty = 3,
   }) async {
     final problem = TsumeGoProblem(
-      id: 'problem-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'problem-${DateTime.now().microsecondsSinceEpoch}-${_uidCounter++}',
       difficulty: difficulty,
       sgfData: generateTestSgf(9, 15),
       solutionSgf: generateTestSgf(9, 3),
@@ -229,24 +148,46 @@ class FirebaseTestHelpers {
 
   /// Get current test user
   static User? getCurrentTestUser() {
-    return testAuth.currentUser != null
-        ? User(
-            uid: testAuth.currentUser!.uid,
-            email: testAuth.currentUser!.email ?? '',
-            displayName: testAuth.currentUser!.displayName ?? 'Test User',
-            subscriptionActive: false,
-            subscriptionStartDate: DateTime.now(),
-            tutorialCompleted: false,
-            gamesPlayedCount: 0,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          )
-        : null;
+    final current = testAuth.currentUser;
+    if (current == null) return null;
+    return User(
+      uid: current.uid,
+      email: current.email,
+      displayName: 'Test User',
+      subscriptionActive: false,
+      subscriptionStartDate: DateTime.now(),
+      tutorialCompleted: false,
+      gamesPlayedCount: 0,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
   }
 
-  /// Wait for Firestore to sync
-  static Future<void> waitForSync() async {
-    await testFirestore.waitForPendingWrites();
+  /// Wait for Firestore to sync - a no-op for the in-memory fake, kept so
+  /// call sites don't need to change if a real backend is used later.
+  static Future<void> waitForSync() async {}
+}
+
+/// A minimal stand-in for firebase_auth's `User` - just enough (uid, email)
+/// for this suite to attach Firestore documents to a fake identity.
+class FakeTestUser {
+  FakeTestUser({required this.uid, required this.email});
+  final String uid;
+  final String email;
+}
+
+/// A minimal stand-in for firebase_auth's `UserCredential`.
+class FakeUserCredential {
+  FakeUserCredential(this.user);
+  final FakeTestUser user;
+}
+
+class _FakeTestAuth {
+  FakeTestUser? _currentUser;
+  FakeTestUser? get currentUser => _currentUser;
+
+  Future<void> signOut() async {
+    _currentUser = null;
   }
 }
 

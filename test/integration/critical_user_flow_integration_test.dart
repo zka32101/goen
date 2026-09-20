@@ -1,7 +1,4 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:goen/services/firestore_service.dart';
-import 'package:goen/models/index.dart';
 import 'firebase_test_helpers.dart';
 
 void main() {
@@ -89,7 +86,9 @@ void main() {
       expect(gameData, isNotNull);
       expect(gameData!['uid'], uid);
       expect(gameData['boardSize'], 9);
-      expect(gameData['result'], 'win');
+      // GameResult.playerWin serializes via toShortString() as 'player_win',
+      // not the plain 'win' this helper's `result` param is named after.
+      expect(gameData['result'], 'player_win');
 
       // Step 4: Update game with analysis
       await gameTransaction.update({
