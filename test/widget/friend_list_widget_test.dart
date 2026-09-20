@@ -9,23 +9,19 @@ void main() {
 
     setUp(() {
       friends = [
-        const Friend(
+        Friend(
           uid: 'friend-1',
           displayName: 'Friend One',
-          currentRating: 1800.0,
-          totalGamesPlayed: 150,
           status: 'online',
-          addedAt: null,
+          addedAt: DateTime.now(),
           notes: 'Great player',
           avatarUrl: null,
         ),
-        const Friend(
+        Friend(
           uid: 'friend-2',
           displayName: 'Friend Two',
-          currentRating: 1600.0,
-          totalGamesPlayed: 100,
           status: 'offline',
-          addedAt: null,
+          addedAt: DateTime.now(),
           notes: null,
           avatarUrl: null,
         ),
@@ -151,7 +147,7 @@ void main() {
       await tester.flingFrom(
         const Offset(100, 300),
         const Offset(0, 100),
-        duration: const Duration(milliseconds: 500),
+        1000,
       );
       await tester.pumpAndSettle();
 
@@ -196,13 +192,11 @@ void main() {
     late Friend friend;
 
     setUp(() {
-      friend = const Friend(
+      friend = Friend(
         uid: 'friend-1',
         displayName: 'Chip Friend',
-        currentRating: 1800.0,
-        totalGamesPlayed: 100,
         status: 'online',
-        addedAt: null,
+        addedAt: DateTime.now(),
         notes: null,
         avatarUrl: null,
       );
@@ -244,24 +238,6 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('Hides rating when showRating is false', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: FriendChipWidget(
-              friend: friend,
-              showRating: false,
-            ),
-          ),
-        ),
-      );
-
-      // Name should be displayed
-      expect(find.text('Chip Friend'), findsOneWidget);
-
-      // Rating should not be displayed
-      expect(find.text('1800'), findsNothing);
-    });
   });
 
   group('FriendHorizontalListWidget Tests', () {
@@ -269,33 +245,27 @@ void main() {
 
     setUp(() {
       friends = [
-        const Friend(
+        Friend(
           uid: 'friend-1',
           displayName: 'Player One',
-          currentRating: 1800.0,
-          totalGamesPlayed: 150,
           status: 'online',
-          addedAt: null,
+          addedAt: DateTime.now(),
           notes: null,
           avatarUrl: null,
         ),
-        const Friend(
+        Friend(
           uid: 'friend-2',
           displayName: 'Player Two',
-          currentRating: 1600.0,
-          totalGamesPlayed: 100,
           status: 'offline',
-          addedAt: null,
+          addedAt: DateTime.now(),
           notes: null,
           avatarUrl: null,
         ),
-        const Friend(
+        Friend(
           uid: 'friend-3',
           displayName: 'Player Three',
-          currentRating: 1700.0,
-          totalGamesPlayed: 120,
           status: 'online',
-          addedAt: null,
+          addedAt: DateTime.now(),
           notes: null,
           avatarUrl: null,
         ),
@@ -378,10 +348,8 @@ void main() {
         (i) => Friend(
           uid: 'friend-$i',
           displayName: 'Player $i',
-          currentRating: 1500.0 + i,
-          totalGamesPlayed: 100 + i,
           status: 'online',
-          addedAt: null,
+          addedAt: DateTime.now(),
           notes: null,
           avatarUrl: null,
         ),
@@ -406,13 +374,11 @@ void main() {
     late Friend friend;
 
     setUp(() {
-      friend = const Friend(
+      friend = Friend(
         uid: 'friend-1',
         displayName: 'Data Test Friend',
-        currentRating: 1850.5,
-        totalGamesPlayed: 175,
         status: 'online',
-        addedAt: null,
+        addedAt: DateTime.now(),
         notes: 'Test note',
         avatarUrl: null,
       );

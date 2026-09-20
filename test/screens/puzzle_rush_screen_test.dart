@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../test_utils.dart';
 import 'package:goen/views/screens/index.dart';
 
 void main() {
   group('PuzzleRushScreen Widget Tests', () {
     testWidgets('初期レンダリング - AppBar表示', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byType(AppBar), findsOneWidget);
@@ -23,14 +23,12 @@ void main() {
 
     testWidgets('戻るボタンが表示される', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -38,14 +36,12 @@ void main() {
 
     testWidgets('難易度表示 - EASY', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'easy',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -54,14 +50,12 @@ void main() {
 
     testWidgets('難易度表示 - NORMAL', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -70,14 +64,12 @@ void main() {
 
     testWidgets('難易度表示 - HARD', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'hard',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -86,14 +78,12 @@ void main() {
 
     testWidgets('難易度表示 - EXPERT', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'expert',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -102,14 +92,12 @@ void main() {
 
     testWidgets('タイマー表示 - 初期5分', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.text('残り時間'), findsWidgets);
@@ -117,14 +105,12 @@ void main() {
 
     testWidgets('スコアセクション - 表示確認', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -133,14 +119,12 @@ void main() {
 
     testWidgets('UIレイアウト - ダークモード背景', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       final scaffold = find.byType(Scaffold);
@@ -149,14 +133,12 @@ void main() {
 
     testWidgets('レスポンシブ対応 - SingleChildScrollView使用', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byType(SingleChildScrollView), findsWidgets);
@@ -164,14 +146,12 @@ void main() {
 
     testWidgets('アクションボタン - セッション終了ボタン', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -183,14 +163,12 @@ void main() {
       addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byType(PuzzleRushScreen), findsOneWidget);
@@ -201,14 +179,12 @@ void main() {
       addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byType(PuzzleRushScreen), findsOneWidget);
@@ -216,14 +192,12 @@ void main() {
 
     testWidgets('ユーザーID パラメータ確認', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'user-abc-123',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byType(PuzzleRushScreen), findsOneWidget);
@@ -231,14 +205,12 @@ void main() {
 
     testWidgets('プロバイダー統合 - startPuzzleRushProvider', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -246,14 +218,12 @@ void main() {
 
     testWidgets('リーダーボード読み込み - 非同期処理', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -262,14 +232,12 @@ void main() {
 
     testWidgets('テキストスタイル - 日本語表示', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byType(AppBar), findsOneWidget);
@@ -277,14 +245,12 @@ void main() {
 
     testWidgets('ナビゲーション - 戻るボタン機能', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -292,14 +258,12 @@ void main() {
 
     testWidgets('エラーハンドリング - 画面表示保証', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: PuzzleRushScreen(
+        TestUtils.buildTestableWidget(
+          child: PuzzleRushScreen(
               uid: 'test-user',
               difficulty: 'normal',
             ),
           ),
-        ),
       );
 
       expect(find.byType(Scaffold), findsOneWidget);

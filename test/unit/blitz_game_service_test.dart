@@ -74,27 +74,27 @@ void main() {
 
     test('BlitzStats - データクラス生成', () {
       final stats = BlitzStats(
-        totalSessions: 10,
-        totalScore: 1000,
-        averageScore: 100,
-        highestScore: 200,
-        totalPlayed: 10,
-        totalWins: 6,
-        accuracy: '65.3',
+        totalGames: 10,
+        wins: 6,
+        losses: 4,
+        draws: 0,
+        winRate: '60.0',
+        totalRatingChange: 25,
+        averageDuration: 240,
       );
-      expect(stats.totalSessions, 10);
-      expect(stats.totalScore, 1000);
+      expect(stats.totalGames, 10);
+      expect(stats.wins, 6);
     });
 
     test('BlitzStats - toString()メソッド', () {
       final stats = BlitzStats(
-        totalSessions: 5,
-        totalScore: 500,
-        averageScore: 100,
-        highestScore: 150,
-        totalPlayed: 5,
-        totalWins: 3,
-        accuracy: '60.0',
+        totalGames: 5,
+        wins: 3,
+        losses: 2,
+        draws: 0,
+        winRate: '60.0',
+        totalRatingChange: 10,
+        averageDuration: 200,
       );
       final toString = stats.toString();
       expect(toString, isA<String>());
@@ -103,19 +103,19 @@ void main() {
 
     test('BlitzStats - フィールド検証', () {
       final stats = BlitzStats(
-        totalSessions: 20,
-        totalScore: 2000,
-        averageScore: 100,
-        highestScore: 300,
-        totalPlayed: 20,
-        totalWins: 12,
-        accuracy: '75.5',
+        totalGames: 20,
+        wins: 12,
+        losses: 8,
+        draws: 0,
+        winRate: '75.5',
+        totalRatingChange: 50,
+        averageDuration: 300,
       );
-      expect(stats.totalSessions, 20);
-      expect(stats.totalScore, 2000);
-      expect(stats.averageScore, 100);
-      expect(stats.highestScore, 300);
-      expect(stats.accuracy, '75.5');
+      expect(stats.totalGames, 20);
+      expect(stats.wins, 12);
+      expect(stats.losses, 8);
+      expect(stats.averageDuration, 300);
+      expect(stats.winRate, '75.5');
     });
 
     test('BlitzGameService - インスタンス作成デフォルトFirestore', () {

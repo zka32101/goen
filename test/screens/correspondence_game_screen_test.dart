@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../test_utils.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/views/screens/index.dart';
 
@@ -8,15 +10,13 @@ void main() {
   group('CorrespondenceGameScreen Widget Tests', () {
     testWidgets('初期レンダリング - AppBar表示', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
               boardSize: 19,
             ),
           ),
-        ),
       );
 
       expect(find.byType(AppBar), findsOneWidget);
@@ -25,14 +25,12 @@ void main() {
 
     testWidgets('戻るボタンが表示される', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -40,14 +38,12 @@ void main() {
 
     testWidgets('ゲーム一覧セクションが表示される', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -56,14 +52,12 @@ void main() {
 
     testWidgets('UIレイアウト - ダークモード背景', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       final scaffold = find.byType(Scaffold);
@@ -72,15 +66,13 @@ void main() {
 
     testWidgets('ボードサイズパラメータ - 9x9対応', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
               boardSize: 9,
             ),
           ),
-        ),
       );
 
       expect(find.byType(CorrespondenceGameScreen), findsOneWidget);
@@ -88,15 +80,13 @@ void main() {
 
     testWidgets('ボードサイズパラメータ - 19x19対応', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
               boardSize: 19,
             ),
           ),
-        ),
       );
 
       expect(find.byType(CorrespondenceGameScreen), findsOneWidget);
@@ -104,15 +94,13 @@ void main() {
 
     testWidgets('ボードサイズパラメータ - 13x13対応', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
               boardSize: 13,
             ),
           ),
-        ),
       );
 
       expect(find.byType(CorrespondenceGameScreen), findsOneWidget);
@@ -120,14 +108,12 @@ void main() {
 
     testWidgets('レスポンシブ対応 - SingleChildScrollView使用', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       expect(find.byType(SingleChildScrollView), findsWidgets);
@@ -135,14 +121,12 @@ void main() {
 
     testWidgets('テキストスタイル - 日本語ラベル表示', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -151,14 +135,12 @@ void main() {
 
     testWidgets('コンテナ配置 - Column構造確認', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       expect(find.byType(Column), findsWidgets);
@@ -169,14 +151,12 @@ void main() {
       addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       expect(find.byType(CorrespondenceGameScreen), findsOneWidget);
@@ -187,14 +167,12 @@ void main() {
       addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       expect(find.byType(CorrespondenceGameScreen), findsOneWidget);
@@ -202,14 +180,12 @@ void main() {
 
     testWidgets('ユーザーID渡し - 異なるユーザーID対応', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'user-abc-123',
               opponentUid: 'user-xyz-789',
             ),
           ),
-        ),
       );
 
       expect(find.byType(CorrespondenceGameScreen), findsOneWidget);
@@ -217,14 +193,12 @@ void main() {
 
     testWidgets('プロバイダー統合 - ゲーム一覧読み込み', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -233,14 +207,12 @@ void main() {
 
     testWidgets('状態表示 - SingleChildScrollViewマウント', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       expect(find.byType(Scaffold), findsOneWidget);
@@ -248,14 +220,12 @@ void main() {
 
     testWidgets('エラーハンドリング - UI表示保証', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       expect(find.byType(AppBar), findsOneWidget);
@@ -263,14 +233,12 @@ void main() {
 
     testWidgets('ロギング実装確認 - 生成時の処理', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user-log',
               opponentUid: 'opponent-log',
             ),
           ),
-        ),
       );
 
       expect(find.byType(Scaffold), findsOneWidget);
@@ -278,14 +246,12 @@ void main() {
 
     testWidgets('ナビゲーション - 戻るボタンの存在確認', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: CorrespondenceGameScreen(
+        TestUtils.buildTestableWidget(
+          child: CorrespondenceGameScreen(
               uid: 'test-user',
               opponentUid: 'opponent-user',
             ),
           ),
-        ),
       );
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);

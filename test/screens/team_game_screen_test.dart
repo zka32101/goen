@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../test_utils.dart';
 import 'package:goen/views/screens/index.dart';
 
 void main() {
   group('TeamGameScreen Widget Tests', () {
     testWidgets('初期レンダリング - AppBar表示', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
               boardSize: 19,
             ),
           ),
-        ),
       );
 
       expect(find.byType(AppBar), findsOneWidget);
@@ -24,14 +24,12 @@ void main() {
 
     testWidgets('戻るボタンが表示される', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -39,14 +37,12 @@ void main() {
 
     testWidgets('チーム情報表示 - Team1とTeam2', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -55,15 +51,13 @@ void main() {
 
     testWidgets('プレイヤー数確認 - 4人表示', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['alice', 'bob'],
               team2Players: ['charlie', 'david'],
               boardSize: 19,
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -72,15 +66,13 @@ void main() {
 
     testWidgets('ボードサイズ パラメータ確認 - 9x9', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
               boardSize: 9,
             ),
           ),
-        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -88,15 +80,13 @@ void main() {
 
     testWidgets('ボードサイズ パラメータ確認 - 13x13', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
               boardSize: 13,
             ),
           ),
-        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -104,15 +94,13 @@ void main() {
 
     testWidgets('ボードサイズ パラメータ確認 - 19x19', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
               boardSize: 19,
             ),
           ),
-        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -120,14 +108,12 @@ void main() {
 
     testWidgets('UIレイアウト - ダークモード背景色', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       final scaffold = find.byType(Scaffold);
@@ -136,14 +122,12 @@ void main() {
 
     testWidgets('レスポンシブレイアウト - SingleChildScrollView確認', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       expect(find.byType(SingleChildScrollView), findsWidgets);
@@ -151,14 +135,12 @@ void main() {
 
     testWidgets('アクションボタン - 着手提出ボタン表示', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -167,14 +149,12 @@ void main() {
 
     testWidgets('アクションボタン - ゲーム終了ボタン表示', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -183,14 +163,12 @@ void main() {
 
     testWidgets('複数プレイヤー - 異なる名前対応', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['user-alpha', 'user-beta'],
               team2Players: ['user-gamma', 'user-delta'],
             ),
           ),
-        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -201,14 +179,12 @@ void main() {
       addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -219,14 +195,12 @@ void main() {
       addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -234,15 +208,13 @@ void main() {
 
     testWidgets('プロバイダー統合 - startTeamGameProvider呼び出し', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
               boardSize: 19,
             ),
           ),
-        ),
       );
 
       await tester.pumpAndSettle();
@@ -251,14 +223,12 @@ void main() {
 
     testWidgets('テキスト表示確認 - タイトル', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       expect(find.byType(AppBar), findsOneWidget);
@@ -266,14 +236,12 @@ void main() {
 
     testWidgets('ナビゲーション - 戻る機能', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -281,14 +249,12 @@ void main() {
 
     testWidgets('エラーハンドリング - 画面表示確認', (WidgetTester tester) async {
       await tester.pumpWidget(
-        ProviderContainer(
-          child: MaterialApp(
-            home: TeamGameScreen(
+        TestUtils.buildTestableWidget(
+          child: TeamGameScreen(
               team1Players: ['player1', 'player2'],
               team2Players: ['player3', 'player4'],
             ),
           ),
-        ),
       );
 
       expect(find.byType(Scaffold), findsOneWidget);
