@@ -8,7 +8,7 @@ import '../fixtures/test_data.dart';
 import '../test_utils.dart';
 
 /// The price and period suffix render as TextSpans inside a single
-/// RichText (for the "$9.99" + "/month" combined layout), which
+/// RichText (for the "$3.00" + "/month" combined layout), which
 /// find.text() never matches since it only looks at Text/EditableText
 /// widgets.
 Finder findRichText(String substring) => find.byWidgetPredicate(
@@ -196,7 +196,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Monthly pricing should be visible
-      expect(findRichText('9.99'), findsWidgets);
+      expect(findRichText('3.00'), findsWidgets);
     });
 
     testWidgets('can switch to annual pricing', (WidgetTester tester) async {

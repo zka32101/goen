@@ -262,7 +262,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             _buildPricingCard(
               context,
               title: 'Monthly',
-              price: '9.99',
+              price: '3.00',
               period: '/month',
               description: 'Perfect for trying premium features',
               selected: true,
@@ -542,7 +542,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       };
 
   double _planPrice(SubscriptionPlan plan) => switch (plan) {
-        SubscriptionPlan.monthly => 9.99,
+        SubscriptionPlan.monthly => 3.00,
         SubscriptionPlan.annual => 79.99,
         SubscriptionPlan.lifetime => 299.99,
       };
