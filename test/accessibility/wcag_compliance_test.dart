@@ -128,10 +128,18 @@ void main() {
     });
 
     testWidgets('🔤 Text scaling support', (WidgetTester tester) async {
-      // Test that UI remains usable when text is scaled
+      // Test that UI remains usable when text is scaled.
+      // physicalSizeTestValue is in physical pixels, divided by
+      // devicePixelRatio to get the logical size the layout actually sees -
+      // without pinning the ratio to 1.0 too, the default test
+      // devicePixelRatio (3.0) shrinks this to an unrealistic ~133px-wide
+      // logical window and produces a spurious overflow error.
       addTearDown(TestWidgetsFlutterBinding.instance.window
           .clearPhysicalSizeTestValue);
+      addTearDown(TestWidgetsFlutterBinding.instance.window
+          .clearDevicePixelRatioTestValue);
 
+      tester.binding.window.devicePixelRatioTestValue = 1.0;
       tester.binding.window.physicalSizeTestValue = const Size(400, 800);
 
       await tester.pumpWidget(
@@ -344,9 +352,10 @@ void main() {
         ),
       );
 
-      // Check for descriptive button labels
-      expect(find.text('Play'), findsWidgets);
-      expect(find.text('Settings'), findsWidgets);
+      // Check for descriptive button labels (real card title/tooltip -
+      // this screen has no button literally labeled "Play")
+      expect(find.text('Play AI Game'), findsWidgets);
+      expect(find.byTooltip('Settings'), findsWidgets);
 
       print('✓ Button labels are descriptive');
     });

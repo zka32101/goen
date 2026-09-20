@@ -40,6 +40,9 @@ class HomeScreen extends ConsumerWidget {
             icon: const Icon(Icons.settings),
             onPressed: () => _navigateToSettings(context),
             tooltip: 'Settings',
+            // Default IconButton constraints render a 40x40 tap target,
+            // short of WCAG's 44x44dp minimum.
+            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           ),
         ],
       ),
@@ -406,6 +409,9 @@ class HomeScreen extends ConsumerWidget {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[700],
+                // vertical: 10 rendered a ~40dp-tall touch target, short of
+                // WCAG's 44dp minimum.
+                minimumSize: const Size.fromHeight(44),
                 padding: const EdgeInsets.symmetric(vertical: 10),
               ),
               onPressed: () => _showResetConfirmationDialog(context, ref),
@@ -547,11 +553,16 @@ class HomeScreen extends ConsumerWidget {
 
   /// Notification bell with an unread-count badge
   Widget _buildNotificationButton(BuildContext context, WidgetRef ref, String? uid) {
+    // Default IconButton constraints render a 40x40 tap target, short of
+    // WCAG's 44x44dp minimum.
+    const minTapTarget = BoxConstraints(minWidth: 44, minHeight: 44);
+
     if (uid == null) {
       return IconButton(
         icon: const Icon(Icons.notifications_none),
         onPressed: () => _navigateToNotifications(context),
         tooltip: 'Notifications',
+        constraints: minTapTarget,
       );
     }
 
@@ -565,6 +576,7 @@ class HomeScreen extends ConsumerWidget {
           icon: const Icon(Icons.notifications_none),
           onPressed: () => _navigateToNotifications(context),
           tooltip: 'Notifications',
+          constraints: minTapTarget,
         ),
         if (unreadCount > 0)
           Positioned(
