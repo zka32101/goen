@@ -1,19 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/models/index.dart';
 import 'package:goen/views/screens/tsume_go_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 
 import '../fixtures/test_data.dart';
 import '../test_utils.dart';
 
+/// A fixture puzzle with a valid, minimal SGF so the board/solution
+/// views have something real to render.
+final _testProblem = TsumeGoProblem(
+  id: 'test-tsumego-1',
+  difficulty: 2,
+  sgfData: '(;GM[1]SZ[9]AB[cc][dd]AW[cd])',
+  solutionSgf: '(;GM[1]SZ[9];B[dc])',
+  explanation: 'テスト用の解説文です。',
+  source: 'Test Collection',
+  version: 1,
+  createdAt: DateTime.now(),
+  expectedMoves: 1,
+);
+
 void main() {
   group('TsumeGoScreen', () {
     late ProviderContainer container;
 
     setUp(() {
-      container = TestUtils.createTestContainer(
-        currentUser: TestData.testUser,
+      container = ProviderContainer(
+        overrides: [
+          currentUserProvider.overrideWithValue(TestData.testUser),
+          todaysTsumeProblemProvider.overrideWith((ref) async => _testProblem),
+        ],
       );
     });
 
@@ -25,6 +43,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // Verify scaffold exists
       expect(find.byType(Scaffold), findsWidgets);
@@ -40,6 +59,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // When puzzle loads, difficulty should show
       expect(find.text('Difficulty'), findsWidgets);
@@ -52,6 +72,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // Verify attempts counter
       expect(find.text('Attempts'), findsWidgets);
@@ -64,6 +85,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // App bar should have hint icon
       expect(find.byType(AppBar), findsWidgets);
@@ -77,6 +99,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // Board should render with CustomPaint
       expect(find.byType(CustomPaint), findsWidgets);
@@ -89,6 +112,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // Difficulty selector should be visible
       expect(find.text('Browse by Difficulty'), findsWidgets);
@@ -105,6 +129,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // When puzzle not solved, show "Check Solution"
       expect(find.text('Check Solution'), findsWidgets);
@@ -117,6 +142,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // Skip to tomorrow button should be visible
       expect(find.text('Skip to Tomorrow'), findsWidgets);
@@ -127,6 +153,7 @@ void main() {
       final solvedContainer = ProviderContainer(
         overrides: [
           currentUserProvider.overrideWithValue(TestData.testUser),
+          todaysTsumeProblemProvider.overrideWith((ref) async => _testProblem),
           isPuzzleSolvedProvider.overrideWith((ref) => true),
         ],
       );
@@ -137,6 +164,7 @@ void main() {
           container: solvedContainer,
         ),
       );
+      await tester.pump();
 
       // When solved, show explanation button
       expect(find.text('View Explanation'), findsWidgets);
@@ -146,6 +174,7 @@ void main() {
       final solvedContainer = ProviderContainer(
         overrides: [
           currentUserProvider.overrideWithValue(TestData.testUser),
+          todaysTsumeProblemProvider.overrideWith((ref) async => _testProblem),
           isPuzzleSolvedProvider.overrideWith((ref) => true),
         ],
       );
@@ -156,6 +185,7 @@ void main() {
           container: solvedContainer,
         ),
       );
+      await tester.pump();
 
       // Solved badge with check icon
       expect(find.text('Puzzle Solved!'), findsWidgets);
@@ -170,9 +200,11 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
-      // Show hint about expected moves when puzzle not solved
-      expect(find.text('moves to solve'), findsWidgets);
+      // Show hint about expected moves when puzzle not solved (renders as
+      // "N moves to solve", combined with the count)
+      expect(find.textContaining('moves to solve'), findsWidgets);
     });
 
     testWidgets('hint button opens dialog', (WidgetTester tester) async {
@@ -202,6 +234,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       final scaffold = find.byType(Scaffold).first;
       final scaffoldWidget = tester.widget<Scaffold>(scaffold);
@@ -233,6 +266,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // During async load, might show progress indicator
       // expect(find.byType(CircularProgressIndicator), findsWidgets);
@@ -248,6 +282,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // Back button should work via Navigator.pop
       final skipButton = find.text('Skip to Tomorrow');
@@ -262,6 +297,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       // Find difficulty selector
       expect(find.byType(ChoiceChip), findsWidgets);
@@ -278,6 +314,7 @@ void main() {
           container: container,
         ),
       );
+      await tester.pump();
 
       expect(find.text("Today's Puzzle"), findsWidgets);
     });
