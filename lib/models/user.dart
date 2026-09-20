@@ -1,5 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Sentinel for User.copyWith's subscriptionEndDate parameter, to
+/// distinguish "not passed" from "explicitly passed null".
+const Object _unset = Object();
+
 /// User profile and subscription status
 class User {
   final String uid;
@@ -68,13 +72,18 @@ class User {
     };
   }
 
-  /// Copy with modifications
+  /// Copy with modifications.
+  ///
+  /// subscriptionEndDate uses a sentinel default rather than `Type? field`
+  /// so it can be explicitly cleared to null (e.g. a lifetime purchase that
+  /// never expires) - `field ?? this.field` can never distinguish "not
+  /// passed" from "explicitly passed null".
   User copyWith({
     String? email,
     String? displayName,
     bool? subscriptionActive,
     DateTime? subscriptionStartDate,
-    DateTime? subscriptionEndDate,
+    Object? subscriptionEndDate = _unset,
     bool? tutorialCompleted,
     int? gamesPlayedCount,
     DateTime? updatedAt,
@@ -85,7 +94,9 @@ class User {
       displayName: displayName ?? this.displayName,
       subscriptionActive: subscriptionActive ?? this.subscriptionActive,
       subscriptionStartDate: subscriptionStartDate ?? this.subscriptionStartDate,
-      subscriptionEndDate: subscriptionEndDate ?? this.subscriptionEndDate,
+      subscriptionEndDate: identical(subscriptionEndDate, _unset)
+          ? this.subscriptionEndDate
+          : subscriptionEndDate as DateTime?,
       tutorialCompleted: tutorialCompleted ?? this.tutorialCompleted,
       gamesPlayedCount: gamesPlayedCount ?? this.gamesPlayedCount,
       createdAt: createdAt,

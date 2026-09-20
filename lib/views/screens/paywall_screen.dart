@@ -24,6 +24,7 @@ class PaywallScreen extends ConsumerStatefulWidget {
 
 class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   bool _showAnnual = false;
+  SubscriptionPlan _selectedPlan = SubscriptionPlan.monthly;
 
   @override
   void initState() {
@@ -205,7 +206,10 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => setState(() => _showAnnual = false),
+                    onTap: () => setState(() {
+                      _showAnnual = false;
+                      _selectedPlan = SubscriptionPlan.monthly;
+                    }),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
@@ -226,7 +230,10 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 ),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => setState(() => _showAnnual = true),
+                    onTap: () => setState(() {
+                      _showAnnual = true;
+                      _selectedPlan = SubscriptionPlan.annual;
+                    }),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
@@ -254,31 +261,35 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           if (!_showAnnual)
             _buildPricingCard(
               context,
-              'Monthly',
-              '9.99',
-              '/month',
-              'Perfect for trying premium features',
-              false,
+              title: 'Monthly',
+              price: '9.99',
+              period: '/month',
+              description: 'Perfect for trying premium features',
+              selected: true,
+              onTap: () {},
             )
           else
             Column(
               children: [
                 _buildPricingCard(
                   context,
-                  'Annual',
-                  '79.99',
-                  '/year',
-                  'Save 33% with annual billing',
-                  false,
+                  title: 'Annual',
+                  price: '79.99',
+                  period: '/year',
+                  description: 'Save 33% with annual billing',
+                  selected: _selectedPlan == SubscriptionPlan.annual,
+                  onTap: () => setState(() => _selectedPlan = SubscriptionPlan.annual),
                 ),
                 const SizedBox(height: 12),
                 _buildPricingCard(
                   context,
-                  'Lifetime',
-                  '299.99',
-                  'one-time',
-                  'Unlock forever with one payment',
-                  true,
+                  title: 'Lifetime',
+                  price: '299.99',
+                  period: 'one-time',
+                  description: 'Unlock forever with one payment',
+                  isBestValue: true,
+                  selected: _selectedPlan == SubscriptionPlan.lifetime,
+                  onTap: () => setState(() => _selectedPlan = SubscriptionPlan.lifetime),
                 ),
               ],
             ),
@@ -305,7 +316,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
-                'Continue with ${_showAnnual ? "Annual" : "Monthly"}',
+                'Continue with ${_planLabel(_selectedPlan)}',
                 style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -320,86 +331,92 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   }
 
   Widget _buildPricingCard(
-    BuildContext context,
-    String title,
-    String price,
-    String period,
-    String description,
-    bool isHighlighted,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: isHighlighted ? Colors.amber[600]! : Colors.white10,
-          width: isHighlighted ? 2 : 1,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        color: isHighlighted
-            ? Colors.amber[600]?.withOpacity(0.1)
-            : Colors.white.withOpacity(0.03),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (isHighlighted)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber[600],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'BEST VALUE',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-            ],
+    BuildContext context, {
+    required String title,
+    required String price,
+    required String period,
+    required String description,
+    required bool selected,
+    required VoidCallback onTap,
+    bool isBestValue = false,
+  }) {
+    final highlighted = isBestValue || selected;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: highlighted ? Colors.amber[600]! : Colors.white10,
+            width: highlighted ? 2 : 1,
           ),
-          const SizedBox(height: 12),
-          RichText(
-            text: TextSpan(
+          borderRadius: BorderRadius.circular(12),
+          color: highlighted
+              ? Colors.amber[600]?.withOpacity(0.1)
+              : Colors.white.withOpacity(0.03),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextSpan(
-                  text: '\$$price',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                TextSpan(
-                  text: period,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
+                if (isBestValue)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber[600],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'BEST VALUE',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white70,
+            const SizedBox(height: 12),
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '\$$price',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextSpan(
+                    text: period,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -518,12 +535,24 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     );
   }
 
+  String _planLabel(SubscriptionPlan plan) => switch (plan) {
+        SubscriptionPlan.monthly => 'Monthly',
+        SubscriptionPlan.annual => 'Annual',
+        SubscriptionPlan.lifetime => 'Lifetime',
+      };
+
+  double _planPrice(SubscriptionPlan plan) => switch (plan) {
+        SubscriptionPlan.monthly => 9.99,
+        SubscriptionPlan.annual => 79.99,
+        SubscriptionPlan.lifetime => 299.99,
+      };
+
   void _handlePurchase(BuildContext context) async {
     _logger.i('Processing purchase');
 
-    final plan = _showAnnual ? SubscriptionPlan.annual : SubscriptionPlan.monthly;
-    final planLabel = _showAnnual ? 'annual' : 'monthly';
-    final price = _showAnnual ? 79.99 : 9.99;
+    final plan = _selectedPlan;
+    final planLabel = _planLabel(plan).toLowerCase();
+    final price = _planPrice(plan);
 
     // Show loading
     showDialog(
