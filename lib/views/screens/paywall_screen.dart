@@ -539,12 +539,18 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     try {
       await ref.read(purchaseSubscriptionProvider)(plan);
 
-      // Log successful conversion after purchase completes
-      await ref.read(logPaywallConvertedProvider)(
-        plan: planLabel,
-        price: price,
-        currency: 'USD',
-      );
+      // The purchase itself already succeeded at this point — log the
+      // conversion in its own try/catch so an analytics hiccup can't make
+      // a real purchase get reported to the user as a failure below.
+      try {
+        await ref.read(logPaywallConvertedProvider)(
+          plan: planLabel,
+          price: price,
+          currency: 'USD',
+        );
+      } catch (e) {
+        _logger.w('Failed to log paywall conversion (purchase still succeeded): $e');
+      }
 
       if (context.mounted) {
         Navigator.pop(context); // Close loading

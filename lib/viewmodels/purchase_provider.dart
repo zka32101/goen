@@ -52,9 +52,13 @@ final purchaseSubscriptionProvider = Provider<Future<void> Function(Subscription
               completer.complete(purchase);
               break;
             case PurchaseStatus.error:
+              // Acknowledge it too, or the store will keep redelivering
+              // this failed transaction on every future launch.
+              purchaseService.completePurchase(purchase);
               completer.completeError(purchase.error ?? Exception('Purchase failed'));
               break;
             case PurchaseStatus.canceled:
+              purchaseService.completePurchase(purchase);
               completer.completeError(Exception('canceled'));
               break;
             case PurchaseStatus.pending:
@@ -78,10 +82,17 @@ final purchaseSubscriptionProvider = Provider<Future<void> Function(Subscription
         onTimeout: () => throw Exception('Purchase timed out'),
       );
 
-      final currentUser = authService.currentUser;
-      if (currentUser != null) {
+      final uid = authService.currentUser?.uid;
+      if (uid != null) {
+        // Re-fetch the authoritative Firestore record rather than trusting
+        // authService.currentUser here: that getter can still return a
+        // fabricated fallback (tutorialCompleted/gamesPlayedCount reset to
+        // false/0) in the brief window before the auth stream's first
+        // event lands, and saveUser's merge-set would otherwise overwrite
+        // those real fields with the fallback's zeroed-out ones.
         final now = DateTime.now();
-        final updated = currentUser.copyWith(
+        final freshUser = await firestoreService.getUser(uid) ?? authService.currentUser!;
+        final updated = freshUser.copyWith(
           subscriptionActive: true,
           subscriptionStartDate: now,
           subscriptionEndDate: now.add(plan.entitlementLength),
