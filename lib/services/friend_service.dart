@@ -11,7 +11,31 @@ class FriendService {
   FriendService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  /// Add a friend (sends pending request)
+  /// Reference to a user's own entry for a given friend, on either side of
+  /// the relationship (`users/{uid}/friends/{otherUid}`).
+  DocumentReference<Map<String, dynamic>> _friendDoc(String uid, String otherUid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('friends')
+        .doc(otherUid);
+  }
+
+  /// Looks up a user's display name to denormalize onto a friend-relationship
+  /// doc - Friend.fromJson requires displayName, but the relationship
+  /// document itself only ever stores a uid, so this has to be fetched from
+  /// the user's own profile at write time.
+  Future<String> _lookupDisplayName(String uid) async {
+    final doc = await _firestore.collection('users').doc(uid).get();
+    return doc.data()?['displayName'] as String? ?? 'Unknown';
+  }
+
+  /// Add a friend (sends pending request).
+  ///
+  /// Friendship is denormalized into both users' own `friends`
+  /// subcollections so each user's queries (getFriends/getPendingRequests/
+  /// isFriend) only ever need to read their own data - so both sides get a
+  /// 'pending' entry here, not just the sender's.
   Future<bool> addFriend({
     required String currentUid,
     required String friendUid,
@@ -20,20 +44,30 @@ class FriendService {
     try {
       _logger.i('Adding friend: $friendUid to user: $currentUid');
 
-      final now = DateTime.now();
+      // Friend.fromJson parses addedAt via DateTime.parse(json['addedAt']
+      // as String) - a raw DateTime would round-trip through Firestore as
+      // a Timestamp instead and fail that cast on every later read.
+      final now = DateTime.now().toIso8601String();
+      final friendDisplayName = await _lookupDisplayName(friendUid);
+      final currentDisplayName = await _lookupDisplayName(currentUid);
+      final batch = _firestore.batch();
 
-      // Add to current user's friends collection
-      await _firestore
-          .collection('users')
-          .doc(currentUid)
-          .collection('friends')
-          .doc(friendUid)
-          .set({
+      batch.set(_friendDoc(currentUid, friendUid), {
         'uid': friendUid,
+        'displayName': friendDisplayName,
         'status': 'pending',
         'addedAt': now,
         'notes': notes ?? '',
       });
+      batch.set(_friendDoc(friendUid, currentUid), {
+        'uid': currentUid,
+        'displayName': currentDisplayName,
+        'status': 'pending',
+        'addedAt': now,
+        'notes': '',
+      });
+
+      await batch.commit();
 
       return true;
     } catch (e) {
@@ -42,7 +76,7 @@ class FriendService {
     }
   }
 
-  /// Accept friend request
+  /// Accept friend request - marks both sides' entries as accepted.
   Future<bool> acceptFriendRequest({
     required String currentUid,
     required String friendUid,
@@ -50,12 +84,18 @@ class FriendService {
     try {
       _logger.i('Accepting friend request from: $friendUid');
 
-      await _firestore
-          .collection('users')
-          .doc(currentUid)
-          .collection('friends')
-          .doc(friendUid)
-          .update({'status': 'accepted'});
+      final batch = _firestore.batch();
+      batch.set(
+        _friendDoc(currentUid, friendUid),
+        {'uid': friendUid, 'status': 'accepted'},
+        SetOptions(merge: true),
+      );
+      batch.set(
+        _friendDoc(friendUid, currentUid),
+        {'uid': currentUid, 'status': 'accepted'},
+        SetOptions(merge: true),
+      );
+      await batch.commit();
 
       return true;
     } catch (e) {
@@ -64,7 +104,12 @@ class FriendService {
     }
   }
 
-  /// Reject/Block friend request
+  /// Block a user. Only the blocker's own entry is marked - blocking should
+  /// work even for someone who was never actually a friend, so this upserts
+  /// a full, valid Friend-shaped doc rather than requiring one to already
+  /// exist (a bare merge-update would leave required fields like
+  /// displayName/addedAt missing on a brand-new doc, breaking every later
+  /// read via getFriends/getBlockedUsers).
   Future<bool> blockFriend({
     required String currentUid,
     required String friendUid,
@@ -72,12 +117,17 @@ class FriendService {
     try {
       _logger.i('Blocking friend: $friendUid');
 
-      await _firestore
-          .collection('users')
-          .doc(currentUid)
-          .collection('friends')
-          .doc(friendUid)
-          .update({'status': 'blocked'});
+      final ref = _friendDoc(currentUid, friendUid);
+      final existing = (await ref.get()).data();
+
+      await ref.set({
+        'uid': friendUid,
+        'displayName':
+            existing?['displayName'] as String? ?? await _lookupDisplayName(friendUid),
+        'status': 'blocked',
+        'addedAt': existing?['addedAt'] ?? DateTime.now().toIso8601String(),
+        'notes': existing?['notes'] ?? '',
+      });
 
       return true;
     } catch (e) {
@@ -86,7 +136,7 @@ class FriendService {
     }
   }
 
-  /// Unblock a friend, restoring the accepted friendship.
+  /// Unblock a friend, restoring the accepted friendship on both sides.
   Future<bool> unblockFriend({
     required String currentUid,
     required String friendUid,
@@ -94,12 +144,18 @@ class FriendService {
     try {
       _logger.i('Unblocking friend: $friendUid');
 
-      await _firestore
-          .collection('users')
-          .doc(currentUid)
-          .collection('friends')
-          .doc(friendUid)
-          .update({'status': 'accepted'});
+      final batch = _firestore.batch();
+      batch.set(
+        _friendDoc(currentUid, friendUid),
+        {'uid': friendUid, 'status': 'accepted'},
+        SetOptions(merge: true),
+      );
+      batch.set(
+        _friendDoc(friendUid, currentUid),
+        {'uid': currentUid, 'status': 'accepted'},
+        SetOptions(merge: true),
+      );
+      await batch.commit();
 
       return true;
     } catch (e) {
@@ -108,7 +164,8 @@ class FriendService {
     }
   }
 
-  /// Remove friend
+  /// Remove friend - both sides, so neither user is left with a stale
+  /// mirror entry pointing at a friendship the other side ended.
   Future<bool> removeFriend({
     required String currentUid,
     required String friendUid,
@@ -116,12 +173,10 @@ class FriendService {
     try {
       _logger.i('Removing friend: $friendUid');
 
-      await _firestore
-          .collection('users')
-          .doc(currentUid)
-          .collection('friends')
-          .doc(friendUid)
-          .delete();
+      final batch = _firestore.batch();
+      batch.delete(_friendDoc(currentUid, friendUid));
+      batch.delete(_friendDoc(friendUid, currentUid));
+      await batch.commit();
 
       return true;
     } catch (e) {

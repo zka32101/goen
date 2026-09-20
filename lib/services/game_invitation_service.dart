@@ -28,6 +28,10 @@ class GameInvitationService {
       final expiresAt = now.add(expirationTime);
       final invitationId = _firestore.collection('gameInvitations').doc().id;
 
+      // GameInvitation.fromJson parses createdAt/expiresAt via
+      // DateTime.parse(json[...] as String) - storing raw DateTimes would
+      // round-trip through Firestore as Timestamps and fail that cast on
+      // every later read.
       await _firestore.collection('gameInvitations').doc(invitationId).set({
         'id': invitationId,
         'fromUid': fromUid,
@@ -35,8 +39,8 @@ class GameInvitationService {
         'gameMode': gameMode,
         'boardSize': boardSize,
         'aiLevel': aiLevel,
-        'createdAt': now,
-        'expiresAt': expiresAt,
+        'createdAt': now.toIso8601String(),
+        'expiresAt': expiresAt.toIso8601String(),
         'status': 'pending',
         'customMessage': customMessage ?? '',
       });
@@ -112,7 +116,10 @@ class GameInvitationService {
     try {
       _logger.i('Getting incoming invitations for: $uid');
 
-      final now = DateTime.now();
+      // expiresAt is stored as an ISO8601 string (see sendInvitation), so
+      // the comparison operand must be the same type/format for Firestore
+      // to actually match/order against it.
+      final now = DateTime.now().toIso8601String();
 
       final querySnapshot = await _firestore
           .collection('gameInvitations')
@@ -140,7 +147,7 @@ class GameInvitationService {
     try {
       _logger.i('Getting outgoing invitations for: $uid');
 
-      final now = DateTime.now();
+      final now = DateTime.now().toIso8601String();
 
       final querySnapshot = await _firestore
           .collection('gameInvitations')
@@ -186,7 +193,7 @@ class GameInvitationService {
   Stream<List<GameInvitation>> streamIncomingInvitations({
     required String uid,
   }) {
-    final now = DateTime.now();
+    final now = DateTime.now().toIso8601String();
 
     return _firestore
         .collection('gameInvitations')
@@ -207,7 +214,7 @@ class GameInvitationService {
     try {
       _logger.i('Cleaning up expired invitations');
 
-      final now = DateTime.now();
+      final now = DateTime.now().toIso8601String();
 
       final querySnapshot = await _firestore
           .collection('gameInvitations')

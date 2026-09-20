@@ -1,3 +1,4 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/models/extended_game_models.dart';
 import 'package:goen/services/friend_service.dart';
@@ -12,10 +13,19 @@ void main() {
   const testUserId2 = 'test-user-2';
   const testUserId3 = 'test-user-3';
 
-  setUpAll(() {
-    // Initialize services with mock/test Firestore
-    friendService = FriendService();
-    invitationService = GameInvitationService();
+  setUpAll(() async {
+    // Real FirebaseFirestore.instance has no backend to talk to under
+    // flutter_test; inject a shared in-memory fake instead, seeded with
+    // user docs so FriendService can denormalize displayName onto its
+    // friend-relationship records.
+    final firestore = FakeFirebaseFirestore();
+    for (final uid in [testUserId1, testUserId2, testUserId3]) {
+      await firestore.collection('users').doc(uid).set({
+        'displayName': 'User $uid',
+      });
+    }
+    friendService = FriendService(firestore: firestore);
+    invitationService = GameInvitationService(firestore: firestore);
   });
 
   group('Friend System Integration Tests', () {
