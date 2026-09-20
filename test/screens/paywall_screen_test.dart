@@ -215,7 +215,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Annual pricing should be visible
-      expect(findRichText('79.99'), findsWidgets);
+      expect(findRichText('29.99'), findsWidgets);
     });
 
     testWidgets('lifetime plan shown with annual pricing', (
@@ -236,7 +236,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Lifetime option
-      expect(findRichText('299.99'), findsWidgets);
+      expect(findRichText('89.99'), findsWidgets);
       expect(find.text('Lifetime'), findsWidgets);
     });
 
@@ -545,7 +545,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Savings message
-      expect(find.text('Save 33% with annual billing'), findsWidgets);
+      expect(find.text('Save 17% with annual billing'), findsWidgets);
     });
 
     testWidgets('close button closes screen', (WidgetTester tester) async {

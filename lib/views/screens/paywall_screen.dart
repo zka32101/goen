@@ -274,9 +274,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 _buildPricingCard(
                   context,
                   title: 'Annual',
-                  price: '79.99',
+                  price: '29.99',
                   period: '/year',
-                  description: 'Save 33% with annual billing',
+                  description: 'Save 17% with annual billing',
                   selected: _selectedPlan == SubscriptionPlan.annual,
                   onTap: () => setState(() => _selectedPlan = SubscriptionPlan.annual),
                 ),
@@ -284,7 +284,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 _buildPricingCard(
                   context,
                   title: 'Lifetime',
-                  price: '299.99',
+                  price: '89.99',
                   period: 'one-time',
                   description: 'Unlock forever with one payment',
                   isBestValue: true,
@@ -543,8 +543,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
   double _planPrice(SubscriptionPlan plan) => switch (plan) {
         SubscriptionPlan.monthly => 3.00,
-        SubscriptionPlan.annual => 79.99,
-        SubscriptionPlan.lifetime => 299.99,
+        SubscriptionPlan.annual => 29.99,
+        SubscriptionPlan.lifetime => 89.99,
       };
 
   void _handlePurchase(BuildContext context) async {
