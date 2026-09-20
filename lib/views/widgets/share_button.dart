@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
+import 'share_dialog.dart';
 
 /// Widget for sharing game results
 class GameShareButton extends ConsumerWidget {
@@ -63,10 +64,7 @@ $boardSizeEmoji ${gameData.boardSize}路盤
   ) async {
     final content = _generateShareContent();
     final success = await ref.read(
-      shareWithPlatformProvider(
-        content: content,
-        platform: platform,
-      ).future,
+      shareWithPlatformProvider((content: content, platform: platform)).future,
     );
 
     if (!context.mounted) return;
@@ -157,10 +155,7 @@ $difficultyEmoji 難易度: ${_getDifficultyLabel(puzzleData.difficulty)}
   ) async {
     final content = _generateShareContent();
     final success = await ref.read(
-      shareWithPlatformProvider(
-        content: content,
-        platform: platform,
-      ).future,
+      shareWithPlatformProvider((content: content, platform: platform)).future,
     );
 
     if (!context.mounted) return;

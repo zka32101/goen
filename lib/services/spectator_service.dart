@@ -315,7 +315,7 @@ class SpectatorService {
     int limit = 50,
   }) async {
     try {
-      Query query = _firestore
+      Query<Map<String, dynamic>> query = _firestore
           .collection('spectator_notifications')
           .doc(uid)
           .collection('messages');

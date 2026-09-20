@@ -44,7 +44,7 @@ class LeaderboardRankCardWidget extends StatelessWidget {
     }
 
     return Card(
-      color: Colors.gradient,
+      color: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

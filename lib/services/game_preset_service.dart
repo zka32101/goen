@@ -307,7 +307,7 @@ class GamePresetService {
           .count()
           .get();
 
-      return count.count;
+      return count.count ?? 0;
     } catch (e) {
       _logger.e('Failed to get preset count: $e');
       return 0;

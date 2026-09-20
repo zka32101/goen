@@ -5,7 +5,7 @@ part 'social_share_models.g.dart';
 
 /// Share data for a completed Go game
 @freezed
-class GameShareData with _$GameShareData {
+abstract class GameShareData with _$GameShareData {
   const factory GameShareData({
     required String gameId,
     required String result, // 'win', 'loss', 'draw'
@@ -23,7 +23,7 @@ class GameShareData with _$GameShareData {
 
 /// Share data for puzzle achievement
 @freezed
-class PuzzleShareData with _$PuzzleShareData {
+abstract class PuzzleShareData with _$PuzzleShareData {
   const factory PuzzleShareData({
     required String puzzleId,
     required String difficulty, // 'easy', 'medium', 'hard', 'master'
@@ -39,7 +39,7 @@ class PuzzleShareData with _$PuzzleShareData {
 
 /// Share data for user profile/progress
 @freezed
-class ProfileShareData with _$ProfileShareData {
+abstract class ProfileShareData with _$ProfileShareData {
   const factory ProfileShareData({
     required String userId,
     required String displayName,
@@ -56,7 +56,7 @@ class ProfileShareData with _$ProfileShareData {
 
 /// Generated share content with text and metadata
 @freezed
-class ShareContent with _$ShareContent {
+abstract class ShareContent with _$ShareContent {
   const factory ShareContent({
     required String text,
     required String hashtags,

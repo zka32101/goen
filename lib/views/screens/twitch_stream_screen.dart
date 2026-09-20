@@ -65,7 +65,7 @@ class TwitchStreamScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.streaming,
+            Icons.live_tv,
             size: 64,
             color: Colors.purple[400],
           ),

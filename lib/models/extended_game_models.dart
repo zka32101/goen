@@ -7,7 +7,7 @@ part 'extended_game_models.g.dart';
 
 /// Friend record
 @freezed
-class Friend with _$Friend {
+abstract class Friend with _$Friend {
   const factory Friend({
     required String uid,
     required String displayName,
@@ -23,7 +23,7 @@ class Friend with _$Friend {
 
 /// Game invitation between players
 @freezed
-class GameInvitation with _$GameInvitation {
+abstract class GameInvitation with _$GameInvitation {
   const factory GameInvitation({
     required String id,
     required String fromUid,
@@ -41,7 +41,7 @@ class GameInvitation with _$GameInvitation {
 
 /// Leaderboard entry
 @freezed
-class LeaderboardEntry with _$LeaderboardEntry {
+abstract class LeaderboardEntry with _$LeaderboardEntry {
   const factory LeaderboardEntry({
     required String userId,
     required String displayName,
@@ -61,7 +61,7 @@ class LeaderboardEntry with _$LeaderboardEntry {
 
 /// User profile extended
 @freezed
-class UserProfile with _$UserProfile {
+abstract class UserProfile with _$UserProfile {
   const factory UserProfile({
     required String uid,
     required String displayName,
@@ -82,7 +82,7 @@ class UserProfile with _$UserProfile {
 
 /// Handicap game settings (置き碁)
 @freezed
-class HandicapSettings with _$HandicapSettings {
+abstract class HandicapSettings with _$HandicapSettings {
   const factory HandicapSettings({
     required int handicapStones, // 2-9
     String? komiAdjustment, // Custom komi value
@@ -95,7 +95,7 @@ class HandicapSettings with _$HandicapSettings {
 
 /// Reusable game preset
 @freezed
-class GamePreset with _$GamePreset {
+abstract class GamePreset with _$GamePreset {
   const factory GamePreset({
     required String id,
     required String userId,
@@ -117,7 +117,7 @@ class GamePreset with _$GamePreset {
 
 /// Game statistics
 @freezed
-class GameStatistics with _$GameStatistics {
+abstract class GameStatistics with _$GameStatistics {
   const factory GameStatistics({
     required String userId,
     required int totalGamesPlayed,
@@ -140,7 +140,7 @@ class GameStatistics with _$GameStatistics {
 
 /// Game record for statistics
 @freezed
-class GameRecord with _$GameRecord {
+abstract class GameRecord with _$GameRecord {
   const factory GameRecord({
     required String gameId,
     required String result, // 'win', 'loss', 'draw'
@@ -160,7 +160,7 @@ class GameRecord with _$GameRecord {
 
 /// Achievement/Badge
 @freezed
-class Achievement with _$Achievement {
+abstract class Achievement with _$Achievement {
   const factory Achievement({
     required String id,
     required String name,

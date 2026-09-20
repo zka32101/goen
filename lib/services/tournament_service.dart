@@ -213,7 +213,7 @@ class TournamentService {
           .orderBy('scheduledAt');
 
       if (round != null) {
-        query = query.where('round', isEqualTo: round) as Query;
+        query = query.where('round', isEqualTo: round);
       }
 
       final snapshot = await query.get();

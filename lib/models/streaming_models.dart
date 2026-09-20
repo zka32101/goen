@@ -7,7 +7,7 @@ part 'streaming_models.g.dart';
 
 /// YouTube ビデオ共有用データ
 @freezed
-class YouTubeShareData with _$YouTubeShareData {
+abstract class YouTubeShareData with _$YouTubeShareData {
   const factory YouTubeShareData({
     required String userId,
     required String gameId,
@@ -26,7 +26,7 @@ class YouTubeShareData with _$YouTubeShareData {
 
 /// YouTube アップロード結果
 @freezed
-class YouTubeUploadResult with _$YouTubeUploadResult {
+abstract class YouTubeUploadResult with _$YouTubeUploadResult {
   const factory YouTubeUploadResult({
     required String videoId,
     required String title,
@@ -44,7 +44,7 @@ class YouTubeUploadResult with _$YouTubeUploadResult {
 
 /// Twitch ストリーム設定
 @freezed
-class TwitchStreamData with _$TwitchStreamData {
+abstract class TwitchStreamData with _$TwitchStreamData {
   const factory TwitchStreamData({
     required String userId,
     String? gameId, // 対局と紐付ける場合のみ設定（任意）
@@ -63,7 +63,7 @@ class TwitchStreamData with _$TwitchStreamData {
 
 /// Twitch ストリーム情報
 @freezed
-class TwitchStreamInfo with _$TwitchStreamInfo {
+abstract class TwitchStreamInfo with _$TwitchStreamInfo {
   const factory TwitchStreamInfo({
     required String streamId,
     required String channelName,
@@ -84,7 +84,7 @@ class TwitchStreamInfo with _$TwitchStreamInfo {
 
 /// AI ゲーム解説
 @freezed
-class AIExplanation with _$AIExplanation {
+abstract class AIExplanation with _$AIExplanation {
   const factory AIExplanation({
     required String id,
     required String gameId,
@@ -103,7 +103,7 @@ class AIExplanation with _$AIExplanation {
 
 /// AI 解説リクエスト
 @freezed
-class ExplanationRequest with _$ExplanationRequest {
+abstract class ExplanationRequest with _$ExplanationRequest {
   const factory ExplanationRequest({
     required String gameId,
     required int moveNumber,
@@ -119,7 +119,7 @@ class ExplanationRequest with _$ExplanationRequest {
 
 /// AI 解説チャット（リアルタイム）
 @freezed
-class ExplanationChat with _$ExplanationChat {
+abstract class ExplanationChat with _$ExplanationChat {
   const factory ExplanationChat({
     required String id,
     required String gameId,
@@ -137,7 +137,7 @@ class ExplanationChat with _$ExplanationChat {
 
 /// スポンサーシップレコード
 @freezed
-class SponsorshipRecord with _$SponsorshipRecord {
+abstract class SponsorshipRecord with _$SponsorshipRecord {
   const factory SponsorshipRecord({
     required String id,
     required String sponsorUserId,
@@ -159,7 +159,7 @@ class SponsorshipRecord with _$SponsorshipRecord {
 
 /// スポンサー情報
 @freezed
-class SponsorInfo with _$SponsorInfo {
+abstract class SponsorInfo with _$SponsorInfo {
   const factory SponsorInfo({
     required String userId,
     required String displayName,
@@ -176,7 +176,7 @@ class SponsorInfo with _$SponsorInfo {
 
 /// スポンサーシップティア（段階）
 @freezed
-class SponsorshipTier with _$SponsorshipTier {
+abstract class SponsorshipTier with _$SponsorshipTier {
   const factory SponsorshipTier({
     required String id,
     required String name, // '応援者', 'ファン', 'VIP応援者' など
@@ -193,7 +193,7 @@ class SponsorshipTier with _$SponsorshipTier {
 
 /// スポンサーシップ通知
 @freezed
-class SponsorshipNotification with _$SponsorshipNotification {
+abstract class SponsorshipNotification with _$SponsorshipNotification {
   const factory SponsorshipNotification({
     required String id,
     required String recipientUserId,
@@ -214,7 +214,7 @@ class SponsorshipNotification with _$SponsorshipNotification {
 
 /// ゲーム配信情報（YouTube + Twitch 統合）
 @freezed
-class GameStreamInfo with _$GameStreamInfo {
+abstract class GameStreamInfo with _$GameStreamInfo {
   const factory GameStreamInfo({
     required String gameId,
     String? youtubeVideoId,

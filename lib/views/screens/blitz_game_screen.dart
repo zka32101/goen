@@ -90,7 +90,9 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
           uid: widget.uid,
           boardSize: widget.boardSize,
           aiLevel: widget.aiLevel,
-          opponentUid: widget.opponentUid,
+          // BlitzGameRecord.opponentUid convention: 'ai' when there's no
+          // human opponent (see game_modes.dart's doc comment).
+          opponentUid: widget.opponentUid ?? 'ai',
         ),
       ),
     );

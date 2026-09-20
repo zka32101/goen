@@ -59,7 +59,7 @@ class NotificationScreen extends ConsumerWidget {
           separatorBuilder: (_, __) => Divider(color: Colors.grey[850], height: 1),
           itemBuilder: (context, index) {
             final n = notifications[index];
-            final gameId = n.type == 'pvp_challenge' ? n.data?['gameId'] as String? : null;
+            final gameId = n.type == 'pvp_challenge' ? (n.data?['gameId'] as String?) : null;
             return ListTile(
               tileColor: n.isRead ? null : Colors.amber[600]?.withOpacity(0.05),
               leading: Icon(_iconFor(n.type), color: n.isRead ? Colors.grey[500] : Colors.amber[600]),

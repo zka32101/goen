@@ -186,7 +186,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
 
     switch (type) {
       case GameModeType.blitz:
-        iconData = Icons.lightning_bolt;
+        iconData = Icons.bolt;
         color = Colors.red[400]!;
       case GameModeType.correspondence:
         iconData = Icons.schedule;
@@ -197,6 +197,12 @@ class GameModeSelectorScreen extends ConsumerWidget {
       case GameModeType.puzzleRush:
         iconData = Icons.quiz;
         color = Colors.purple[400]!;
+      case GameModeType.handicap:
+        iconData = Icons.balance;
+        color = Colors.orange[400]!;
+      case GameModeType.traditional:
+        iconData = Icons.grid_on;
+        color = Colors.grey[400]!;
     }
 
     return Icon(iconData, color: color, size: 28);
@@ -263,6 +269,12 @@ class GameModeSelectorScreen extends ConsumerWidget {
           _navigateToTeamGame(context, mode);
         case GameModeType.puzzleRush:
           _navigateToPuzzleRush(context, mode);
+        case GameModeType.handicap:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ハンディキャップ戦はまだ利用できません')),
+          );
+        case GameModeType.traditional:
+          Navigator.of(context).pushNamed('/ai-game');
       }
     });
   }

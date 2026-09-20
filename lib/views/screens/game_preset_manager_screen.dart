@@ -196,24 +196,24 @@ class _GamePresetManagerScreenState
                     ],
                   ),
                 ),
-                PopupMenuButton(
+                PopupMenuButton<String>(
                   color: Colors.grey[900],
                   itemBuilder: (context) => [
-                    PopupMenuItem(
-                      child: const Text('このプリセットでゲーム開始'),
+                    const PopupMenuItem(
+                      child: Text('このプリセットでゲーム開始'),
                       value: 'play',
                     ),
-                    PopupMenuItem(
-                      child: const Text('編集'),
+                    const PopupMenuItem(
+                      child: Text('編集'),
                       value: 'edit',
                     ),
-                    PopupMenuItem(
-                      child: const Text('複製'),
+                    const PopupMenuItem(
+                      child: Text('複製'),
                       value: 'duplicate',
                     ),
                     const PopupMenuDivider(),
-                    PopupMenuItem(
-                      child: const Text('削除', style: TextStyle(color: Colors.red)),
+                    const PopupMenuItem(
+                      child: Text('削除', style: TextStyle(color: Colors.red)),
                       value: 'delete',
                     ),
                   ],

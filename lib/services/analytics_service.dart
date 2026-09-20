@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:logger/logger.dart';
 import '../models/extended_game_models.dart';
 
@@ -356,7 +357,7 @@ class AnalyticsService {
     for (final game in games) {
       modeCount[game.gameMode] = (modeCount[game.gameMode] ?? 0) + 1;
     }
-    return modeCount.entries.maxBy((e) => e.value).key;
+    return maxBy(modeCount.entries, (e) => e.value)?.key ?? 'unknown';
   }
 
   int _getFavoriteLevel(List<GameRecord> games) {
@@ -364,7 +365,7 @@ class AnalyticsService {
     for (final game in games) {
       levelCount[game.aiLevel] = (levelCount[game.aiLevel] ?? 0) + 1;
     }
-    return levelCount.entries.maxBy((e) => e.value).key;
+    return maxBy(levelCount.entries, (e) => e.value)?.key ?? 0;
   }
 
   int _getFavoriteBoardSize(List<GameRecord> games) {
@@ -372,7 +373,7 @@ class AnalyticsService {
     for (final game in games) {
       sizeCount[game.boardSize] = (sizeCount[game.boardSize] ?? 0) + 1;
     }
-    return sizeCount.entries.maxBy((e) => e.value).key;
+    return maxBy(sizeCount.entries, (e) => e.value)?.key ?? 19;
   }
 
   bool _checkAchievementCondition(

@@ -138,14 +138,6 @@ class _FriendListItem extends StatelessWidget {
                         fontSize: 14,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'レート: ${friend.currentRating.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        color: Colors.amber[600],
-                        fontSize: 12,
-                      ),
-                    ),
                     if (friend.notes != null && friend.notes!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
@@ -196,7 +188,7 @@ class _FriendListItem extends StatelessWidget {
                     value: 'invite',
                     child: Row(
                       children: [
-                        Icon(Icons.sports_go,
+                        Icon(Icons.sports_esports,
                             size: 18, color: Colors.amber[600]),
                         const SizedBox(width: 12),
                         const Text('対局招待'),
@@ -239,13 +231,11 @@ class _FriendListItem extends StatelessWidget {
 class FriendChipWidget extends StatelessWidget {
   final Friend friend;
   final VoidCallback? onTap;
-  final bool showRating;
 
   const FriendChipWidget({
     Key? key,
     required this.friend,
     this.onTap,
-    this.showRating = true,
   }) : super(key: key);
 
   @override
@@ -294,17 +284,6 @@ class FriendChipWidget extends StatelessWidget {
               ),
             ),
 
-            if (showRating) ...[
-              const SizedBox(width: 8),
-              Text(
-                friend.currentRating.toStringAsFixed(0),
-                style: TextStyle(
-                  color: Colors.amber[600],
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
           ],
         ),
       ),

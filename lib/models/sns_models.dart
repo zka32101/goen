@@ -7,7 +7,7 @@ part 'sns_models.g.dart';
 
 /// Response from posting a tweet
 @freezed
-class TwitterTweetResponse with _$TwitterTweetResponse {
+abstract class TwitterTweetResponse with _$TwitterTweetResponse {
   const factory TwitterTweetResponse({
     required String tweetId,
     required String text,
@@ -21,7 +21,7 @@ class TwitterTweetResponse with _$TwitterTweetResponse {
 
 /// Twitter metrics for engagement tracking
 @freezed
-class TweetMetrics with _$TweetMetrics {
+abstract class TweetMetrics with _$TweetMetrics {
   const factory TweetMetrics({
     required String tweetId,
     required int likes,
@@ -40,7 +40,7 @@ class TweetMetrics with _$TweetMetrics {
 
 /// Response from posting to Facebook
 @freezed
-class FacebookPostResponse with _$FacebookPostResponse {
+abstract class FacebookPostResponse with _$FacebookPostResponse {
   const factory FacebookPostResponse({
     required String postId,
     required String message,
@@ -56,7 +56,7 @@ class FacebookPostResponse with _$FacebookPostResponse {
 
 /// Represents a new game mode configuration
 @freezed
-class GameMode with _$GameMode {
+abstract class GameMode with _$GameMode {
   const factory GameMode({
     required String id,
     required String name,
@@ -87,7 +87,7 @@ enum GameModeType {
 
 /// Active game session with mode info
 @freezed
-class GameSession with _$GameSession {
+abstract class GameSession with _$GameSession {
   const factory GameSession({
     required String sessionId,
     required String gameId,
@@ -107,7 +107,7 @@ class GameSession with _$GameSession {
 
 /// Friend relationship in the app
 @freezed
-class Friend with _$Friend {
+abstract class Friend with _$Friend {
   const factory Friend({
     required String userId,
     required String friendId,
@@ -132,7 +132,7 @@ enum FriendStatus {
 
 /// Game invitation to another player
 @freezed
-class GameInvitation with _$GameInvitation {
+abstract class GameInvitation with _$GameInvitation {
   const factory GameInvitation({
     required String invitationId,
     required String fromUserId,
@@ -159,7 +159,7 @@ enum InvitationStatus {
 
 /// Leaderboard entry
 @freezed
-class LeaderboardEntry with _$LeaderboardEntry {
+abstract class LeaderboardEntry with _$LeaderboardEntry {
   const factory LeaderboardEntry({
     required String userId,
     required String displayName,
@@ -187,7 +187,7 @@ enum LeaderboardScope {
 
 /// Tournament bracket structure
 @freezed
-class Tournament with _$Tournament {
+abstract class Tournament with _$Tournament {
   const factory Tournament({
     required String tournamentId,
     required String name,
@@ -223,7 +223,7 @@ enum TournamentFormat {
 
 /// Chat message during game observation
 @freezed
-class ChatMessage with _$ChatMessage {
+abstract class ChatMessage with _$ChatMessage {
   const factory ChatMessage({
     required String messageId,
     required String fromUserId,
@@ -241,7 +241,7 @@ class ChatMessage with _$ChatMessage {
 
 /// Track SNS shares for attribution
 @freezed
-class SocialShareTracking with _$SocialShareTracking {
+abstract class SocialShareTracking with _$SocialShareTracking {
   const factory SocialShareTracking({
     required String trackingId,
     required String userId,
@@ -258,7 +258,7 @@ class SocialShareTracking with _$SocialShareTracking {
 
 /// Share metrics for content analysis
 @freezed
-class ShareMetrics with _$ShareMetrics {
+abstract class ShareMetrics with _$ShareMetrics {
   const factory ShareMetrics({
     required String contentId,
     required int twitterShares,
@@ -276,7 +276,7 @@ class ShareMetrics with _$ShareMetrics {
 
 /// Social feature analytics
 @freezed
-class SocialAnalytics with _$SocialAnalytics {
+abstract class SocialAnalytics with _$SocialAnalytics {
   const factory SocialAnalytics({
     required String userId,
     required int friendCount,

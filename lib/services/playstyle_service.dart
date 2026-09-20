@@ -7,7 +7,7 @@ import '../models/game_record.dart';
 // uses. It's exported unambiguously via models/index.dart (see that
 // barrel's comments on the Friend collision), but importing it directly
 // here keeps this file's dependency explicit.
-import '../models/extended_game_models.dart';
+import '../models/extended_game_models.dart' hide GameRecord;
 import '../models/playstyle.dart';
 
 final _logger = Logger();

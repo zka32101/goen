@@ -48,7 +48,7 @@ class GameResultScreen extends ConsumerWidget {
 
     // Prepare game share data
     final gameShareData = GameShareData(
-      gameId: '${boardState.gameId ?? DateTime.now().millisecondsSinceEpoch}',
+      gameId: '${DateTime.now().millisecondsSinceEpoch}',
       result: winner == 'player' ? 'win' : winner == 'ai' ? 'loss' : 'draw',
       blackScore: blackScore ?? 0,
       whiteScore: whiteScore ?? 0,

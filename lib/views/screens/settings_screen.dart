@@ -528,7 +528,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const Divider(color: Colors.white10, height: 24),
         _buildConnectionRow(
           context,
-          icon: Icons.streaming,
+          icon: Icons.live_tv,
           label: 'Twitch 配信',
           onTap: () => Navigator.of(context).pushNamed('/twitch-stream'),
         ),

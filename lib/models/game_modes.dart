@@ -6,7 +6,7 @@ part 'game_modes.g.dart';
 
 /// Blitz ゲーム記録 - 5分急速戦
 @freezed
-class BlitzGameRecord with _$BlitzGameRecord {
+abstract class BlitzGameRecord with _$BlitzGameRecord {
   const factory BlitzGameRecord({
     required String id,
     required String uid,
@@ -62,7 +62,7 @@ class BlitzGameRecord with _$BlitzGameRecord {
 
 /// Correspondence ゲーム記録 - 手紙型ターン制対局
 @freezed
-class CorrespondenceGameRecord with _$CorrespondenceGameRecord {
+abstract class CorrespondenceGameRecord with _$CorrespondenceGameRecord {
   const factory CorrespondenceGameRecord({
     required String id,
     required String uid,
@@ -121,7 +121,7 @@ class CorrespondenceGameRecord with _$CorrespondenceGameRecord {
 
 /// Team ゲーム記録 - 2vs2 協力戦
 @freezed
-class TeamGameRecord with _$TeamGameRecord {
+abstract class TeamGameRecord with _$TeamGameRecord {
   const factory TeamGameRecord({
     required String id,
     required List<String> team1Players, // [player1, player2]
@@ -173,7 +173,7 @@ class TeamGameRecord with _$TeamGameRecord {
 
 /// Puzzle Rush レコード - タイム制マラソン
 @freezed
-class PuzzleRushRecord with _$PuzzleRushRecord {
+abstract class PuzzleRushRecord with _$PuzzleRushRecord {
   const factory PuzzleRushRecord({
     required String id,
     required String uid,

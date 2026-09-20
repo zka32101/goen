@@ -248,7 +248,7 @@ class CorrespondenceGameService {
           .count()
           .get();
 
-      final count = blackTurn.count + whiteTurn.count;
+      final count = (blackTurn.count ?? 0) + (whiteTurn.count ?? 0);
       _logger.i('Pending moves: $count');
       return count;
     } catch (e) {

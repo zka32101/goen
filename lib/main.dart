@@ -7,6 +7,8 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:logger/logger.dart';
 import 'firebase_options.dart';
 import 'config/theme.dart';
+import 'models/index.dart';
+import 'viewmodels/index.dart';
 import 'views/screens/index.dart';
 
 final _logger = Logger();
@@ -64,10 +66,10 @@ class GoEnApp extends ConsumerWidget {
         '/team-settings': (_) => const TeamGameSettingsScreen(),
         '/puzzle-rush-settings': (_) => const PuzzleRushSettingsScreen(),
         // Phase 61 Game Modes
-        '/blitz-game': (_) => const BlitzGameScreen(),
-        '/correspondence-game': (_) => const CorrespondenceGameScreen(),
-        '/team-game': (_) => const TeamGameScreen(),
-        '/puzzle-rush': (_) => const PuzzleRushScreen(),
+        '/blitz-game': (_) => BlitzGameScreenRouter(),
+        '/correspondence-game': (_) => CorrespondenceGameScreenRouter(),
+        '/team-game': (_) => TeamGameScreenRouter(),
+        '/puzzle-rush': (_) => PuzzleRushScreenRouter(),
         // Phase 5 screens
         '/tsume-go': (_) => const TsumeGoScreen(),
         '/kifu-observation': (_) => const KifuObservationScreen(),
@@ -112,6 +114,71 @@ class GameResultScreenRouter extends ConsumerWidget {
       result: args?['result'] ?? 'unknown',
       blackScore: args?['blackScore'] as double?,
       whiteScore: args?['whiteScore'] as double?,
+    );
+  }
+}
+
+/// Router for BlitzGameScreen - the settings screen navigates here passing
+/// the chosen BlitzGameSettings as route arguments; the screen itself needs
+/// the current user's uid too, which route arguments don't carry.
+class BlitzGameScreenRouter extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final settings = args?['settings'] as BlitzGameSettings?;
+    final uid = ref.watch(currentUserProvider)?.uid ?? '';
+
+    return BlitzGameScreen(
+      uid: uid,
+      opponentUid: settings?.opponentUid,
+      aiLevel: settings?.aiLevel.toString(),
+      boardSize: int.tryParse(settings?.boardSize ?? '') ?? 19,
+    );
+  }
+}
+
+/// Router for CorrespondenceGameScreen - see BlitzGameScreenRouter.
+class CorrespondenceGameScreenRouter extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final settings = args?['settings'] as CorrespondenceGameSettings?;
+    final uid = ref.watch(currentUserProvider)?.uid ?? '';
+
+    return CorrespondenceGameScreen(
+      uid: uid,
+      opponentUid: settings?.opponentUid ?? '',
+      boardSize: int.tryParse(settings?.boardSize ?? '') ?? 19,
+    );
+  }
+}
+
+/// Router for TeamGameScreen - see BlitzGameScreenRouter.
+class TeamGameScreenRouter extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final settings = args?['settings'] as TeamGameSettings?;
+
+    return TeamGameScreen(
+      team1Players: settings?.team1Uids ?? const [],
+      team2Players: settings?.team2Uids ?? const [],
+      boardSize: int.tryParse(settings?.boardSize ?? '') ?? 19,
+    );
+  }
+}
+
+/// Router for PuzzleRushScreen - see BlitzGameScreenRouter.
+class PuzzleRushScreenRouter extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final settings = args?['settings'] as PuzzleRushSettings?;
+    final uid = ref.watch(currentUserProvider)?.uid ?? '';
+
+    return PuzzleRushScreen(
+      uid: uid,
+      difficulty: settings?.difficulty ?? 'normal',
     );
   }
 }

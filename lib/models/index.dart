@@ -15,7 +15,24 @@ export 'social_share_models.dart';
 // stay the canonical ones. GameModeType is the reverse case: this is the
 // version actually wired to game_mode_service.dart / game_mode_provider.dart,
 // so it's hidden from game_modes.dart below instead.
-export 'sns_models.dart' hide Friend, LeaderboardEntry, Tournament, GameInvitation;
+// freezed also generates a public `$XCopyWith` mixin and an `XPatterns`
+// extension per class (not just the class name itself), so each hidden
+// class's CopyWith/Patterns must be hidden alongside it or the barrel
+// export is ambiguous.
+export 'sns_models.dart'
+    hide
+        Friend,
+        LeaderboardEntry,
+        Tournament,
+        GameInvitation,
+        $FriendCopyWith,
+        $LeaderboardEntryCopyWith,
+        $TournamentCopyWith,
+        $GameInvitationCopyWith,
+        FriendPatterns,
+        LeaderboardEntryPatterns,
+        TournamentPatterns,
+        GameInvitationPatterns;
 export 'streaming_models.dart';
 export 'game_modes.dart' hide GameModeType;
 export 'game_settings.dart';
@@ -24,7 +41,14 @@ export 'game_settings.dart';
 // with a different (Firestore-incompatible) shape; hide those two so the
 // dedicated models win. Its Friend/GameInvitation are the ones actually
 // wired to FriendService/GameInvitationService, so those stay exported.
-export 'extended_game_models.dart' hide GameRecord, LeaderboardEntry;
+export 'extended_game_models.dart'
+    hide
+        GameRecord,
+        LeaderboardEntry,
+        $GameRecordCopyWith,
+        $LeaderboardEntryCopyWith,
+        GameRecordPatterns,
+        LeaderboardEntryPatterns;
 export 'leaderboard.dart';
 // friend.dart's Friend (uid/friendUid/addedAt/isBlocked) isn't wired to any
 // working service (see friend_provider.dart) and collides with

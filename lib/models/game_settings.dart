@@ -4,7 +4,7 @@ part 'game_settings.freezed.dart';
 
 /// Blitz Game Settings
 @freezed
-class BlitzGameSettings with _$BlitzGameSettings {
+abstract class BlitzGameSettings with _$BlitzGameSettings {
   const factory BlitzGameSettings({
     required String boardSize, // '9', '13', '19'
     required int aiLevel, // 1-10
@@ -15,7 +15,7 @@ class BlitzGameSettings with _$BlitzGameSettings {
 
 /// Correspondence Game Settings
 @freezed
-class CorrespondenceGameSettings with _$CorrespondenceGameSettings {
+abstract class CorrespondenceGameSettings with _$CorrespondenceGameSettings {
   const factory CorrespondenceGameSettings({
     required String boardSize,
     required String opponentUid,
@@ -26,7 +26,7 @@ class CorrespondenceGameSettings with _$CorrespondenceGameSettings {
 
 /// Team Game Settings
 @freezed
-class TeamGameSettings with _$TeamGameSettings {
+abstract class TeamGameSettings with _$TeamGameSettings {
   const factory TeamGameSettings({
     required String boardSize,
     required List<String> team1Uids, // 2 players
@@ -36,7 +36,7 @@ class TeamGameSettings with _$TeamGameSettings {
 
 /// Puzzle Rush Settings
 @freezed
-class PuzzleRushSettings with _$PuzzleRushSettings {
+abstract class PuzzleRushSettings with _$PuzzleRushSettings {
   const factory PuzzleRushSettings({
     required String difficulty, // 'easy', 'normal', 'hard', 'expert'
     @Default(300) int sessionSeconds, // 5 minutes
@@ -45,7 +45,7 @@ class PuzzleRushSettings with _$PuzzleRushSettings {
 
 /// Generic Game Settings State
 @freezed
-class GameSettingsState with _$GameSettingsState {
+abstract class GameSettingsState with _$GameSettingsState {
   const factory GameSettingsState({
     BlitzGameSettings? blitzSettings,
     CorrespondenceGameSettings? correspondenceSettings,

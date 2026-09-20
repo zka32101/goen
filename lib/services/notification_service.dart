@@ -66,7 +66,7 @@ class NotificationService {
           .limit(limit);
 
       if (unreadOnly) {
-        query = query.where('isRead', isEqualTo: false) as Query;
+        query = query.where('isRead', isEqualTo: false);
       }
 
       final snapshot = await query.get();
