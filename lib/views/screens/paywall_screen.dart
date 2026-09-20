@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
+import 'package:goen/services/index.dart' show SubscriptionPlan, PurchaseUnavailableException;
 import 'package:goen/viewmodels/index.dart';
 
 final _logger = Logger();
@@ -520,8 +521,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   void _handlePurchase(BuildContext context) async {
     _logger.i('Processing purchase');
 
-    final plan = _showAnnual ? 'annual' : 'monthly';
-    final price = plan == 'annual' ? 79.99 : 9.99;
+    final plan = _showAnnual ? SubscriptionPlan.annual : SubscriptionPlan.monthly;
+    final planLabel = _showAnnual ? 'annual' : 'monthly';
+    final price = _showAnnual ? 79.99 : 9.99;
 
     // Show loading
     showDialog(
@@ -535,12 +537,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     );
 
     try {
-      // Simulate purchase processing (RevenueCat integration coming in Phase 58)
-      await Future.delayed(const Duration(seconds: 2));
+      await ref.read(purchaseSubscriptionProvider)(plan);
 
       // Log successful conversion after purchase completes
       await ref.read(logPaywallConvertedProvider)(
-        plan: plan,
+        plan: planLabel,
         price: price,
         currency: 'USD',
       );
@@ -549,7 +550,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Subscription activated! $plan plan'),
+            content: Text('Subscription activated! $planLabel plan'),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -558,6 +559,17 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         Navigator.of(context).pushNamedAndRemoveUntil(
           '/home',
           (route) => false,
+        );
+      }
+    } on PurchaseUnavailableException catch (e) {
+      _logger.w('Purchase unavailable: $e');
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     } catch (e) {

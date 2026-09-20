@@ -10,24 +10,36 @@ class AuthService {
   final FirestoreService _firestore = FirestoreService();
   final Logger _logger = Logger();
 
+  // `currentUser` below is a synchronous getter, so it can't itself await a
+  // Firestore read — instead every path that resolves a real User (the auth
+  // state stream, sign up/in) caches it here, and `currentUser` serves that
+  // cache. Without this, `currentUser` always fabricated a fresh User with
+  // subscriptionActive/tutorialCompleted/gamesPlayedCount hardcoded to
+  // false/0, which is what authServiceProvider → currentUserProvider is
+  // read through nearly everywhere in the app — the paywall would never
+  // actually gate anything, since isSubscriptionActiveProvider reads this.
+  User? _cachedUser;
+
   /// Get current user stream (reactive)
   Stream<User?> get authStateChanges {
     return _auth.authStateChanges().asyncMap((firebaseUser) async {
       if (firebaseUser == null) {
         _logger.i('User signed out');
+        _cachedUser = null;
         return null;
       }
 
       try {
         final firestoreUser = await _firestore.getUser(firebaseUser.uid);
         if (firestoreUser != null) {
+          _cachedUser = firestoreUser;
           return firestoreUser;
         }
       } catch (e) {
         _logger.w('Failed to fetch Firestore user, using fallback: $e');
       }
 
-      return User(
+      final fallback = User(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
         displayName: firebaseUser.displayName,
@@ -38,14 +50,23 @@ class AuthService {
         createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
+      _cachedUser = fallback;
+      return fallback;
     });
   }
 
-  /// Get current user (one-time, synchronous)
+  /// Get current user (one-time, synchronous). Serves the most recently
+  /// cached Firestore-synced profile when available (see [_cachedUser]);
+  /// otherwise falls back to a fresh, Firestore-field-less User (e.g. the
+  /// brief window before authStateChanges' first event arrives).
   User? get currentUser {
     final firebaseUser = _auth.currentUser;
     if (firebaseUser == null) {
       return null;
+    }
+
+    if (_cachedUser != null && _cachedUser!.uid == firebaseUser.uid) {
+      return _cachedUser;
     }
 
     return User(
@@ -59,6 +80,15 @@ class AuthService {
       createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
       updatedAt: DateTime.now(),
     );
+  }
+
+  /// Updates the cached profile immediately after a Firestore write this
+  /// service didn't itself make (e.g. a purchase or settings change), so
+  /// `currentUser`/`currentUserProvider` reflect it without waiting for the
+  /// next auth state transition. Callers should also
+  /// `ref.invalidate(currentUserProvider)` afterwards.
+  void refreshCachedUser(User user) {
+    _cachedUser = user;
   }
 
   /// Sign up with email and password

@@ -202,6 +202,13 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
 
   Future<void> _submit() async {
     final name = _nameController.text.trim();
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ログインが必要です')),
+      );
+      return;
+    }
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('大会名を入力してください')),
@@ -224,6 +231,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
         endDate: _endDate,
         maxParticipants: _maxParticipants,
         format: 'single_elimination',
+        createdByUid: currentUser.uid,
         boardSize: _boardSize,
       );
 

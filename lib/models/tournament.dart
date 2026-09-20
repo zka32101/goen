@@ -12,6 +12,9 @@ class Tournament {
   final String status; // 'upcoming', 'active', 'completed'
   final List<String> participantUids;
   final String? winnerId;
+  // 主催者のuid。startTournament等の主催者限定操作をrulesで判定するために
+  // 作成時に一度だけ設定し、以後は不変として扱う。
+  final String? createdBy;
   final int boardSize; // 対局に使う碁盤サイズ（9/13/19）
   // 次ラウンド生成済みの最大ラウンド番号（0=未生成）。
   // _advanceRoundIfCompleteの二重生成防止に使う内部管理フィールド。
@@ -29,6 +32,7 @@ class Tournament {
     required this.status,
     required this.participantUids,
     this.winnerId,
+    this.createdBy,
     this.boardSize = 19,
     this.lastAdvancedRound = 0,
     required this.createdAt,
@@ -51,6 +55,7 @@ class Tournament {
       status: data['status'] ?? 'upcoming',
       participantUids: List<String>.from(data['participantUids'] ?? []),
       winnerId: data['winnerId'],
+      createdBy: data['createdBy'],
       boardSize: data['boardSize'] as int? ?? 19,
       lastAdvancedRound: data['lastAdvancedRound'] as int? ?? 0,
       createdAt: data['createdAt'] is Timestamp
@@ -70,6 +75,7 @@ class Tournament {
       'status': status,
       'participantUids': participantUids,
       'winnerId': winnerId,
+      'createdBy': createdBy,
       'boardSize': boardSize,
       'lastAdvancedRound': lastAdvancedRound,
       'createdAt': Timestamp.fromDate(createdAt),

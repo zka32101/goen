@@ -70,6 +70,7 @@ final createTournamentProvider = Provider<
       required DateTime endDate,
       required int maxParticipants,
       required String format,
+      required String createdByUid,
       int boardSize,
     })>((ref) {
   final service = ref.read(tournamentServiceProvider);
@@ -81,6 +82,7 @@ final createTournamentProvider = Provider<
     required DateTime endDate,
     required int maxParticipants,
     required String format,
+    required String createdByUid,
     int boardSize = 19,
   }) async {
     _logger.i('Creating tournament');
@@ -92,6 +94,7 @@ final createTournamentProvider = Provider<
         endDate: endDate,
         maxParticipants: maxParticipants,
         format: format,
+        createdByUid: createdByUid,
         boardSize: boardSize,
       );
       _logger.i('✅ Tournament created');

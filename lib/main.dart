@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:logger/logger.dart';
 import 'firebase_options.dart';
 import 'config/theme.dart';
@@ -17,6 +20,15 @@ void main() async {
   );
 
   _logger.i('Firebase initialized');
+
+  // Route uncaught errors to Crashlytics (declared as a dependency but
+  // never actually wired up before this) so production crashes are
+  // visible instead of silently dropped.
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   runApp(
     const ProviderScope(
@@ -77,6 +89,8 @@ class GoEnApp extends ConsumerWidget {
         '/sponsorship': (_) => const SponsorshipScreen(),
         '/twitch-stream': (_) => const TwitchStreamScreen(),
         '/youtube-share': (_) => const YouTubeShareScreen(),
+        '/privacy-policy': (_) => const LegalDocumentScreen(kind: LegalDocumentKind.privacyPolicy),
+        '/terms-of-service': (_) => const LegalDocumentScreen(kind: LegalDocumentKind.termsOfService),
       },
       onUnknownRoute: (_) {
         return MaterialPageRoute(

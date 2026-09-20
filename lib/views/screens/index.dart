@@ -50,3 +50,4 @@ export 'pvp_game_screen.dart';
 export 'fateful_moves_screen.dart';
 export 'concurrent_players_screen.dart';
 export 'en_score_screen.dart';
+export 'legal_document_screen.dart';

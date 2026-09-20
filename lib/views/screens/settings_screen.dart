@@ -826,16 +826,12 @@ AI解説で碁を上達しよう！''';
 
   void _handleOpenTerms(BuildContext context) {
     _logger.i('Opening terms of service');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Terms of Service - Phase 5.4')),
-    );
+    Navigator.of(context).pushNamed('/terms-of-service');
   }
 
   void _handleOpenPrivacyPolicy(BuildContext context) {
     _logger.i('Opening privacy policy');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Privacy Policy - Phase 5.4')),
-    );
+    Navigator.of(context).pushNamed('/privacy-policy');
   }
 
   void _handleOpenCredits(BuildContext context) {

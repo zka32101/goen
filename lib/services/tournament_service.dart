@@ -20,6 +20,7 @@ class TournamentService {
     required DateTime endDate,
     required int maxParticipants,
     required String format,
+    required String createdByUid,
     int boardSize = 19,
   }) async {
     try {
@@ -36,6 +37,7 @@ class TournamentService {
         format: format,
         status: 'upcoming',
         participantUids: [],
+        createdBy: createdByUid,
         boardSize: boardSize,
         createdAt: DateTime.now(),
       );
