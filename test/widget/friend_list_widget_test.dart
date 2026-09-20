@@ -39,13 +39,10 @@ void main() {
         ),
       );
 
-      // Verify friends are displayed
+      // Verify friends are displayed (Friend has no rating field, so
+      // there's nothing rating-related to check here)
       expect(find.text('Friend One'), findsOneWidget);
       expect(find.text('Friend Two'), findsOneWidget);
-
-      // Verify ratings are displayed
-      expect(find.text('1800'), findsOneWidget);
-      expect(find.text('1600'), findsOneWidget);
     });
 
     testWidgets('Displays loading state', (WidgetTester tester) async {
@@ -143,13 +140,12 @@ void main() {
         ),
       );
 
-      // Perform pull-to-refresh
-      await tester.flingFrom(
-        const Offset(100, 300),
-        const Offset(0, 100),
-        1000,
-      );
-      await tester.pumpAndSettle();
+      // Perform pull-to-refresh. RefreshIndicator needs a held drag past
+      // its threshold before release, not a quick fling from an
+      // arbitrary point - drag the actual scrollable down.
+      await tester.drag(find.byType(ListView), const Offset(0, 300));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(refreshed, isTrue);
     });
@@ -213,9 +209,8 @@ void main() {
         ),
       );
 
-      // Verify name and rating are displayed
+      // Verify name is displayed (Friend has no rating field)
       expect(find.text('Chip Friend'), findsOneWidget);
-      expect(find.text('1800'), findsOneWidget);
     });
 
     testWidgets('Calls onTap when tapped', (WidgetTester tester) async {
@@ -382,21 +377,6 @@ void main() {
         notes: 'Test note',
         avatarUrl: null,
       );
-    });
-
-    testWidgets('Displays rating with decimal precision', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: FriendListWidget(
-              friends: [friend],
-            ),
-          ),
-        ),
-      );
-
-      // Verify rating is displayed
-      expect(find.text('レート: 1850'), findsOneWidget);
     });
 
     testWidgets('Handles friend with missing avatar gracefully', (WidgetTester tester) async {
