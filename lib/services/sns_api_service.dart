@@ -11,12 +11,14 @@ class SnsApiService {
   final String? twitterBearerToken;
   final String? facebookAccessToken;
   final String? instagramAccessToken;
+  final http.Client _client;
 
   SnsApiService({
     this.twitterBearerToken,
     this.facebookAccessToken,
     this.instagramAccessToken,
-  });
+    http.Client? client,
+  }) : _client = client ?? http.Client();
 
   // Twitter/X API v2 Integration
   /// Post a tweet with game result
@@ -40,7 +42,7 @@ class SnsApiService {
           },
       };
 
-      final response = await http.post(
+      final response = await _client.post(
         url,
         headers: {
           'Authorization': 'Bearer $twitterBearerToken',
@@ -83,7 +85,7 @@ class SnsApiService {
         ..headers['Authorization'] = 'Bearer $twitterBearerToken'
         ..fields['media_data'] = base64Encode(imageBytes);
 
-      final streamResponse = await request.send();
+      final streamResponse = await _client.send(request);
       final response = await http.Response.fromStream(streamResponse);
 
       if (response.statusCode == 200) {
@@ -127,7 +129,7 @@ class SnsApiService {
             },
         };
 
-        final response = await http.post(
+        final response = await _client.post(
           url,
           headers: {
             'Authorization': 'Bearer $twitterBearerToken',
@@ -176,7 +178,7 @@ class SnsApiService {
         'access_token': facebookAccessToken,
       };
 
-      final response = await http.post(
+      final response = await _client.post(
         url,
         body: body,
       );
@@ -221,7 +223,7 @@ class SnsApiService {
         'https://api.twitter.com/2/tweets/$tweetId?tweet.fields=public_metrics,created_at',
       );
 
-      final response = await http.get(
+      final response = await _client.get(
         url,
         headers: {
           'Authorization': 'Bearer $twitterBearerToken',
@@ -260,7 +262,7 @@ class SnsApiService {
         'https://api.twitter.com/2/users/$userId/tweets?max_results=$maxResults&tweet.fields=created_at,public_metrics',
       );
 
-      final response = await http.get(
+      final response = await _client.get(
         url,
         headers: {
           'Authorization': 'Bearer $twitterBearerToken',
