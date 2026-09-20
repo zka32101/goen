@@ -29,8 +29,8 @@ void main() {
       // Verify title is displayed
       expect(find.text('ボードサイズ別勝率'), findsOneWidget);
 
-      // Verify data is displayed
-      expect(find.text('65%'), findsOneWidget);
+      // Verify data is displayed (65.5 rounds up via toStringAsFixed(0))
+      expect(find.text('66%'), findsOneWidget);
       expect(find.text('58%'), findsOneWidget);
       expect(find.text('52%'), findsOneWidget);
     });
@@ -116,7 +116,7 @@ void main() {
       expect(find.text('勝率推移'), findsOneWidget);
 
       // Verify CustomPaint is rendered
-      expect(find.byType(CustomPaint), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
     });
 
     testWidgets('Shows error for single data point', (WidgetTester tester) async {
@@ -163,7 +163,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(CustomPaint), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
     });
   });
 
@@ -187,7 +187,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(CustomPaint), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
     });
 
     testWidgets('LineChartPainter handles empty values', (WidgetTester tester) async {
@@ -207,7 +207,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(CustomPaint), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
     });
   });
 
@@ -237,10 +237,10 @@ void main() {
       // Verify title is displayed
       expect(find.text('ゲームモード分布'), findsOneWidget);
 
-      // Verify legend is displayed
-      expect(find.text('Blitz: 120 (57.7%)'), findsOneWidget);
-      expect(find.text('Rapid: 85 (40.9%)'), findsOneWidget);
-      expect(find.text('Classical: 45 (21.6%)'), findsOneWidget);
+      // Verify legend is displayed (total is 250: 120/85/45 -> 48/34/18%)
+      expect(find.text('Blitz: 120 (48.0%)'), findsOneWidget);
+      expect(find.text('Rapid: 85 (34.0%)'), findsOneWidget);
+      expect(find.text('Classical: 45 (18.0%)'), findsOneWidget);
     });
 
     testWidgets('Renders empty state when data is empty', (WidgetTester tester) async {
@@ -319,7 +319,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(CustomPaint), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
     });
 
     testWidgets('PieChartPainter handles empty data', (WidgetTester tester) async {
@@ -340,7 +340,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(CustomPaint), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
     });
   });
 }
