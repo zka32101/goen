@@ -25,11 +25,15 @@ void main() {
         ),
       );
 
-      // Verify semantic labels for main actions
-      expect(find.bySemanticsLabel('Play'), findsWidgets);
-      expect(find.bySemanticsLabel('Daily Puzzle'), findsWidgets);
-      expect(find.bySemanticsLabel('Watch & Learn'), findsWidgets);
-      expect(find.bySemanticsLabel('Settings'), findsWidgets);
+      // Verify semantic labels for main actions (real card titles/tooltip -
+      // this screen has no cards titled "Play"/"Daily Puzzle"/"Settings").
+      // Each card's title Text merges with its sibling subtitle Text into
+      // one combined semantics label, so match by substring rather than
+      // exact equality.
+      expect(find.bySemanticsLabel(RegExp('Play AI Game')), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp("Today's Puzzle")), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp('Watch & Learn')), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp('Settings')), findsWidgets);
 
       print('✓ Home screen has complete semantic coverage');
     });
@@ -62,14 +66,19 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
+                // excludeSemantics: true so this label stands alone instead
+                // of merging with (and being overridden by) the TextField's
+                // own richer semantics underneath it.
                 Semantics(
                   label: 'Username',
+                  excludeSemantics: true,
                   child: const TextField(
                     decoration: InputDecoration(labelText: 'Enter username'),
                   ),
                 ),
                 Semantics(
                   label: 'Password',
+                  excludeSemantics: true,
                   child: const TextField(
                     decoration: InputDecoration(labelText: 'Enter password'),
                     obscureText: true,
@@ -97,6 +106,7 @@ void main() {
                 5,
                 (index) => Semantics(
                   label: 'Game $index',
+                  excludeSemantics: true,
                   child: ListTile(
                     title: Text('Game ${index + 1}'),
                     subtitle: Text('Result: ${index % 2 == 0 ? 'Win' : 'Loss'}'),
@@ -140,6 +150,7 @@ void main() {
               child: Semantics(
                 enabled: true,
                 label: 'Error: Connection failed. Please check your internet connection.',
+                excludeSemantics: true,
                 child: const Text('Connection Error'),
               ),
             ),
@@ -164,6 +175,7 @@ void main() {
               child: Semantics(
                 enabled: true,
                 label: 'AI is thinking...',
+                excludeSemantics: true,
                 child: const Text('AI Move In Progress'),
               ),
             ),
@@ -204,6 +216,7 @@ void main() {
                     enabled: true,
                     label: 'Play new game',
                     button: true,
+                    excludeSemantics: true,
                     child: const Text('Play'),
                   ),
                 ),
@@ -213,6 +226,7 @@ void main() {
                     enabled: true,
                     label: 'Learn more about Go',
                     link: true,
+                    excludeSemantics: true,
                     child: const Text('Learn'),
                   ),
                 ),
@@ -272,12 +286,14 @@ void main() {
                 Semantics(
                   enabled: true,
                   label: 'Main heading',
+                  excludeSemantics: true,
                   child: const Text('Go Learning',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 ),
                 Semantics(
                   enabled: true,
                   label: 'Subheading',
+                  excludeSemantics: true,
                   child: const Text('Recent Games',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
@@ -304,16 +320,21 @@ void main() {
                   enabled: true,
                   label: 'Skip to main content',
                   button: true,
+                  excludeSemantics: true,
                   child: const SizedBox(
                     height: 0,
                     child: Text('Skip'),
                   ),
                 ),
-                Semantics(
-                  enabled: true,
-                  label: 'Main content area',
-                  child: const Expanded(
-                    child: Center(
+                // Expanded must be a direct child of a Flex (this Column) -
+                // Semantics has to wrap its *child* instead, not the other
+                // way around, or ParentDataWidget application throws.
+                Expanded(
+                  child: Semantics(
+                    enabled: true,
+                    label: 'Main content area',
+                    excludeSemantics: true,
+                    child: const Center(
                       child: Text('Game Content'),
                     ),
                   ),
@@ -342,12 +363,14 @@ void main() {
                   Semantics(
                     enabled: true,
                     label: 'Game Result',
+                    excludeSemantics: true,
                     child: const Text('You Won!',
                         style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
                   ),
                   Semantics(
                     enabled: true,
                     label: 'Final score: You 15 points, AI 10 points',
+                    excludeSemantics: true,
                     child: const Text('15 - 10'),
                   ),
                 ],
