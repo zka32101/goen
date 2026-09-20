@@ -187,7 +187,7 @@ void main() {
         final kFactor = avgInvitationsSent * conversionRate;
 
         // Then
-        expect(kFactor, 0.6);
+        expect(kFactor, closeTo(0.6, 0.0001));
       });
 
       test('Determines if content is viral (k > 1)', () async {
@@ -216,8 +216,8 @@ void main() {
           currentUsers = currentUsers * viralCoefficient;
         }
 
-        // Then
-        expect(currentUsers, greaterThan(7600));
+        // Then (100 * 1.5^5 = 759.375)
+        expect(currentUsers, greaterThan(700));
       });
 
       test('Measures viral half-life (time to half engagement)', () async {
@@ -289,7 +289,7 @@ void main() {
         final churnDifference = lowEngagementChurn - highEngagementChurn;
 
         // Then
-        expect(churnDifference, 0.30);
+        expect(churnDifference, closeTo(0.30, 0.0001));
       });
 
       test('Measures leaderboard participation effect on retention', () async {
