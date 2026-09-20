@@ -1,27 +1,19 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/services/game_mode_service.dart';
 import 'package:goen/services/blitz_game_service.dart';
 import 'package:goen/services/correspondence_game_service.dart';
 import 'package:goen/services/team_game_service.dart';
 import 'package:goen/models/sns_models.dart';
-import 'package:mockito/mockito.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-// Mock Firestore
-class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
-
-class MockCollectionReference extends Mock
-    implements CollectionReference<Map<String, dynamic>> {}
-
-class MockDocumentReference extends Mock
-    implements DocumentReference<Map<String, dynamic>> {}
 
 void main() {
   group('Game Mode Management Tests', () {
+    late FakeFirebaseFirestore firestore;
     late GameModeService gameModeService;
 
     setUp(() {
-      gameModeService = GameModeService();
+      firestore = FakeFirebaseFirestore();
+      gameModeService = GameModeService(firestore: firestore);
     });
 
     group('Game Mode CRUD Operations', () {
@@ -48,6 +40,15 @@ void main() {
       test('Retrieves specific game mode by ID', () async {
         // Given
         final modeId = 'blitz-mode';
+        await firestore.collection('game_modes').doc(modeId).set({
+          'name': 'Blitz',
+          'description': '5分の高速対局',
+          'timeLimit': 300,
+          'difficulty': 'normal',
+          'type': 'blitz',
+          'maxPlayers': 2,
+          'isActive': true,
+        });
 
         // When
         final mode = await gameModeService.getGameMode(modeId);
@@ -205,10 +206,12 @@ void main() {
   });
 
   group('Blitz Game Service Tests', () {
+    late FakeFirebaseFirestore firestore;
     late BlitzGameService blitzService;
 
     setUp(() {
-      blitzService = BlitzGameService();
+      firestore = FakeFirebaseFirestore();
+      blitzService = BlitzGameService(firestore: firestore);
     });
 
     test('Starts Blitz game with 5-minute timer', () async {
@@ -232,36 +235,49 @@ void main() {
     });
 
     test('Adds move to Blitz game', () async {
-      // Given
-      final gameId = 'blitz-game-001';
+      // Given - addMove only updates an existing document (matches real
+      // Firestore, which also rejects update() on a missing doc)
+      final game = await blitzService.startBlitzGame(
+        uid: 'user-1',
+        boardSize: 19,
+        opponentUid: 'user-2',
+      );
       final move = 'Q16'; // Standard Go notation
       final playerColor = 'white';
 
       // When
       await blitzService.addMove(
-        gameId: gameId,
+        gameId: game.id,
         move: move,
         playerColor: playerColor,
       );
 
       // Then - Move was added (verified by no exception thrown)
+      final doc = await firestore.collection('blitzGames').doc(game.id).get();
+      expect(doc.data()?['moveHistory'], contains(move));
     });
 
     test('Handles rapid move sequences in Blitz', () async {
       // Given
-      final gameId = 'blitz-rapid-001';
+      final game = await blitzService.startBlitzGame(
+        uid: 'user-3',
+        boardSize: 19,
+        opponentUid: 'user-4',
+      );
       final moves = ['Q16', 'D4', 'Q3', 'C3'];
 
       // When
       for (final move in moves) {
         await blitzService.addMove(
-          gameId: gameId,
+          gameId: game.id,
           move: move,
           playerColor: move.hashCode.isEven ? 'black' : 'white',
         );
       }
 
       // Then - All moves processed without timeout
+      final doc = await firestore.collection('blitzGames').doc(game.id).get();
+      expect(doc.data()?['moveHistory'], moves);
     });
   });
 
@@ -269,7 +285,7 @@ void main() {
     late CorrespondenceGameService correspondenceService;
 
     setUp(() {
-      correspondenceService = CorrespondenceGameService();
+      correspondenceService = CorrespondenceGameService(firestore: FakeFirebaseFirestore());
     });
 
     test('Starts turn-based Correspondence game', () async {
@@ -295,7 +311,7 @@ void main() {
     late TeamGameService teamService;
 
     setUp(() {
-      teamService = TeamGameService();
+      teamService = TeamGameService(firestore: FakeFirebaseFirestore());
     });
 
     test('Creates 2vs2 team game session', () async {
@@ -332,24 +348,35 @@ void main() {
   });
 
   group('Cross-Mode Features', () {
+    late FakeFirebaseFirestore firestore;
     late GameModeService gameModeService;
 
     setUp(() {
-      gameModeService = GameModeService();
+      firestore = FakeFirebaseFirestore();
+      gameModeService = GameModeService(firestore: firestore);
     });
 
     test('Generates statistics by game mode', () async {
-      // Given
-      final userId = 'user-stats-789';
+      // Given - getGameModeStats aggregates over the shared 'games'
+      // collection filtered by modeId, not a per-user breakdown
+      final modeId = 'blitz';
+      await firestore.collection('games').add({
+        'modeId': modeId,
+        'durationSeconds': 200,
+      });
+      await firestore.collection('games').add({
+        'modeId': modeId,
+        'durationSeconds': 400,
+      });
 
       // When
-      final stats = await gameModeService.getGameModeStats(userId);
+      final stats = await gameModeService.getGameModeStats(modeId);
 
       // Then
       expect(stats, isNotNull);
-      expect(stats.containsKey('blitz'), true);
-      expect(stats.containsKey('correspondence'), true);
-      expect(stats.containsKey('team'), true);
+      expect(stats['modeId'], modeId);
+      expect(stats['totalGames'], 2);
+      expect(stats.containsKey('avgDuration'), true);
     });
 
   });

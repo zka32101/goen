@@ -57,6 +57,7 @@ dev_dependencies:
   mockito: ^5.4.4
   freezed: ^4.0.2
   json_serializable: ^6.14.1
+  fake_cloud_firestore: ^2.5.2
 
 flutter:
   uses-material-design: true
