@@ -66,6 +66,7 @@ void main() {
           child: const GameModeSelectorScreen(),
         ),
       );
+      await tester.pump();
 
       // Verify modes are displayed
       expect(find.text('ブリッツ'), findsOneWidget);
@@ -87,6 +88,7 @@ void main() {
           child: const GameModeSelectorScreen(),
         ),
       );
+      await tester.pump();
 
       // Verify empty state
       expect(find.byIcon(Icons.sports_esports_outlined), findsOneWidget);
@@ -110,6 +112,7 @@ void main() {
           child: const GameModeSelectorScreen(),
         ),
       );
+      await tester.pump();
 
       // Verify error state
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
@@ -138,19 +141,34 @@ void main() {
         ],
       );
 
+      // Built directly (not via TestUtils.buildTestableWidget) so
+      // '/blitz-settings' is a registered route: _selectMode navigates
+      // there 300ms after selecting a blitz mode, and letting that timer
+      // fire against an unregistered route would throw.
       await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
+        UncontrolledProviderScope(
           container: container,
-          child: const GameModeSelectorScreen(),
+          child: MaterialApp(
+            home: const GameModeSelectorScreen(),
+            routes: {
+              '/blitz-settings': (_) => const Scaffold(body: Text('stub')),
+            },
+          ),
         ),
       );
+      await tester.pump();
 
-      // Tap on the mode card
+      // Tap on the mode card. Only GameModeType.handicap shows a
+      // SnackBar; blitz (used here) instead navigates to
+      // '/blitz-settings' 300ms later.
       await tester.tap(find.text('ブリッツ'));
-      await tester.pumpAndSettle();
 
-      // Verify success message appears
-      expect(find.byType(SnackBar), findsWidgets);
+      expect(container.read(selectedGameModeProvider)?.id, 'blitz_1');
+      expect(container.read(gameModeUIProvider).selectedMode?.id, 'blitz_1');
+
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      expect(find.text('stub'), findsOneWidget);
     });
 
     /// Test 6: Game modes have correct difficulty badges
@@ -190,6 +208,7 @@ void main() {
           child: const GameModeSelectorScreen(),
         ),
       );
+      await tester.pump();
 
       // Verify difficulty badges appear
       expect(find.text('初級'), findsOneWidget);
@@ -224,6 +243,7 @@ void main() {
           child: const GameModeSelectorScreen(),
         ),
       );
+      await tester.pump();
 
       // Verify time limit is displayed
       expect(find.text('300秒'), findsOneWidget);
@@ -257,6 +277,7 @@ void main() {
           child: const GameModeSelectorScreen(),
         ),
       );
+      await tester.pump();
 
       // Verify max players is displayed
       expect(find.text('最大4人'), findsOneWidget);
@@ -289,6 +310,7 @@ void main() {
           child: const GameModeSelectorScreen(),
         ),
       );
+      await tester.pump();
 
       // Tap back button
       await tester.tap(find.byIcon(Icons.arrow_back));
@@ -336,6 +358,7 @@ void main() {
           child: const GameModeSelectorScreen(),
         ),
       );
+      await tester.pump();
 
       // Verify icons appear (lightning for blitz, group for team)
       expect(find.byIcon(Icons.bolt), findsOneWidget);
