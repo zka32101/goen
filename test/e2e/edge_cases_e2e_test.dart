@@ -88,9 +88,9 @@ void main() {
         ),
       );
 
-      // Rapidly tap different buttons
+      // Rapidly tap different buttons (real card title, not "Play")
       for (int i = 0; i < 5; i++) {
-        final playButton = find.text('Play').first;
+        final playButton = find.text('Play AI Game');
         if (playButton.evaluate().isNotEmpty) {
           await tester.tap(playButton);
           // Don't wait for settle, immediately go back
