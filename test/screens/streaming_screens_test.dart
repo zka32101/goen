@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/screens/index.dart';
+import '../fixtures/test_data.dart';
 import '../test_utils.dart';
 
 void main() {
@@ -9,7 +11,23 @@ void main() {
     late ProviderContainer testContainer;
 
     setUp(() {
-      testContainer = TestUtils.createTestContainer();
+      final uid = TestData.testUser.uid;
+      testContainer = ProviderContainer(
+        overrides: [
+          currentUserProvider.overrideWithValue(TestData.testUser),
+          // These all call real Firestore-backed services underneath,
+          // which errors out with no Firestore connection in a plain
+          // `flutter test` process - override with "not connected"/"no
+          // data" so each screen's normal (non-error) branches render.
+          youtubeConnectedProvider(uid).overrideWith((ref) async => false),
+          twitchConnectedProvider(uid).overrideWith((ref) async => false),
+          sponsorInfoProvider(uid).overrideWith((ref) async => null),
+          incomingSponsorsProvider(uid).overrideWith((ref) async => []),
+          sponsorshipNotificationsProvider(
+            uid,
+          ).overrideWith((ref) async => []),
+        ],
+      );
     });
 
     /// Test 1: YouTubeShareScreen displays loading state
@@ -34,6 +52,8 @@ void main() {
           child: const YouTubeShareScreen(),
         ),
       );
+      await tester.pump();
+      await tester.pump();
 
       // Verify UI elements appear
       expect(find.byIcon(Icons.video_library), findsOneWidget);
@@ -49,6 +69,8 @@ void main() {
           child: const YouTubeShareScreen(),
         ),
       );
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('YouTube で接続'), findsOneWidget);
     });
@@ -75,6 +97,8 @@ void main() {
           child: const TwitchStreamScreen(),
         ),
       );
+      await tester.pump();
+      await tester.pump();
 
       expect(find.byIcon(Icons.live_tv), findsOneWidget);
       expect(find.text('Twitch チャンネルを接続'), findsOneWidget);
@@ -89,6 +113,8 @@ void main() {
           child: const TwitchStreamScreen(),
         ),
       );
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('Twitch で接続'), findsOneWidget);
     });
@@ -115,10 +141,13 @@ void main() {
           child: const SponsorshipScreen(),
         ),
       );
+      await tester.pump();
+      await tester.pump();
 
-      // Verify empty state UI
+      // Verify empty state UI (the AppBar title and the body heading both
+      // legitimately show this text)
       expect(find.byIcon(Icons.favorite_border), findsOneWidget);
-      expect(find.text('スポンサーシップ'), findsOneWidget);
+      expect(find.text('スポンサーシップ'), findsWidgets);
     });
 
     /// Test 9: YouTubeShareScreen AppBar
