@@ -334,6 +334,17 @@ final applyPassProvider = Provider<bool Function()>((ref) {
       koCol: null,
     );
 
+    // Record the pass in move history (but NOT via addMoveProvider, since
+    // that also increments movesCountProvider — a pass isn't a stone
+    // placement) so it's preserved in the saved SGF instead of silently
+    // vanishing from a game's move sequence. row/col -1 marks a pass; see
+    // generateSgfFromMoves.
+    final history = ref.read(moveHistoryProvider);
+    ref.read(moveHistoryProvider.notifier).state = [
+      ...history,
+      (row: -1, col: -1, player: player == 1 ? 'black' : 'white'),
+    ];
+
     ref.read(lastPlayerPassedProvider.notifier).state = true;
     final passes = ref.read(consecutivePassesProvider.notifier).state + 1;
     ref.read(consecutivePassesProvider.notifier).state = passes;

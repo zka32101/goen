@@ -76,6 +76,10 @@ String generateSgfFromMoves(
   final buffer = StringBuffer('(;GM[1]FF[4]SZ[$boardSize]');
   for (final move in moves) {
     final color = move.player == 'black' ? 'B' : 'W';
+    if (move.row < 0 || move.col < 0) {
+      buffer.write(';$color[]'); // pass (matches parseSgfMoves' empty-coord check)
+      continue;
+    }
     buffer.write(';$color[${_coordToSgfChar(move.col)}${_coordToSgfChar(move.row)}]');
   }
   buffer.write(')');
