@@ -1,12 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/views/screens/onboarding_screen.dart';
 import 'package:goen/views/screens/splash_screen.dart';
 import 'package:goen/views/screens/home_screen.dart';
 import 'package:goen/views/screens/ai_game_screen.dart';
 import 'package:goen/views/screens/game_result_screen.dart';
 import '../test_utils.dart';
 import '../fixtures/test_data.dart';
+
+/// SplashScreen always pushes a *named* route ('/home' or '/onboarding')
+/// once auth state resolves - TestUtils.buildTestableWidget's MaterialApp
+/// only sets `home:`, so pumping SplashScreen through it crashes with
+/// "Could not find a generator for route" the moment navigation fires.
+Widget _buildSplashTestableApp(ProviderContainer container) {
+  return UncontrolledProviderScope(
+    container: container,
+    child: MaterialApp(
+      home: const SplashScreen(),
+      theme: ThemeData.dark(),
+      routes: {
+        '/onboarding': (_) => const OnboardingScreen(),
+        '/home': (_) => const HomeScreen(),
+      },
+    ),
+  );
+}
 
 void main() {
   group('UI Automation: App Flow Scenarios', () {
@@ -21,12 +40,7 @@ void main() {
     testWidgets('🤖 Automation: Complete game flow (AI vs Player)',
         (WidgetTester tester) async {
       // Step 1: Start at splash
-      await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const SplashScreen(),
-          container: container,
-        ),
-      );
+      await tester.pumpWidget(_buildSplashTestableApp(container));
 
       expect(find.byType(SplashScreen), findsWidgets);
       print('✓ Step 1: Splash screen loaded');
@@ -34,7 +48,13 @@ void main() {
       // Step 2: Wait for navigation
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Step 3: Navigate to home
+      // Step 3: Navigate to home. Pumping a placeholder first forces a full
+      // teardown of the Splash MaterialApp's Navigator - otherwise Flutter's
+      // element-tree reconciliation treats the next MaterialApp as an update
+      // of the same one (same runtimeType at this position) and keeps its
+      // existing Navigator, imperative route stack (still on Onboarding,
+      // from Splash's own real navigation) and all.
+      await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const HomeScreen(),
@@ -46,10 +66,11 @@ void main() {
       print('✓ Step 2: Home screen reached');
 
       // Step 4: Tap Play button
-      await tester.tap(find.text('Play').first);
+      await tester.tap(find.text('Play AI Game').first);
       await tester.pumpAndSettle();
 
       // Step 5: Verify game screen
+      await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const AIGameScreen(),
@@ -77,6 +98,7 @@ void main() {
       }
 
       // Step 8: Verify result screen
+      await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const GameResultScreen(result: 'win'),
@@ -170,8 +192,15 @@ void main() {
 
     testWidgets('🤖 Automation: Multiple game sessions',
         (WidgetTester tester) async {
-      // Simulate 3 consecutive games
+      // Simulate 3 consecutive games. A SizedBox.shrink() reset before each
+      // pumpWidget forces a full teardown of the previous MaterialApp's
+      // Navigator - otherwise Flutter's element-tree reconciliation treats
+      // the next MaterialApp as an update of the same one (same runtimeType
+      // at this position) and keeps its existing Navigator/route stack,
+      // which after a resign is sitting on an unregistered '/game-result'
+      // route this minimal test harness never resolved.
       for (int gameNum = 1; gameNum <= 3; gameNum++) {
+        await tester.pumpWidget(const SizedBox.shrink());
         await tester.pumpWidget(
           TestUtils.buildTestableWidget(
             child: const HomeScreen(),
@@ -180,9 +209,10 @@ void main() {
         );
 
         // Play game
-        await tester.tap(find.text('Play').first);
+        await tester.tap(find.text('Play AI Game').first);
         await tester.pumpAndSettle();
 
+        await tester.pumpWidget(const SizedBox.shrink());
         await tester.pumpWidget(
           TestUtils.buildTestableWidget(
             child: const AIGameScreen(),
@@ -244,7 +274,7 @@ void main() {
 
       // Navigate back and forth to trigger recovery
       for (int i = 0; i < 3; i++) {
-        final playButton = find.text('Play');
+        final playButton = find.text('Play AI Game');
         if (playButton.evaluate().isNotEmpty) {
           await tester.tap(playButton.first);
           await tester.pumpAndSettle();
@@ -272,7 +302,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Play').first);
+      await tester.tap(find.text('Play AI Game').first);
       await tester.pumpAndSettle();
 
       stopwatch.stop();
