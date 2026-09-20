@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
@@ -37,6 +39,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
   late int _selectedRow;
   late int _selectedCol;
   late int _timeRemainingSeconds;
+  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -52,7 +55,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
   }
 
   void _startTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
+    _countdownTimer = Timer(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
           _timeRemainingSeconds--;
@@ -71,7 +74,9 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('時間切れです')),
     );
-    Navigator.of(context).pop();
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
   }
 
   String _formatTime(int seconds) {
@@ -420,6 +425,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _logger.i('BlitzGameScreen disposed');
     super.dispose();
   }

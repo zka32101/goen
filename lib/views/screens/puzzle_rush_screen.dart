@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
@@ -34,6 +36,7 @@ class PuzzleRushScreen extends ConsumerStatefulWidget {
 class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
   late int _timeRemainingSeconds;
   int _currentCombo = 0;
+  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -47,7 +50,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
   }
 
   void _startTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
+    _countdownTimer = Timer(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
           _timeRemainingSeconds--;
@@ -66,7 +69,9 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('セッションが終了しました')),
     );
-    Navigator.of(context).pop();
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
   }
 
   String _formatTime(int seconds) {
@@ -562,6 +567,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _logger.i('PuzzleRushScreen disposed');
     super.dispose();
   }

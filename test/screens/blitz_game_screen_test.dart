@@ -7,11 +7,6 @@ import 'package:goen/views/screens/index.dart';
 
 import '../test_utils.dart';
 
-// Mock Providers
-final mockBlitzGameServiceProvider = Provider<MockBlitzGameService>((ref) {
-  return MockBlitzGameService();
-});
-
 class MockBlitzGameService {
   Future<BlitzGameRecord> startBlitzGame({
     required String uid,
@@ -40,16 +35,32 @@ class MockBlitzGameService {
   }
 }
 
+/// Overrides [startBlitzGameProvider] so BlitzGameScreen never touches a
+/// real Firestore connection (there is none in a plain `flutter test`
+/// process), returning the mock's fixed successful record instead.
+ProviderContainer _buildContainer() {
+  return ProviderContainer(
+    overrides: [
+      startBlitzGameProvider.overrideWith(
+        (ref, params) => MockBlitzGameService().startBlitzGame(
+          uid: params.uid,
+          boardSize: params.boardSize,
+          aiLevel: params.aiLevel,
+          opponentUid: params.opponentUid,
+        ),
+      ),
+    ],
+  );
+}
+
 void main() {
   group('BlitzGameScreen Widget Tests', () {
     testWidgets('初期レンダリング - ローディング状態', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -60,14 +71,15 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-              aiLevel: '5',
-            ),
+            uid: 'test-user',
+            boardSize: 19,
+            aiLevel: '5',
           ),
+          container: _buildContainer(),
+        ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       expect(find.byType(AppBar), findsOneWidget);
       expect(find.text('Blitz ゲーム'), findsWidgets);
@@ -76,12 +88,11 @@ void main() {
     testWidgets('タイマー表示 - 初期5分', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       expect(find.text('残り時間'), findsWidgets);
     });
@@ -89,10 +100,8 @@ void main() {
     testWidgets('戻るボタンクリック - Navigator.pop()', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-            uid: 'test-user',
-            boardSize: 19,
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
         ),
       );
 
@@ -103,12 +112,14 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 9,
-              aiLevel: '3',
-            ),
+            uid: 'test-user',
+            boardSize: 9,
+            aiLevel: '3',
           ),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       expect(find.text('ボードサイズ'), findsWidgets);
       expect(find.text('AIレベル'), findsWidgets);
@@ -117,12 +128,11 @@ void main() {
     testWidgets('着手履歴の表示 - 空状態', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       expect(find.text('着手履歴'), findsWidgets);
     });
@@ -130,12 +140,11 @@ void main() {
     testWidgets('アクションボタン - 着手提出ボタン表示', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       expect(find.text('着手を提出'), findsWidgets);
     });
@@ -143,12 +152,11 @@ void main() {
     testWidgets('ゲーム終了ボタン - 表示確認', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       expect(find.text('ゲーム終了'), findsWidgets);
     });
@@ -156,12 +164,11 @@ void main() {
     testWidgets('エラー状態表示 - エラーメッセージ表示', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       expect(find.byType(AppBar), findsOneWidget);
     });
@@ -169,26 +176,25 @@ void main() {
     testWidgets('ダークモード確認 - 背景色が黒系', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
 
       final scaffold = find.byType(Scaffold);
       expect(scaffold, findsOneWidget);
     });
 
-    testWidgets('レスポンシブレイアウト - SingleChildScrollView使用', (WidgetTester tester) async {
+    testWidgets('レスポンシブレイアウト - SingleChildScrollView使用', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       expect(find.byType(SingleChildScrollView), findsWidgets);
     });
@@ -197,11 +203,12 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 9,
-              aiLevel: '3',
-            ),
+            uid: 'test-user',
+            boardSize: 9,
+            aiLevel: '3',
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(BlitzGameScreen), findsOneWidget);
@@ -211,11 +218,12 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-              aiLevel: '5',
-            ),
+            uid: 'test-user',
+            boardSize: 19,
+            aiLevel: '5',
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(BlitzGameScreen), findsOneWidget);
@@ -224,25 +232,26 @@ void main() {
     testWidgets('ロギング確認 - initState時のログ記録', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user-123',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user-123', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(BlitzGameScreen), findsOneWidget);
     });
 
-    testWidgets('プロバイダー統合 - startBlitzGameProvider呼び出し', (WidgetTester tester) async {
+    testWidgets('プロバイダー統合 - startBlitzGameProvider呼び出し', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-              aiLevel: '5',
-            ),
+            uid: 'test-user',
+            boardSize: 19,
+            aiLevel: '5',
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -251,12 +260,11 @@ void main() {
     testWidgets('操作: 着手提出ボタンクリック可能性確認', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       final button = find.text('着手を提出');
       expect(button, findsWidgets);
@@ -265,12 +273,11 @@ void main() {
     testWidgets('操作: ゲーム終了ボタンクリック可能性確認', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
 
       final button = find.text('ゲーム終了');
       expect(button, findsWidgets);
@@ -279,14 +286,16 @@ void main() {
     testWidgets('状態遷移: ローディング → データ表示', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: BlitzGameScreen(
-              uid: 'test-user',
-              boardSize: 19,
-            ),
-          ),
+          child: BlitzGameScreen(uid: 'test-user', boardSize: 19),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      await tester.pump();
+
+      expect(find.text('残り時間'), findsWidgets);
     });
   });
 }

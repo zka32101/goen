@@ -6,11 +6,8 @@ class ShareDialog extends StatelessWidget {
   final ShareContent content;
   final Function(SocialPlatform platform) onShare;
 
-  const ShareDialog({
-    Key? key,
-    required this.content,
-    required this.onShare,
-  }) : super(key: key);
+  const ShareDialog({Key? key, required this.content, required this.onShare})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,124 +20,129 @@ class ShareDialog extends StatelessWidget {
         ),
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'シェア先を選択',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'シェア先を選択',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(color: Colors.grey),
-            // Platform buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
-                children: [
-                  _PlatformButton(
-                    icon: Icons.favorite,
-                    label: 'X (Twitter)',
-                    color: Colors.blue[600]!,
-                    onTap: () {
-                      onShare(SocialPlatform.twitter);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _PlatformButton(
-                    icon: Icons.groups,
-                    label: 'Facebook',
-                    color: Colors.blue[800]!,
-                    onTap: () {
-                      onShare(SocialPlatform.facebook);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _PlatformButton(
-                    icon: Icons.chat,
-                    label: 'WhatsApp',
-                    color: Colors.green[600]!,
-                    onTap: () {
-                      onShare(SocialPlatform.whatsapp);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _PlatformButton(
-                    icon: Icons.textsms,
-                    label: 'LINE',
-                    color: Colors.green[700]!,
-                    onTap: () {
-                      onShare(SocialPlatform.line);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _PlatformButton(
-                    icon: Icons.content_copy,
-                    label: 'クリップボードにコピー',
-                    color: Colors.grey[700]!,
-                    onTap: () {
-                      onShare(SocialPlatform.clipboard);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Preview
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey[850],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'プレビュー',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    content.text,
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white70,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-          ],
+              const Divider(color: Colors.grey),
+              // Platform buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Column(
+                  children: [
+                    _PlatformButton(
+                      icon: Icons.favorite,
+                      label: 'X (Twitter)',
+                      color: Colors.blue[600]!,
+                      onTap: () {
+                        onShare(SocialPlatform.twitter);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _PlatformButton(
+                      icon: Icons.groups,
+                      label: 'Facebook',
+                      color: Colors.blue[800]!,
+                      onTap: () {
+                        onShare(SocialPlatform.facebook);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _PlatformButton(
+                      icon: Icons.chat,
+                      label: 'WhatsApp',
+                      color: Colors.green[600]!,
+                      onTap: () {
+                        onShare(SocialPlatform.whatsapp);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _PlatformButton(
+                      icon: Icons.textsms,
+                      label: 'LINE',
+                      color: Colors.green[700]!,
+                      onTap: () {
+                        onShare(SocialPlatform.line);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _PlatformButton(
+                      icon: Icons.content_copy,
+                      label: 'クリップボードにコピー',
+                      color: Colors.grey[700]!,
+                      onTap: () {
+                        onShare(SocialPlatform.clipboard);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Preview
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[850],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'プレビュー',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      content.text,
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

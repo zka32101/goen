@@ -159,49 +159,47 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _buildCard1_Welcome(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.pets,
-            size: 120,
-            color: Colors.amber[600],
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'Welcome to 碁縁',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Learn Go at your own pace. No time pressure, just pure strategy.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
-              height: 1.6,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.amber[600]!, width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'We\'ll teach you the basics in 3 simple steps',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.amber[600],
-                fontWeight: FontWeight.w600,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.pets, size: 120, color: Colors.amber[600]),
+            const SizedBox(height: 32),
+            Text(
+              'Welcome to 碁縁',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              'Learn Go at your own pace. No time pressure, just pure strategy.',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Colors.white70,
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.amber[600]!, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'We\'ll teach you the basics in 3 simple steps',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.amber[600],
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -210,79 +208,81 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _buildCard2_YourMove(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Tap 1: Your Move',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Tap 1: Your Move',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          // Mini board visualization
-          Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.amber[600]!, width: 2),
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.amber[100]?.withOpacity(0.1),
-            ),
-            child: Stack(
-              children: [
-                // Grid lines
-                CustomPaint(
-                  painter: _GoGridPainter(),
-                  size: const Size(200, 200),
-                ),
-                // Black stone
-                Positioned(
-                  left: 75,
-                  top: 75,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black38,
-                          blurRadius: 4,
-                          offset: Offset(2, 2),
-                        ),
-                      ],
+            // Mini board visualization
+            Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.amber[600]!, width: 2),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.amber[100]?.withOpacity(0.1),
+              ),
+              child: Stack(
+                children: [
+                  // Grid lines
+                  CustomPaint(
+                    painter: _GoGridPainter(),
+                    size: const Size(200, 200),
+                  ),
+                  // Black stone
+                  Positioned(
+                    left: 75,
+                    top: 75,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black38,
+                            blurRadius: 4,
+                            offset: Offset(2, 2),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                // Annotation arrow
-                Positioned(
-                  right: -20,
-                  top: 80,
-                  child: Icon(
-                    Icons.arrow_forward,
-                    color: Colors.amber[600],
-                    size: 32,
+                  // Annotation arrow
+                  Positioned(
+                    right: -20,
+                    top: 80,
+                    child: Icon(
+                      Icons.arrow_forward,
+                      color: Colors.amber[600],
+                      size: 32,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          Text(
-            'Place your first black stone anywhere on the board.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
-              height: 1.6,
+            Text(
+              'Place your first black stone anywhere on the board.',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Colors.white70,
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -291,119 +291,121 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _buildCard3_Capture(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Tap 3: Capture!',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Tap 3: Capture!',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'The Aha Moment',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.amber[600],
-              fontWeight: FontWeight.w600,
+            const SizedBox(height: 8),
+            Text(
+              'The Aha Moment',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.amber[600],
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          // Mini board visualization
-          Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.amber[600]!, width: 2),
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.amber[100]?.withOpacity(0.1),
+            // Mini board visualization
+            Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.amber[600]!, width: 2),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.amber[100]?.withOpacity(0.1),
+              ),
+              child: Stack(
+                children: [
+                  // Grid lines
+                  CustomPaint(
+                    painter: _GoGridPainter(),
+                    size: const Size(200, 200),
+                  ),
+                  // White stone (AI's move)
+                  Positioned(
+                    left: 100,
+                    top: 75,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black, width: 1),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black38,
+                            blurRadius: 4,
+                            offset: Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Black stone (player's capture)
+                  Positioned(
+                    left: 100,
+                    top: 50,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black38,
+                            blurRadius: 4,
+                            offset: Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Original black stone
+                  Positioned(
+                    left: 75,
+                    top: 75,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black38,
+                            blurRadius: 4,
+                            offset: Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Stack(
-              children: [
-                // Grid lines
-                CustomPaint(
-                  painter: _GoGridPainter(),
-                  size: const Size(200, 200),
-                ),
-                // White stone (AI's move)
-                Positioned(
-                  left: 100,
-                  top: 75,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black, width: 1),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black38,
-                          blurRadius: 4,
-                          offset: Offset(2, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // Black stone (player's capture)
-                Positioned(
-                  left: 100,
-                  top: 50,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black38,
-                          blurRadius: 4,
-                          offset: Offset(2, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // Original black stone
-                Positioned(
-                  left: 75,
-                  top: 75,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black38,
-                          blurRadius: 4,
-                          offset: Offset(2, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          Text(
-            'AI plays white. Now place your second black stone to surround and capture the white stone. This is the fundamental tactic in Go!',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
-              height: 1.6,
+            Text(
+              'AI plays white. Now place your second black stone to surround and capture the white stone. This is the fundamental tactic in Go!',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Colors.white70,
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -442,11 +444,7 @@ class _GoGridPainter extends CustomPainter {
 
     // Horizontal lines
     for (int i = 0; i <= 4; i++) {
-      canvas.drawLine(
-        Offset(0, i * step),
-        Offset(size.width, i * step),
-        paint,
-      );
+      canvas.drawLine(Offset(0, i * step), Offset(size.width, i * step), paint);
     }
 
     // Vertical lines
