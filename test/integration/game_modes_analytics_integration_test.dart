@@ -1,3 +1,4 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/models/extended_game_models.dart';
 import 'package:goen/services/game_preset_service.dart';
@@ -10,8 +11,11 @@ void main() {
   const testUserId = 'test-user-analytics';
 
   setUpAll(() {
-    presetService = GamePresetService();
-    analyticsService = AnalyticsService();
+    // Real FirebaseFirestore.instance has no backend to talk to under
+    // flutter_test; inject a shared in-memory fake instead.
+    final firestore = FakeFirebaseFirestore();
+    presetService = GamePresetService(firestore: firestore);
+    analyticsService = AnalyticsService(firestore: firestore);
   });
 
   group('Game Preset Service Integration Tests', () {

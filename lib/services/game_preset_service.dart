@@ -45,7 +45,10 @@ class GamePresetService {
         'aiLevel': aiLevel,
         'playerColor': playerColor ?? 'black',
         'handicap': handicap?.toJson(),
-        'createdAt': DateTime.now(),
+        // GamePreset.fromJson parses createdAt via DateTime.parse(json[...]
+        // as String) - a raw DateTime would round-trip through Firestore
+        // as a Timestamp and fail that cast on every later read.
+        'createdAt': DateTime.now().toIso8601String(),
         'usageCount': 0,
       });
 
@@ -284,7 +287,7 @@ class GamePresetService {
           'id': presetId,
           'userId': userId,
           ...preset,
-          'createdAt': now,
+          'createdAt': now.toIso8601String(),
           'usageCount': 0,
         });
       }

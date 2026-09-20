@@ -174,8 +174,11 @@ class AnalyticsService {
     try {
       _logger.i('Getting game distribution for user: $userId');
 
+      // gameRecord.toJson() stores playedAt as an ISO8601 string (see
+      // GameRecord's generated toJson), so the query operand needs the
+      // same type/format for Firestore to actually match against it.
       final cutoffDate =
-          DateTime.now().subtract(Duration(days: daysBack));
+          DateTime.now().subtract(Duration(days: daysBack)).toIso8601String();
 
       final querySnapshot = await _firestore
           .collection('users')
@@ -343,8 +346,14 @@ class AnalyticsService {
         'averageGameDuration': avgDuration / 60,
         'favoriteGameMode': favoriteGameMode,
         'favoriteAiLevel': favoriteAiLevel,
-        'favoriteBoardSize': favoriteBoardSize,
-        'lastPlayedAt': DateTime.now(),
+        // GameStatistics.favoriteBoardSize is a String despite
+        // _getFavoriteBoardSize returning an int - stringify to match what
+        // fromJson actually casts it as, or every later read throws.
+        'favoriteBoardSize': favoriteBoardSize.toString(),
+        // GameStatistics.fromJson parses lastPlayedAt via
+        // DateTime.parse(json[...] as String) - a raw DateTime would
+        // round-trip through Firestore as a Timestamp and fail that cast.
+        'lastPlayedAt': DateTime.now().toIso8601String(),
         'recentGames': recentGames.map((g) => g.toJson()).toList(),
       }, SetOptions(merge: true));
     } catch (e) {
