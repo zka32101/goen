@@ -1,9 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:goen/models/index.dart';
+import 'package:goen/viewmodels/index.dart';
+import 'package:goen/views/screens/index.dart';
 
 import '../test_utils.dart';
-import 'package:goen/views/screens/index.dart';
+
+/// Overrides [startTeamGameProvider] so TeamGameScreen never touches a
+/// real Firestore connection (there is none in a plain `flutter test`
+/// process), returning a fixed successful record instead.
+ProviderContainer _buildContainer() {
+  return ProviderContainer(
+    overrides: [
+      startTeamGameProvider.overrideWith(
+        (ref, params) async => TeamGameRecord(
+          id: 'test-team-game-1',
+          team1Players: params.team1Players,
+          team2Players: params.team2Players,
+          boardSize: params.boardSize,
+          startedAt: DateTime.now(),
+          endedAt: DateTime.now(),
+          durationSeconds: 0,
+          result: 'draw',
+          winningTeam: 'draw',
+          moveHistory: const [],
+          sgfData: '',
+          team1Moves: '',
+          team2Moves: '',
+          createdAt: DateTime.now(),
+        ),
+      ),
+    ],
+  );
+}
 
 void main() {
   group('TeamGameScreen Widget Tests', () {
@@ -11,11 +41,12 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-              boardSize: 19,
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
+            boardSize: 19,
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(AppBar), findsOneWidget);
@@ -26,10 +57,11 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -39,13 +71,15 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
       expect(find.byType(SingleChildScrollView), findsWidgets);
     });
 
@@ -53,14 +87,16 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['alice', 'bob'],
-              team2Players: ['charlie', 'david'],
-              boardSize: 19,
-            ),
+            team1Players: ['alice', 'bob'],
+            team2Players: ['charlie', 'david'],
+            boardSize: 19,
           ),
+          container: _buildContainer(),
+        ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
@@ -68,11 +104,12 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-              boardSize: 9,
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
+            boardSize: 9,
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -82,11 +119,12 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-              boardSize: 13,
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
+            boardSize: 13,
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -96,11 +134,12 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-              boardSize: 19,
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
+            boardSize: 19,
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -110,25 +149,31 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
       final scaffold = find.byType(Scaffold);
       expect(scaffold, findsOneWidget);
     });
 
-    testWidgets('レスポンシブレイアウト - SingleChildScrollView確認', (WidgetTester tester) async {
+    testWidgets('レスポンシブレイアウト - SingleChildScrollView確認', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
+      await tester.pump();
+      await tester.pump();
 
       expect(find.byType(SingleChildScrollView), findsWidgets);
     });
@@ -137,13 +182,15 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
       expect(find.text('着手を提出'), findsWidgets);
     });
 
@@ -151,13 +198,15 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
       expect(find.text('ゲーム終了'), findsWidgets);
     });
 
@@ -165,10 +214,11 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['user-alpha', 'user-beta'],
-              team2Players: ['user-gamma', 'user-delta'],
-            ),
+            team1Players: ['user-alpha', 'user-beta'],
+            team2Players: ['user-gamma', 'user-delta'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -181,10 +231,11 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
@@ -197,27 +248,32 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(TeamGameScreen), findsOneWidget);
     });
 
-    testWidgets('プロバイダー統合 - startTeamGameProvider呼び出し', (WidgetTester tester) async {
+    testWidgets('プロバイダー統合 - startTeamGameProvider呼び出し', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-              boardSize: 19,
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
+            boardSize: 19,
           ),
+          container: _buildContainer(),
+        ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
@@ -225,10 +281,11 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(AppBar), findsOneWidget);
@@ -238,10 +295,11 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
@@ -251,10 +309,11 @@ void main() {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: TeamGameScreen(
-              team1Players: ['player1', 'player2'],
-              team2Players: ['player3', 'player4'],
-            ),
+            team1Players: ['player1', 'player2'],
+            team2Players: ['player3', 'player4'],
           ),
+          container: _buildContainer(),
+        ),
       );
 
       expect(find.byType(Scaffold), findsOneWidget);

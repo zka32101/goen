@@ -46,7 +46,7 @@ void main() {
           ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.byType(SingleChildScrollView), findsWidgets);
     });
 
@@ -129,7 +129,7 @@ void main() {
           ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.byType(AppBar), findsOneWidget);
     });
 
@@ -201,7 +201,7 @@ void main() {
           ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
       expect(find.byType(SingleChildScrollView), findsWidgets);
     });
 
