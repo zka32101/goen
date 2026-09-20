@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/config/theme.dart';
 import 'package:goen/views/screens/ai_game_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 
@@ -45,9 +46,9 @@ void main() {
       );
 
       // Verify game info text
-      expect(find.text('Board Size'), findsWidgets);
+      expect(find.text('盤の大きさ'), findsWidgets);
       expect(find.text('9×9'), findsWidgets);
-      expect(find.text('Moves'), findsWidgets);
+      expect(find.text('手数'), findsWidgets);
       expect(find.text('0'), findsWidgets);
     });
 
@@ -60,7 +61,7 @@ void main() {
       );
 
       // Verify app bar shows AI level
-      expect(find.text('AI Game - Level 5'), findsWidgets);
+      expect(find.text('対局 - Level 5'), findsWidgets);
     });
 
     testWidgets('displays board grid painter', (WidgetTester tester) async {
@@ -83,10 +84,11 @@ void main() {
         ),
       );
 
-      // Verify control buttons
+      // Verify control buttons (the "New Game" label only shows once the
+      // game is no longer active - it reads "Playing..." while active).
       expect(find.text('Pass'), findsWidgets);
       expect(find.text('Resign'), findsWidgets);
-      expect(find.text('New Game'), findsWidgets);
+      expect(find.text('Playing...'), findsWidgets);
     });
 
     testWidgets('pass button enabled when game active',
@@ -157,7 +159,7 @@ void main() {
       final scaffold = find.byType(Scaffold).first;
       final scaffoldWidget = tester.widget<Scaffold>(scaffold);
 
-      expect(scaffoldWidget.backgroundColor, Colors.black87);
+      expect(scaffoldWidget.backgroundColor, AppColors.bgDark);
     });
 
     testWidgets('board is 300x300 pixels', (WidgetTester tester) async {
@@ -234,7 +236,7 @@ void main() {
       final appBarWidget = tester.widget<AppBar>(appBar);
 
       expect(appBarWidget.centerTitle, true);
-      expect(appBarWidget.backgroundColor, Colors.black);
+      expect(appBarWidget.backgroundColor, AppColors.primaryDark);
       expect(appBarWidget.elevation, 0);
     });
   });

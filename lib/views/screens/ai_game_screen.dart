@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
@@ -86,11 +88,14 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       );
       final applied = ref.read(applyMoveProvider)(aiMove.row, aiMove.col);
       if (!applied) {
-        _logger.e('❌ AI returned an illegal move: [${aiMove.row},${aiMove.col}]');
+        _logger.e(
+          '❌ AI returned an illegal move: [${aiMove.row},${aiMove.col}]',
+        );
         return;
       }
       final afterState = ref.read(gameBoardStateProvider);
-      final capturedDelta = (afterState.capturedBlack - beforeCaptures.black) +
+      final capturedDelta =
+          (afterState.capturedBlack - beforeCaptures.black) +
           (afterState.capturedWhite - beforeCaptures.white);
       if (capturedDelta > 0) {
         playCaptureFeedback();
@@ -123,7 +128,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           Positioned.fill(
             child: IgnorePointer(
               child: CustomPaint(
-                painter: SeigaihaPatternPainter(color: AppColors.accent.withOpacity(0.04)),
+                painter: SeigaihaPatternPainter(
+                  color: AppColors.accent.withOpacity(0.04),
+                ),
               ),
             ),
           ),
@@ -141,16 +148,16 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                       children: [
                         Text(
                           '盤の大きさ',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.grey500,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.grey500),
                         ),
                         Text(
                           '${boardState.boardSize}×${boardState.boardSize}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: AppColors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ],
                     ),
@@ -158,16 +165,16 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                       children: [
                         Text(
                           'アゲハマ（黒/白）',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.grey500,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.grey500),
                         ),
                         Text(
                           '${boardState.capturedBlack} / ${boardState.capturedWhite}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: AppColors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ],
                     ),
@@ -176,16 +183,16 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                       children: [
                         Text(
                           '手数',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.grey500,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.grey500),
                         ),
                         Text(
                           '$movesCount',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: AppColors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ],
                     ),
@@ -207,57 +214,70 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
               if (moveHistory.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _buildMoveList(context, moveHistory, boardState.boardSize),
+                  child: _buildMoveList(
+                    context,
+                    moveHistory,
+                    boardState.boardSize,
+                  ),
                 ),
 
               // Position evaluation display
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: _buildPositionEvaluation(context, ref),
               ),
 
-          // Game controls
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // AI move status
-                if (ref.watch(aiMoveProvider).isLoading)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: _AiThinkingIndicator(),
-                  ),
-
-                // Button row
-                Row(
+              // Game controls
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: isGameActive ? () => _handlePass(context, ref) : null,
-                        child: const Text('Pass'),
+                    // AI move status
+                    if (ref.watch(aiMoveProvider).isLoading)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: _AiThinkingIndicator(),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: isGameActive ? () => _handleResign(context, ref) : null,
-                        child: const Text('Resign'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: !isGameActive ? () => _handleNewGame(context, ref) : null,
-                        child: Text(
-                          isGameActive ? 'Playing...' : 'New Game',
+
+                    // Button row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: isGameActive
+                                ? () => _handlePass(context, ref)
+                                : null,
+                            child: const Text('Pass'),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: isGameActive
+                                ? () => _handleResign(context, ref)
+                                : null,
+                            child: const Text('Resign'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: !isGameActive
+                                ? () => _handleNewGame(context, ref)
+                                : null,
+                            child: Text(
+                              isGameActive ? 'Playing...' : 'New Game',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
             ],
           ),
         ],
@@ -295,10 +315,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         width: 300,
         height: 300,
         decoration: BoxDecoration(
-          border: Border.all(
-            color: AppColors.primaryDark,
-            width: 3,
-          ),
+          border: Border.all(color: AppColors.primaryDark, width: 3),
           borderRadius: BorderRadius.circular(4),
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
@@ -323,7 +340,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
             Positioned.fill(
               child: IgnorePointer(
                 child: CustomPaint(
-                  painter: WoodGrainPainter(color: Colors.black.withOpacity(0.08)),
+                  painter: WoodGrainPainter(
+                    color: Colors.black.withOpacity(0.08),
+                  ),
                 ),
               ),
             ),
@@ -349,7 +368,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: lastMove.player == 'black' ? Colors.white : Colors.black,
+                        color: lastMove.player == 'black'
+                            ? Colors.white
+                            : Colors.black,
                         width: 1.5,
                       ),
                     ),
@@ -368,10 +389,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: AppColors.accent.withOpacity(0.5),
-                    border: Border.all(
-                      color: AppColors.accent,
-                      width: 2,
-                    ),
+                    border: Border.all(color: AppColors.accent, width: 2),
                   ),
                 ),
               ),
@@ -451,12 +469,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     return stoneWidgets;
   }
 
-  void _handleBoardTap(
-    BuildContext context,
-    WidgetRef ref,
-    int row,
-    int col,
-  ) {
+  void _handleBoardTap(BuildContext context, WidgetRef ref, int row, int col) {
     _logger.i('Board tapped: row=$row, col=$col');
 
     // Applies the move (occupancy/suicide/ko checked internally) and, on
@@ -480,7 +493,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     }
 
     final afterState = ref.read(gameBoardStateProvider);
-    final capturedDelta = (afterState.capturedBlack - beforeCaptures.black) +
+    final capturedDelta =
+        (afterState.capturedBlack - beforeCaptures.black) +
         (afterState.capturedWhite - beforeCaptures.white);
     if (capturedDelta > 0) {
       playCaptureFeedback();
@@ -558,8 +572,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       final resultLabel = result.winner == 'black'
           ? 'win'
           : result.winner == 'white'
-              ? 'lose'
-              : 'draw';
+          ? 'lose'
+          : 'draw';
 
       ref.read(logCustomEventProvider)(
         eventName: 'ai_game_completed',
@@ -570,11 +584,14 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       );
 
       if (!context.mounted) return;
-      Navigator.of(context).pushReplacementNamed('/game-result', arguments: {
-        'result': resultLabel,
-        'blackScore': result.blackScore,
-        'whiteScore': result.whiteScore,
-      });
+      Navigator.of(context).pushReplacementNamed(
+        '/game-result',
+        arguments: {
+          'result': resultLabel,
+          'blackScore': result.blackScore,
+          'whiteScore': result.whiteScore,
+        },
+      );
     } catch (e) {
       _logger.e('❌ Failed to judge game end: $e');
     }
@@ -606,9 +623,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
               // startNewGameProvider (via New Game / Play Again) is what
               // actually resets state for the next game.
               ref.read(isGameActiveProvider.notifier).state = false;
-              Navigator.of(context).pushReplacementNamed('/game-result', arguments: {
-                'result': 'resign',
-              });
+              Navigator.of(context).pushReplacementNamed(
+                '/game-result',
+                arguments: {'result': 'resign'},
+              );
             },
             child: const Text('Resign'),
           ),
@@ -636,8 +654,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         final evalColor = scoreDiff > 0
             ? Colors.blue[400]! // Black winning
             : scoreDiff < 0
-                ? Colors.orange[400]! // White winning
-                : AppColors.accent; // Even
+            ? Colors.orange[400]! // White winning
+            : AppColors.accent; // Even
 
         return Container(
           padding: const EdgeInsets.all(12),
@@ -664,15 +682,15 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 children: [
                   Text(
                     'Score Diff: ${scoreDiff.toStringAsFixed(1)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                   ),
                   Text(
                     '黒勝率: ${(blackWinProb * 100).toStringAsFixed(1)}%',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                   ),
                 ],
               ),
@@ -713,9 +731,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
             const SizedBox(width: 8),
             Text(
               '形勢を計算中...',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white70,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.white70),
             ),
           ],
         ),
@@ -729,9 +747,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         ),
         child: Text(
           '形勢評価エラー',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.red[400],
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.red[400]),
         ),
       ),
     );
@@ -771,15 +789,17 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isBlack ? Colors.black : Colors.white,
-                      border: isBlack ? null : Border.all(color: Colors.grey[400]!),
+                      border: isBlack
+                          ? null
+                          : Border.all(color: Colors.grey[400]!),
                     ),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     '${index + 1}',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.white,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelSmall?.copyWith(color: AppColors.white),
                   ),
                 ],
               ),
@@ -835,7 +855,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.primaryDark,
-        title: Text('${index + 1}手目の局面', style: const TextStyle(color: Colors.white)),
+        title: Text(
+          '${index + 1}手目の局面',
+          style: const TextStyle(color: Colors.white),
+        ),
         content: SizedBox(
           width: 240,
           height: 240,
@@ -865,7 +888,11 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     );
   }
 
-  List<Widget> _buildPreviewStones(int boardSize, double cellSize, List<List<int>> stones) {
+  List<Widget> _buildPreviewStones(
+    int boardSize,
+    double cellSize,
+    List<List<int>> stones,
+  ) {
     final widgets = <Widget>[];
     final radius = cellSize * 0.4;
     for (int row = 0; row < boardSize; row++) {
@@ -873,19 +900,21 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         final stone = stones[row][col];
         if (stone == 0) continue;
         final isBlack = stone == 1;
-        widgets.add(Positioned(
-          left: col * cellSize + cellSize / 2 - radius,
-          top: row * cellSize + cellSize / 2 - radius,
-          child: Container(
-            width: radius * 2,
-            height: radius * 2,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isBlack ? Colors.black : Colors.white,
-              border: isBlack ? null : Border.all(color: Colors.grey[400]!),
+        widgets.add(
+          Positioned(
+            left: col * cellSize + cellSize / 2 - radius,
+            top: row * cellSize + cellSize / 2 - radius,
+            child: Container(
+              width: radius * 2,
+              height: radius * 2,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isBlack ? Colors.black : Colors.white,
+                border: isBlack ? null : Border.all(color: Colors.grey[400]!),
+              ),
             ),
           ),
-        ));
+        );
       }
     }
     return widgets;
@@ -905,6 +934,7 @@ class _AiThinkingIndicatorState extends State<_AiThinkingIndicator>
   late final AnimationController _controller;
   static const _phrases = ['思案中…', '次の一手を練っています…', '盤面を読んでいます…'];
   int _phraseIndex = 0;
+  Timer? _phraseTimer;
 
   @override
   void initState() {
@@ -917,7 +947,7 @@ class _AiThinkingIndicatorState extends State<_AiThinkingIndicator>
   }
 
   void _cyclePhrase() {
-    Future.delayed(const Duration(seconds: 3), () {
+    _phraseTimer = Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
       setState(() => _phraseIndex = (_phraseIndex + 1) % _phrases.length);
       _cyclePhrase();
@@ -926,6 +956,7 @@ class _AiThinkingIndicatorState extends State<_AiThinkingIndicator>
 
   @override
   void dispose() {
+    _phraseTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -956,9 +987,9 @@ class _AiThinkingIndicatorState extends State<_AiThinkingIndicator>
         const SizedBox(width: 12),
         Text(
           _phrases[_phraseIndex],
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.grey300,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.grey300),
         ),
       ],
     );
@@ -981,11 +1012,7 @@ class _GoGridPainter extends CustomPainter {
 
     // Horizontal lines
     for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(
-        Offset(0, i * step),
-        Offset(size.width, i * step),
-        paint,
-      );
+      canvas.drawLine(Offset(0, i * step), Offset(size.width, i * step), paint);
     }
 
     // Vertical lines
@@ -1003,10 +1030,16 @@ class _GoGridPainter extends CustomPainter {
       9 => const [(2, 2), (2, 6), (4, 4), (6, 2), (6, 6)],
       13 => const [(3, 3), (3, 9), (6, 6), (9, 3), (9, 9)],
       19 => const [
-          (3, 3), (3, 9), (3, 15),
-          (9, 3), (9, 9), (9, 15),
-          (15, 3), (15, 9), (15, 15),
-        ],
+        (3, 3),
+        (3, 9),
+        (3, 15),
+        (9, 3),
+        (9, 9),
+        (9, 15),
+        (15, 3),
+        (15, 9),
+        (15, 15),
+      ],
       _ => const <(int, int)>[],
     };
 
@@ -1046,6 +1079,8 @@ class _CaptureFlash extends StatefulWidget {
 
 class _CaptureFlashState extends State<_CaptureFlash> {
   bool _visible = false;
+  Timer? _fadeOutTimer;
+  Timer? _doneTimer;
 
   @override
   void initState() {
@@ -1053,10 +1088,17 @@ class _CaptureFlashState extends State<_CaptureFlash> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => _visible = true);
     });
-    Future.delayed(const Duration(milliseconds: 900), () {
+    _fadeOutTimer = Timer(const Duration(milliseconds: 900), () {
       if (mounted) setState(() => _visible = false);
     });
-    Future.delayed(const Duration(milliseconds: 1300), widget.onDone);
+    _doneTimer = Timer(const Duration(milliseconds: 1300), widget.onDone);
+  }
+
+  @override
+  void dispose() {
+    _fadeOutTimer?.cancel();
+    _doneTimer?.cancel();
+    super.dispose();
   }
 
   @override
