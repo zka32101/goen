@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:goen/views/screens/puzzle_rush_settings_screen.dart';
 
 void main() {
   group('PuzzleRushSettingsScreen Tests', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
     testWidgets('初期表示確認', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -14,7 +19,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('詰碁ラッシュ設定'), findsOneWidget);
       expect(find.text('難易度を選択'), findsOneWidget);
@@ -29,7 +35,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('初級'), findsOneWidget);
       expect(find.text('中級'), findsOneWidget);
@@ -46,7 +53,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('セッション情報'), findsOneWidget);
       expect(find.text('5分間のセッション'), findsOneWidget);
@@ -62,7 +70,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('ゲーム開始'), findsOneWidget);
     });

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:goen/views/screens/blitz_game_settings_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 
 void main() {
   group('BlitzGameSettingsScreen Tests', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
     testWidgets('初期表示確認', (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -15,7 +20,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('ブリッツゲーム設定'), findsOneWidget);
       expect(find.text('ボードサイズ'), findsOneWidget);
@@ -31,7 +37,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('9×9'), findsOneWidget);
       expect(find.text('13×13'), findsOneWidget);
@@ -47,7 +54,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text('初級'), findsWidgets);
       expect(find.text('上級'), findsWidgets);
@@ -63,7 +71,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.byType(ElevatedButton), findsWidgets);
       expect(find.text('ゲーム開始'), findsOneWidget);
@@ -78,7 +87,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     });
@@ -92,7 +102,8 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       final scaffold = find.byType(Scaffold);
       expect(scaffold, findsWidgets);
