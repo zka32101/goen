@@ -1,19 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/models/index.dart';
 import 'package:goen/views/screens/game_history_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 
 import '../fixtures/test_data.dart';
 import '../test_utils.dart';
 
+/// A fixture game record with a valid, minimal SGF so the details view
+/// (final board, move sequence) has something real to render.
+final _testGameRecord = GameRecord(
+  id: 'test-game-1',
+  uid: TestData.testUser.uid,
+  boardSize: 9,
+  sgfData: '(;GM[1]SZ[9];B[cc];W[gg];B[ce];W[ge])',
+  result: GameResult.playerWin,
+  aiLevel: 5,
+  playedAt: DateTime(2026, 1, 1),
+  movesCount: 4,
+  gameDuration: const Duration(minutes: 12),
+  blackScore: 45.5,
+  whiteScore: 30.5,
+);
+
 void main() {
   group('GameHistoryScreen', () {
     late ProviderContainer container;
 
     setUp(() {
-      container = TestUtils.createTestContainer(
-        currentUser: TestData.testUser,
+      container = ProviderContainer(
+        overrides: [
+          currentUserProvider.overrideWithValue(TestData.testUser),
+          userGameRecordsProvider(
+            TestData.testUser.uid,
+          ).overrideWith((ref) async => [_testGameRecord]),
+        ],
       );
     });
 
