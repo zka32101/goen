@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -412,5 +414,3 @@ double _calculateContrastRatio(double luminance1, double luminance2) {
 
   return (lighter + 0.05) / (darker + 0.05);
 }
-
-import 'dart:math';
