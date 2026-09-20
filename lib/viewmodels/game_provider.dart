@@ -10,6 +10,7 @@ import 'package:goen/viewmodels/concurrent_session_provider.dart';
 import 'package:goen/viewmodels/position_echo_provider.dart';
 import 'package:goen/viewmodels/spectator_provider.dart';
 import 'package:goen/viewmodels/friend_activity_provider.dart';
+import 'package:goen/utils/sgf_parser.dart';
 
 final _logger = Logger();
 
@@ -417,8 +418,10 @@ final saveGameRecordProvider = Provider<
     final aiLevel = ref.read(aiLevelProvider);
     final movesCount = ref.read(movesCountProvider);
 
-    // Generate SGF from board state
-    final sgfData = boardState.toSgf();
+    // Real move-order SGF (see sgf_parser.dart), not boardState.toSgf()'s
+    // final-snapshot-only dialect — this is what lets GameHistoryScreen
+    // show an actual move-by-move replay instead of just the end position.
+    final sgfData = generateSgfFromMoves(ref.read(moveHistoryProvider), boardSize);
 
     final gameRecord = GameRecord(
       id: '', // Firestore will auto-generate

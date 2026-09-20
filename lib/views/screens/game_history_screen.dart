@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/utils/sgf_parser.dart';
 
 final _logger = Logger();
 
@@ -498,15 +499,20 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                   color: Colors.amber[100]?.withOpacity(0.1),
                 ),
                 child: Builder(builder: (context) {
-                  final finalBoard = BoardState.fromSgf(game.sgfData);
-                  final cellSize = 300 / finalBoard.boardSize;
+                  // game.sgfData is real move-order SGF (see sgf_parser.dart),
+                  // so the final position is the replay of every move rather
+                  // than BoardState.fromSgf's own final-snapshot-only dialect.
+                  final moves = parseSgfMoves(game.sgfData);
+                  final boardSize = parseSgfBoardSize(game.sgfData);
+                  final stones = replaySgfMoves(moves, boardSize, moves.length);
+                  final cellSize = 300 / boardSize;
                   return Stack(
                     children: [
                       CustomPaint(
-                        painter: _GoGridPainter(boardSize: finalBoard.boardSize),
+                        painter: _GoGridPainter(boardSize: boardSize),
                         size: const Size(300, 300),
                       ),
-                      ..._buildFinalStones(finalBoard.boardSize, cellSize, finalBoard.stones),
+                      ..._buildFinalStones(boardSize, cellSize, stones),
                     ],
                   );
                 }),
@@ -555,10 +561,10 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
 
           const SizedBox(height: 32),
 
-          // Move sequence (placeholder)
+          // Move sequence
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildMoveSequence(context),
+            child: _buildMoveSequence(context, game),
           ),
 
           const SizedBox(height: 24),
@@ -626,7 +632,9 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     );
   }
 
-  Widget _buildMoveSequence(BuildContext context) {
+  Widget _buildMoveSequence(BuildContext context, GameRecord game) {
+    final moves = parseSgfMoves(game.sgfData);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -644,13 +652,49 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            'Move-by-move replay will be available here. (Phase 5.3)',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+          if (moves.isEmpty)
+            Text(
+              'No move data available for this game.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white70,
+              ),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (var i = 0; i < moves.length; i++) _buildMoveChip(i + 1, moves[i]),
+              ],
             ),
-          ),
         ],
+      ),
+    );
+  }
+
+  /// 1手を「17. Q16」のような棋譜表記で表示する小さなチップ。
+  /// 列は伝統的な囲碁の座標表記に合わせ、Iを飛ばしたA〜Tを使う。
+  Widget _buildMoveChip(int moveNumber, SgfMove move) {
+    const columnLetters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
+    final label = move.isPass
+        ? '$moveNumber. パス'
+        : '$moveNumber. ${columnLetters[move.col]}${move.row + 1}';
+    final isBlack = move.player == 1;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isBlack ? Colors.black : Colors.white24,
+        border: isBlack ? null : Border.all(color: Colors.white38),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isBlack ? Colors.white : Colors.black,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

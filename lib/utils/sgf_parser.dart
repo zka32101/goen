@@ -59,6 +59,29 @@ int _sgfCharToCoord(String ch) {
   return 26 + (code - 65); // A-Z
 }
 
+String _coordToSgfChar(int coord) {
+  if (coord < 26) return String.fromCharCode(97 + coord); // a-z
+  return String.fromCharCode(65 + (coord - 26)); // A-Z
+}
+
+/// `moveHistoryProvider`が保持する実際の着手列から、本物の連続SGF
+/// （`;B[xx];W[yy]...`、着手順そのもの）を生成する。KifuLibraryの本物の
+/// SGFと同じ方言なので、[parseSgfMoves]/[replaySgfMoves]でそのまま
+/// 読み戻せる — `BoardState.toSgf()`（最終局面のみのスナップショット
+/// 方言、分岐/着手順を持たない）とは別物。
+String generateSgfFromMoves(
+  List<({int row, int col, String player})> moves,
+  int boardSize,
+) {
+  final buffer = StringBuffer('(;GM[1]FF[4]SZ[$boardSize]');
+  for (final move in moves) {
+    final color = move.player == 'black' ? 'B' : 'W';
+    buffer.write(';$color[${_coordToSgfChar(move.col)}${_coordToSgfChar(move.row)}]');
+  }
+  buffer.write(')');
+  return buffer.toString();
+}
+
 /// `moves`の先頭から`upToIndex`手目まで（`upToIndex`件）を、GoRulesで捕獲を
 /// 反映しながら再生し、盤面を返す。着手がその局面で非合法（棋譜の記録揺れ等）
 /// になった場合は、その手だけ無視してそのまま次の手に進む
