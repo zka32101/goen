@@ -157,6 +157,52 @@ final updateUserScoreProvider = Provider<
   };
 });
 
+/// ユーザーの統計を安全にインクリメント/更新する（PvP対局結果・詰碁の
+/// 正解など、他の呼び出し元が把握していないフィールドをゼロで
+/// 上書きしないための、updateUserScoreProviderの代替）
+final incrementUserStatsProvider = Provider<
+    Future<void> Function({
+      required String uid,
+      required String displayName,
+      required LeaderboardPeriod period,
+      required LeaderboardType type,
+      int? newRating,
+      int gamesPlayedDelta,
+      int winsDelta,
+      int puzzlesSolvedDelta,
+    })>((ref) {
+  final service = ref.read(leaderboardServiceProvider);
+
+  return ({
+    required String uid,
+    required String displayName,
+    required LeaderboardPeriod period,
+    required LeaderboardType type,
+    int? newRating,
+    int gamesPlayedDelta = 0,
+    int winsDelta = 0,
+    int puzzlesSolvedDelta = 0,
+  }) async {
+    _logger.i('Incrementing user stats');
+    try {
+      await service.incrementUserStats(
+        uid: uid,
+        displayName: displayName,
+        period: period,
+        type: type,
+        newRating: newRating,
+        gamesPlayedDelta: gamesPlayedDelta,
+        winsDelta: winsDelta,
+        puzzlesSolvedDelta: puzzlesSolvedDelta,
+      );
+      _logger.i('✅ User stats incremented');
+    } catch (e) {
+      _logger.e('❌ Failed to increment user stats: $e');
+      rethrow;
+    }
+  };
+});
+
 /// ランキングをリセット
 final resetLeaderboardProvider = Provider<
     Future<void> Function({

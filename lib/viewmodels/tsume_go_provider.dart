@@ -1,8 +1,11 @@
 import 'package:riverpod/riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
+import 'package:goen/models/leaderboard.dart';
 import 'package:goen/services/index.dart';
 import 'package:goen/services/go_rules.dart';
+import 'auth_provider.dart';
+import 'leaderboard_provider.dart';
 
 final _logger = Logger();
 
@@ -212,6 +215,7 @@ final recordPuzzleAttemptProvider = Provider<
       final logId = await firestoreService.saveTsumeGoLog(log);
       if (isCorrect) {
         ref.read(isPuzzleSolvedProvider.notifier).state = true;
+        await _incrementPuzzlesSolved(ref, uid);
       } else {
         ref.read(puzzleAttemptCountProvider.notifier).state += 1;
       }
@@ -223,6 +227,24 @@ final recordPuzzleAttemptProvider = Provider<
     }
   };
 });
+
+/// 詰碁を正解した回数をリーダーボード（puzzlesタイプ）に反映する。
+/// best-effortで行い、失敗しても詰碁の記録自体（recordPuzzleAttempt）は
+/// 成功として扱う。
+Future<void> _incrementPuzzlesSolved(Ref ref, String uid) async {
+  try {
+    final displayName = ref.read(currentUserProvider)?.displayName ?? 'Anonymous';
+    await ref.read(incrementUserStatsProvider)(
+      uid: uid,
+      displayName: displayName,
+      period: LeaderboardPeriod.allTime,
+      type: LeaderboardType.puzzles,
+      puzzlesSolvedDelta: 1,
+    );
+  } catch (e) {
+    _logger.w('Failed to update puzzles-solved leaderboard (non-fatal): $e');
+  }
+}
 
 // ================== STREAK TRACKING ==================
 

@@ -10,6 +10,22 @@ class LeaderboardService {
 
   static const String leaderboardCollection = 'leaderboards';
 
+  /// タイプごとの実際のスコアフィールド。個々の updateUserScore/
+  /// incrementUserStats 呼び出しは呼び出し元ごとに独立しており、
+  /// updateLeaderboard の全件バッチ再計算(呼び出し元なし)を経ずに
+  /// entry.rank を正しく保つ手段がないため、rank でソートせずこの
+  /// フィールドで直接ソートし、取得側でインデックスから順位を振り直す。
+  String _sortFieldFor(LeaderboardType type) {
+    switch (type) {
+      case LeaderboardType.puzzles:
+        return 'puzzlesSolved';
+      case LeaderboardType.rating:
+      case LeaderboardType.achievements:
+      case LeaderboardType.tournament:
+        return 'rating';
+    }
+  }
+
   /// ランキングを取得（期間・タイプ別）
   Future<List<LeaderboardEntry>> getLeaderboard({
     required LeaderboardPeriod period,
@@ -23,7 +39,7 @@ class LeaderboardService {
           .collection(leaderboardCollection)
           .doc(period.toShortString())
           .collection(type.toShortString())
-          .orderBy('rank')
+          .orderBy(_sortFieldFor(type), descending: true)
           .limit(limit);
 
       final snapshot = await query.get();
@@ -31,6 +47,12 @@ class LeaderboardService {
           .map((doc) => LeaderboardEntry.fromFirestore(
               doc as DocumentSnapshot<Map<String, dynamic>>))
           .toList();
+
+      // Assign rank from the already-sorted query result rather than
+      // trusting the stored `rank` field (see _sortFieldFor's comment).
+      for (var i = 0; i < entries.length; i++) {
+        entries[i] = entries[i].copyWith(rank: i + 1);
+      }
 
       _logger.i('✅ Leaderboard fetched: ${entries.length} entries');
       return entries;
@@ -141,6 +163,71 @@ class LeaderboardService {
     }
   }
 
+  /// ユーザーの統計を安全にインクリメント/更新する。
+  ///
+  /// updateUserScore は毎回全フィールドをまとめて set するため、複数の
+  /// 呼び出し元（PvP対局結果・詰碁の正解）が同じドキュメントの別々の
+  /// フィールドだけを更新したい場合、他方が把握していないフィールドを
+  /// 0で上書きしてしまう。トランザクションで現在値を読み、デルタ分だけ
+  /// 加算/絶対値で更新することでこれを避ける。
+  Future<void> incrementUserStats({
+    required String uid,
+    required String displayName,
+    required LeaderboardPeriod period,
+    required LeaderboardType type,
+    int? newRating,
+    int gamesPlayedDelta = 0,
+    int winsDelta = 0,
+    int puzzlesSolvedDelta = 0,
+  }) async {
+    try {
+      _logger.i('Incrementing user stats: uid=$uid, period=$period, type=$type');
+
+      final docRef = _firestore
+          .collection(leaderboardCollection)
+          .doc(period.toShortString())
+          .collection(type.toShortString())
+          .doc(uid);
+
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        final current = snapshot.exists
+            ? LeaderboardEntry.fromFirestore(
+                snapshot as DocumentSnapshot<Map<String, dynamic>>)
+            : LeaderboardEntry(
+                uid: uid,
+                displayName: displayName,
+                rank: 0,
+                rating: 1200,
+                gamesPlayed: 0,
+                wins: 0,
+                winRate: 0.0,
+                puzzlesSolved: 0,
+                lastUpdated: DateTime.now(),
+              );
+
+        final gamesPlayed = current.gamesPlayed + gamesPlayedDelta;
+        final wins = current.wins + winsDelta;
+        final updated = current.copyWith(
+          displayName: displayName,
+          rating: newRating ?? current.rating,
+          gamesPlayed: gamesPlayed,
+          wins: wins,
+          winRate: gamesPlayed > 0 ? wins / gamesPlayed : 0.0,
+          puzzlesSolved: current.puzzlesSolved + puzzlesSolvedDelta,
+          lastUpdated: DateTime.now(),
+        );
+
+        transaction.set(docRef, updated.toFirestore());
+      });
+
+      _logger.i('✅ User stats incremented: uid=$uid');
+    } catch (e) {
+      _logger.e('Error incrementing user stats: $e');
+      rethrow;
+    }
+  }
+
   /// 期間別ランキングをリセット
   Future<void> resetLeaderboard({
     required LeaderboardPeriod period,
@@ -166,31 +253,5 @@ class LeaderboardService {
       _logger.e('Error resetting leaderboard: $e');
       rethrow;
     }
-  }
-}
-
-extension on LeaderboardEntry {
-  LeaderboardEntry copyWith({
-    String? uid,
-    String? displayName,
-    int? rank,
-    int? rating,
-    int? gamesPlayed,
-    int? wins,
-    double? winRate,
-    int? puzzlesSolved,
-    DateTime? lastUpdated,
-  }) {
-    return LeaderboardEntry(
-      uid: uid ?? this.uid,
-      displayName: displayName ?? this.displayName,
-      rank: rank ?? this.rank,
-      rating: rating ?? this.rating,
-      gamesPlayed: gamesPlayed ?? this.gamesPlayed,
-      wins: wins ?? this.wins,
-      winRate: winRate ?? this.winRate,
-      puzzlesSolved: puzzlesSolved ?? this.puzzlesSolved,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
-    );
   }
 }

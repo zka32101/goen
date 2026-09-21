@@ -54,6 +54,30 @@ class LeaderboardEntry {
     };
   }
 
+  LeaderboardEntry copyWith({
+    String? uid,
+    String? displayName,
+    int? rank,
+    int? rating,
+    int? gamesPlayed,
+    int? wins,
+    double? winRate,
+    int? puzzlesSolved,
+    DateTime? lastUpdated,
+  }) {
+    return LeaderboardEntry(
+      uid: uid ?? this.uid,
+      displayName: displayName ?? this.displayName,
+      rank: rank ?? this.rank,
+      rating: rating ?? this.rating,
+      gamesPlayed: gamesPlayed ?? this.gamesPlayed,
+      wins: wins ?? this.wins,
+      winRate: winRate ?? this.winRate,
+      puzzlesSolved: puzzlesSolved ?? this.puzzlesSolved,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
+  }
+
   @override
   String toString() =>
       'LeaderboardEntry(rank: $rank, displayName: $displayName, rating: $rating)';

@@ -317,11 +317,16 @@ service cloud.firestore {
     // ---------------- leaderboards (three parallel systems) ----------------
     match /leaderboards/{period}/{type}/{uid} {
       allow read: if isSignedIn();
-      // updateLeaderboard/resetLeaderboard (arbitrary-uid batch writes,
-      // full-collection deletes) are admin operations with no client
-      // caller that should exist; only a self-write of one's own entry
-      // is allowed.
-      allow write: if isOwner(uid);
+      // PvP game results update the Elo rating of BOTH players
+      // (pvp_game_provider.dart's _updateEloRatings), so this can't be
+      // restricted to isOwner(uid) — like the rest of this app's
+      // self-reported game outcomes/ratings (documented at the top of
+      // this file), rating/gamesPlayed/wins updates are client-trusted
+      // with no server-side verification until a real Cloud Functions
+      // backend exists. updateLeaderboard/resetLeaderboard (arbitrary-uid
+      // batch writes, full-collection deletes) remain unreachable from
+      // any client caller regardless.
+      allow write: if isSignedIn();
     }
 
     match /leaderboard_global/{uid} {
