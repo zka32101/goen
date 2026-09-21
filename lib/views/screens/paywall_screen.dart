@@ -11,7 +11,7 @@ final _logger = Logger();
 ///
 /// Features:
 /// - Display premium features and benefits
-/// - Show subscription pricing plans (monthly, annual, lifetime)
+/// - Show subscription pricing plans (monthly, annual)
 /// - Handle purchase via RevenueCat
 /// - Track paywall view and conversion events
 /// - Graceful handling of purchase failures
@@ -265,33 +265,15 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               price: '3.00',
               period: '/month',
               description: 'Perfect for trying premium features',
-              selected: true,
-              onTap: () {},
             )
           else
-            Column(
-              children: [
-                _buildPricingCard(
-                  context,
-                  title: 'Annual',
-                  price: '29.99',
-                  period: '/year',
-                  description: 'Save 17% with annual billing',
-                  selected: _selectedPlan == SubscriptionPlan.annual,
-                  onTap: () => setState(() => _selectedPlan = SubscriptionPlan.annual),
-                ),
-                const SizedBox(height: 12),
-                _buildPricingCard(
-                  context,
-                  title: 'Lifetime',
-                  price: '89.99',
-                  period: 'one-time',
-                  description: 'Unlock forever with one payment',
-                  isBestValue: true,
-                  selected: _selectedPlan == SubscriptionPlan.lifetime,
-                  onTap: () => setState(() => _selectedPlan = SubscriptionPlan.lifetime),
-                ),
-              ],
+            _buildPricingCard(
+              context,
+              title: 'Annual',
+              price: '29.99',
+              period: '/year',
+              description: 'Save 17% with annual billing',
+              isBestValue: true,
             ),
 
           const SizedBox(height: 16),
@@ -336,87 +318,81 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     required String price,
     required String period,
     required String description,
-    required bool selected,
-    required VoidCallback onTap,
     bool isBestValue = false,
   }) {
-    final highlighted = isBestValue || selected;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: highlighted ? Colors.amber[600]! : Colors.white10,
-            width: highlighted ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          color: highlighted
-              ? Colors.amber[600]?.withOpacity(0.1)
-              : Colors.white.withOpacity(0.03),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isBestValue ? Colors.amber[600]! : Colors.white10,
+          width: isBestValue ? 2 : 1,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        borderRadius: BorderRadius.circular(12),
+        color: isBestValue
+            ? Colors.amber[600]?.withOpacity(0.1)
+            : Colors.white.withOpacity(0.03),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isBestValue)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber[600],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'BEST VALUE',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          RichText(
+            text: TextSpan(
               children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                TextSpan(
+                  text: '\$$price',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (isBestValue)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.amber[600],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'BEST VALUE',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                TextSpan(
+                  text: period,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white70,
                   ),
+                ),
               ],
             ),
-            const SizedBox(height: 12),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '\$$price',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextSpan(
-                    text: period,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Colors.white70,
             ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Colors.white70,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -538,13 +514,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   String _planLabel(SubscriptionPlan plan) => switch (plan) {
         SubscriptionPlan.monthly => 'Monthly',
         SubscriptionPlan.annual => 'Annual',
-        SubscriptionPlan.lifetime => 'Lifetime',
       };
 
   double _planPrice(SubscriptionPlan plan) => switch (plan) {
         SubscriptionPlan.monthly => 3.00,
         SubscriptionPlan.annual => 29.99,
-        SubscriptionPlan.lifetime => 89.99,
       };
 
   void _handlePurchase(BuildContext context) async {

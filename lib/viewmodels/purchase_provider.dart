@@ -92,12 +92,10 @@ final purchaseSubscriptionProvider = Provider<Future<void> Function(Subscription
         // those real fields with the fallback's zeroed-out ones.
         final now = DateTime.now();
         final freshUser = await firestoreService.getUser(uid) ?? authService.currentUser!;
-        final entitlementLength = plan.entitlementLength;
         final updated = freshUser.copyWith(
           subscriptionActive: true,
           subscriptionStartDate: now,
-          // null entitlementLength (lifetime) means no expiration.
-          subscriptionEndDate: entitlementLength == null ? null : now.add(entitlementLength),
+          subscriptionEndDate: now.add(plan.entitlementLength),
           updatedAt: now,
         );
         await firestoreService.saveUser(updated);

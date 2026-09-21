@@ -218,28 +218,6 @@ void main() {
       expect(findRichText('29.99'), findsWidgets);
     });
 
-    testWidgets('lifetime plan shown with annual pricing', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const PaywallScreen(),
-          container: container,
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Tap annual
-      await tester.ensureVisible(find.text('Annual'));
-      await tester.tap(find.text('Annual'));
-      await tester.pumpAndSettle();
-
-      // Lifetime option
-      expect(findRichText('89.99'), findsWidgets);
-      expect(find.text('Lifetime'), findsWidgets);
-    });
-
     testWidgets('pricing cards have descriptions', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
@@ -254,7 +232,7 @@ void main() {
       expect(find.text('Perfect for trying premium features'), findsWidgets);
     });
 
-    testWidgets('lifetime plan marked as best value', (
+    testWidgets('annual plan marked as best value', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -490,27 +468,6 @@ void main() {
 
       // Period suffix
       expect(findRichText('/month'), findsWidgets);
-    });
-
-    testWidgets('lifetime plan shows one-time suffix', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        TestUtils.buildTestableWidget(
-          child: const PaywallScreen(),
-          container: container,
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Switch to annual to see lifetime
-      await tester.ensureVisible(find.text('Annual'));
-      await tester.tap(find.text('Annual'));
-      await tester.pumpAndSettle();
-
-      // One-time suffix
-      expect(findRichText('one-time'), findsWidgets);
     });
 
     testWidgets('benefits list uses Row layout', (WidgetTester tester) async {

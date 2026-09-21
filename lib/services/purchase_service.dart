@@ -1,22 +1,19 @@
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:logger/logger.dart';
 
-/// The three plans sold on the paywall.
-enum SubscriptionPlan { monthly, annual, lifetime }
+/// The two plans sold on the paywall.
+enum SubscriptionPlan { monthly, annual }
 
 extension SubscriptionPlanProductId on SubscriptionPlan {
   String get productId => switch (this) {
         SubscriptionPlan.monthly => PurchaseService.monthlyProductId,
         SubscriptionPlan.annual => PurchaseService.annualProductId,
-        SubscriptionPlan.lifetime => PurchaseService.lifetimeProductId,
       };
 
-  /// How long the entitlement lasts from purchase, or null for lifetime
-  /// (never expires).
-  Duration? get entitlementLength => switch (this) {
+  /// How long the entitlement lasts from purchase.
+  Duration get entitlementLength => switch (this) {
         SubscriptionPlan.monthly => const Duration(days: 30),
         SubscriptionPlan.annual => const Duration(days: 365),
-        SubscriptionPlan.lifetime => null,
       };
 }
 
@@ -27,12 +24,7 @@ extension SubscriptionPlanProductId on SubscriptionPlan {
 class PurchaseService {
   static const String monthlyProductId = 'goen_premium_monthly';
   static const String annualProductId = 'goen_premium_annual';
-  static const String lifetimeProductId = 'goen_premium_lifetime';
-  static const Set<String> productIds = {
-    monthlyProductId,
-    annualProductId,
-    lifetimeProductId,
-  };
+  static const Set<String> productIds = {monthlyProductId, annualProductId};
 
   final InAppPurchase _iap = InAppPurchase.instance;
   final Logger _logger = Logger();
