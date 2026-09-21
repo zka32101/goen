@@ -200,22 +200,6 @@ class BlitzGameService {
       rethrow;
     }
   }
-
-  /// AI との対局で AI の手を取得（実装予定：GoEngineService と連携）
-  Future<String> getAiMove({
-    required String boardState,
-    required String aiLevel,
-  }) async {
-    try {
-      _logger.i('Requesting AI move - level: $aiLevel');
-      // TODO: GoEngineService との連携
-      // Cloud Functions を呼び出して AI の手を取得
-      return '';
-    } catch (e) {
-      _logger.e('Error getting AI move: $e');
-      rethrow;
-    }
-  }
 }
 
 /// Blitz 統計情報

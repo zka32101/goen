@@ -27,17 +27,6 @@ final kifuLibraryProvider = FutureProvider<List<KifuLibrary>>((ref) async {
   }
 });
 
-/// Kifu library filtered by difficulty
-final kifuByDifficultyProvider = FutureProvider.family<List<KifuLibrary>, int>(
-  (ref, difficulty) async {
-    _logger.i('Fetching kifu by difficulty: $difficulty');
-
-    final library = await ref.watch(kifuLibraryProvider.future);
-    return library;
-    // TODO: Implement difficulty filtering
-  },
-);
-
 /// Currently selected kifu game
 final selectedKifuProvider = StateProvider<KifuLibrary?>((ref) {
   return null;
