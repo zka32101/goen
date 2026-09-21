@@ -14,6 +14,7 @@ class TestUtils {
     bool isGameActive = true,
     int movesCount = 0,
     BoardState? boardState,
+    List<Override> extraOverrides = const [],
   }) {
     final container = ProviderContainer(
       overrides: [
@@ -39,6 +40,7 @@ class TestUtils {
                 isBlackTurn: true,
               ),
         ),
+        ...extraOverrides,
       ],
     );
 

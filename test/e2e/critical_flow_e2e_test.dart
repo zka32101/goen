@@ -3,10 +3,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/main.dart' show GameResultScreenRouter;
 import 'package:goen/models/index.dart';
+import 'package:goen/services/fuego_engine_service.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/screens/index.dart';
 import '../test_utils.dart';
 import '../fixtures/test_data.dart';
+
+/// requestAiMove() falls back to DartGoEngine, which runs its search in a
+/// real spawned Isolate (Isolate.run) — appropriate for the real app, but
+/// that isolate's response can never actually be observed from inside
+/// flutter_test's fake-async pump loop (the same class of problem
+/// documented elsewhere in this suite for real Firestore-backed
+/// providers), so pumpAndSettle() hangs forever waiting for the AI's move
+/// after every player move. Stub just the AI response with an instant
+/// pass, keeping every other FuegoEngineService method (validateMove,
+/// evaluatePosition, judgeGameEnd) real and synchronous.
+class _InstantAiEngine extends FuegoEngineService {
+  @override
+  Future<AIMove> requestAiMove({
+    required int boardSize,
+    required List<List<int>> stones,
+    required bool isPlayerBlack,
+    required int aiLevel,
+    int movesCount = 0,
+    int? koRow,
+    int? koCol,
+  }) async {
+    return AIMove(row: -1, col: -1, confidence: 0.5, reasoning: 'test stub');
+  }
+}
 
 /// Fixture puzzle/kifu so TsumeGoScreen/KifuObservationScreen (both
 /// otherwise backed by real Firestore-hitting FutureProviders that never
@@ -108,6 +133,9 @@ void main() {
     setUp(() {
       container = TestUtils.createTestContainer(
         currentUser: TestData.testUser,
+        extraOverrides: [
+          aiEngineServiceProvider.overrideWithValue(_InstantAiEngine()),
+        ],
       );
     });
 

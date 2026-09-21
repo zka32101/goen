@@ -6,6 +6,7 @@ import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
 import 'package:goen/services/index.dart' show GameAnalysis;
 import 'package:goen/utils/shoji_transition.dart';
+import 'package:goen/utils/sgf_parser.dart';
 import 'ai_game_screen.dart';
 import 'package:goen/config/theme.dart';
 
@@ -185,7 +186,16 @@ class GameResultScreen extends ConsumerWidget {
               // AI commentary (if available)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _AiReviewSection(sgfData: boardState.toSgf()),
+                child: _AiReviewSection(
+                  // Real move-order SGF (see sgf_parser.dart), not
+                  // boardState.toSgf()'s final-snapshot-only dialect —
+                  // the AI review needs the actual move sequence to
+                  // explain individual moves, not just the end position.
+                  sgfData: generateSgfFromMoves(
+                    ref.watch(moveHistoryProvider),
+                    boardState.boardSize,
+                  ),
+                ),
               ),
 
               const SizedBox(height: 32),
