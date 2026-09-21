@@ -56,10 +56,24 @@ service cloud.firestore {
       allow delete: if false;
 
       match /friends/{friendUid} {
-        // One-sided model: everything about uid's own friend list lives
-        // only in uid's own subtree (see friend_service.dart), so no
-        // cross-user carve-out is needed.
         allow read, write: if isOwner(uid);
+        // friend_service.dart writes BOTH sides in one batch (addFriend,
+        // acceptFriendRequest, removeFriend, ...), so a user must also be
+        // able to touch their OWN mirror entry (friendUid == caller) inside
+        // another user's list. Kept narrow: a new entry must be a pending
+        // request that points back at the caller, an existing entry may only
+        // move to accepted/blocked, and the caller may remove their mirror.
+        // Limit: entries carry no "who initiated" field, so rules cannot tell
+        // a genuine accept from a forged one; that needs a data-model change
+        // or a Cloud Function.
+        allow create: if isOwner(friendUid) &&
+          request.resource.data.uid == request.auth.uid &&
+          request.resource.data.status == 'pending';
+        allow update: if isOwner(friendUid) &&
+          unchanged('uid') &&
+          onlyChanged(['status']) &&
+          request.resource.data.status in ['accepted', 'blocked'];
+        allow delete: if isOwner(friendUid);
       }
 
       match /sponsorshipTiers/{tierId} {
@@ -233,7 +247,12 @@ service cloud.firestore {
 
     // ---------------- sponsorships/{sponsorUserId}_{sponsoredUserId} ----------------
     match /sponsorships/{sponsorshipId} {
-      allow read: if isParticipant([resource.data.sponsorUserId, resource.data.sponsoredUserId]);
+      // resource == null lets sponsorship_service's transaction check whether
+      // a sponsorship already exists (get on a missing doc); it returns
+      // not-found and reveals nothing.
+      allow read: if isSignedIn() &&
+        (resource == null ||
+         isParticipant([resource.data.sponsorUserId, resource.data.sponsoredUserId]));
       allow create: if isSignedIn() &&
         request.resource.data.sponsorUserId == request.auth.uid &&
         sponsorshipId == request.resource.data.sponsorUserId + '_' + request.resource.data.sponsoredUserId;
