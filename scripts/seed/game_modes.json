@@ -51,6 +51,6 @@
     "difficulty": "hard",
     "type": "puzzleRush",
     "maxPlayers": 1,
-    "isActive": false
+    "isActive": true
   }
 }
