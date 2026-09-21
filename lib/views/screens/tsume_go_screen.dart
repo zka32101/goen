@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -44,11 +45,11 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
     final difficultyLevels = ref.watch(difficultyLevelsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text("Today's Puzzle"),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         actions: [
           IconButton(
@@ -114,7 +115,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                                     .textTheme
                                     .bodySmall
                                     ?.copyWith(
-                                  color: Colors.white70,
+                                  color: AppColors.washiDim,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -124,7 +125,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                                   (_) => Icon(
                                     Icons.star,
                                     size: 16,
-                                    color: Colors.amber[600],
+                                    color: AppColors.kin,
                                   ),
                                 ),
                               ),
@@ -139,7 +140,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                                     .textTheme
                                     .bodySmall
                                     ?.copyWith(
-                                  color: Colors.white70,
+                                  color: AppColors.washiDim,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -149,7 +150,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                                     .textTheme
                                     .titleMedium
                                     ?.copyWith(
-                                  color: Colors.amber[600],
+                                  color: AppColors.kin,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -165,7 +166,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                               .textTheme
                               .bodySmall
                               ?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                             fontStyle: FontStyle.italic,
                           ),
                         )
@@ -176,9 +177,9 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green[700]?.withOpacity(0.3),
+                            color: AppColors.wakatake.withOpacity(0.3),
                             border: Border.all(
-                              color: Colors.green[400]!,
+                              color: AppColors.wakatake,
                               width: 1,
                             ),
                             borderRadius: BorderRadius.circular(6),
@@ -189,7 +190,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                               Icon(
                                 Icons.check_circle,
                                 size: 16,
-                                color: Colors.green[400],
+                                color: AppColors.wakatake,
                               ),
                               const SizedBox(width: 8),
                               Text(
@@ -198,7 +199,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                                     .textTheme
                                     .bodySmall
                                     ?.copyWith(
-                                  color: Colors.green[400],
+                                  color: AppColors.wakatake,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -240,7 +241,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green[600],
+                                  backgroundColor: AppColors.wakatake,
                                 ),
                                 onPressed: currentUser != null
                                     ? () => _handleSubmitSolution(
@@ -270,7 +271,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.amber[600],
+                                  backgroundColor: AppColors.kin,
                                 ),
                                 onPressed: () => _handleShowExplanation(context, puzzle),
                                 child: const Text('View Explanation'),
@@ -309,14 +310,14 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
             height: 40,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation(Colors.amber[600]!),
+              valueColor: AlwaysStoppedAnimation(AppColors.kin),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             'Loading today\'s puzzle...',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -332,13 +333,13 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: Colors.red[400],
+            color: AppColors.shuLight,
           ),
           const SizedBox(height: 16),
           Text(
             'Could not load puzzle',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 24),
@@ -359,20 +360,20 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           Icon(
             Icons.calendar_today,
             size: 64,
-            color: Colors.amber[600],
+            color: AppColors.kin,
           ),
           const SizedBox(height: 16),
           Text(
             'No puzzle available today',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Check back tomorrow for a new puzzle',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
           const SizedBox(height: 24),
@@ -410,10 +411,10 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
         height: 300,
         decoration: BoxDecoration(
           border: Border.all(
-            color: Colors.amber[600]!,
+            color: AppColors.kin,
             width: 2,
           ),
-          color: Colors.amber[100]?.withOpacity(0.1),
+          color: AppColors.kinLight.withOpacity(0.1),
         ),
         child: Stack(
           children: [
@@ -440,10 +441,10 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
       for (int col = 0; col < boardSize; col++) {
         final stone = stones[row][col];
         if (stone != 0) {
-          final color = stone == 1 ? Colors.black : Colors.white;
+          final color = stone == 1 ? AppColors.sumi : AppColors.washi;
           final border = stone == 1
               ? null
-              : Border.all(color: Colors.black, width: 1);
+              : Border.all(color: AppColors.sumi, width: 1);
 
           stoneWidgets.add(
             Positioned(
@@ -483,7 +484,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -491,7 +492,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           Text(
             'Browse by Difficulty',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
@@ -522,7 +523,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('Hint'),
         content: const Text(
           'Look for weak stones that can be captured. In tsume-go, find the forcing sequence that leads to capturing opponent\'s stones.',
@@ -588,13 +589,13 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('Explanation'),
         content: SingleChildScrollView(
           child: Text(
             puzzle.explanation ?? 'No explanation available',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.6,
             ),
           ),
@@ -636,7 +637,7 @@ class _GoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white30
+      ..color = AppColors.grey500
       ..strokeWidth = 1;
 
     final step = size.width / boardSize;

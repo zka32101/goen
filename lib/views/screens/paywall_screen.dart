@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart' show SubscriptionPlan, PurchaseUnavailableException;
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -44,11 +45,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('Premium Membership'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -91,8 +92,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.amber[600]!,
-                  Colors.amber[800]!,
+                  AppColors.kin,
+                  AppColors.kin,
                 ],
               ),
             ),
@@ -100,7 +101,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               child: Icon(
                 Icons.star,
                 size: 50,
-                color: Colors.white,
+                color: AppColors.washi,
               ),
             ),
           ),
@@ -108,7 +109,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             'Unlock Premium Features',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -117,7 +118,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             'Join premium adults learning Go at their own pace',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),
@@ -144,7 +145,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             'What You Get',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -157,7 +158,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   Icon(
                     Icons.check_circle,
                     size: 20,
-                    color: Colors.green[400],
+                    color: AppColors.wakatake,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -167,14 +168,14 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                         Text(
                           benefit.$1,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.washi,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
                           benefit.$2,
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         ),
                       ],
@@ -200,7 +201,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             decoration: BoxDecoration(
               border: Border.all(color: Colors.white10),
               borderRadius: BorderRadius.circular(8),
-              color: Colors.white.withOpacity(0.03),
+              color: AppColors.washi.withOpacity(0.03),
             ),
             child: Row(
               children: [
@@ -215,14 +216,14 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         color: !_showAnnual
-                            ? Colors.amber[600]?.withOpacity(0.2)
+                            ? AppColors.kin.withOpacity(0.2)
                             : Colors.transparent,
                       ),
                       child: Text(
                         'Monthly',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: !_showAnnual ? Colors.amber[600] : Colors.white70,
+                          color: !_showAnnual ? AppColors.kin : AppColors.washiDim,
                         ),
                       ),
                     ),
@@ -239,14 +240,14 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         color: _showAnnual
-                            ? Colors.amber[600]?.withOpacity(0.2)
+                            ? AppColors.kin.withOpacity(0.2)
                             : Colors.transparent,
                       ),
                       child: Text(
                         'Annual',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: _showAnnual ? Colors.amber[600] : Colors.white70,
+                          color: _showAnnual ? AppColors.kin : AppColors.washiDim,
                         ),
                       ),
                     ),
@@ -281,7 +282,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             'Cancel anytime. No hidden fees.',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               fontStyle: FontStyle.italic,
             ),
             textAlign: TextAlign.center,
@@ -294,13 +295,13 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             child: ElevatedButton(
               onPressed: () => _handlePurchase(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber[600],
+                backgroundColor: AppColors.kin,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
                 'Continue with ${_planLabel(_selectedPlan)}',
                 style: const TextStyle(
-                  color: Colors.black,
+                  color: AppColors.sumi,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -324,13 +325,13 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isBestValue ? Colors.amber[600]! : Colors.white10,
+          color: isBestValue ? AppColors.kin : Colors.white10,
           width: isBestValue ? 2 : 1,
         ),
         borderRadius: BorderRadius.circular(12),
         color: isBestValue
-            ? Colors.amber[600]?.withOpacity(0.1)
-            : Colors.white.withOpacity(0.03),
+            ? AppColors.kin.withOpacity(0.1)
+            : AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +342,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -352,13 +353,13 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.amber[600],
+                    color: AppColors.kin,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     'BEST VALUE',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.black,
+                      color: AppColors.sumi,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -372,14 +373,14 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 TextSpan(
                   text: '\$$price',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 TextSpan(
                   text: period,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
+                    color: AppColors.washiDim,
                   ),
                 ),
               ],
@@ -389,7 +390,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             description,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -406,7 +407,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             'FAQ',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -439,7 +440,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,7 +448,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             question,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -455,7 +456,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             answer,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.5,
             ),
           ),
@@ -474,23 +475,23 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.green[700]?.withOpacity(0.2),
+              color: AppColors.wakatake.withOpacity(0.2),
               border: Border.all(
-                color: Colors.green[400]!,
+                color: AppColors.wakatake,
                 width: 3,
               ),
             ),
             child: Icon(
               Icons.check_circle,
               size: 60,
-              color: Colors.green[400],
+              color: AppColors.wakatake,
             ),
           ),
           const SizedBox(height: 24),
           Text(
             'You\'re Premium!',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -498,7 +499,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Text(
             'Enjoy unlimited access to all premium features',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
           const SizedBox(height: 32),
@@ -534,7 +535,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       barrierDismissible: false,
       builder: (context) => Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation(Colors.amber[600]!),
+          valueColor: AlwaysStoppedAnimation(AppColors.kin),
         ),
       ),
     );

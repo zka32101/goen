@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -18,10 +19,10 @@ class YouTubeShareScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
     if (currentUser == null) {
       return Scaffold(
-        backgroundColor: Colors.black87,
-        appBar: AppBar(title: const Text('YouTube 共有'), backgroundColor: Colors.black),
+        backgroundColor: AppColors.sumi,
+        appBar: AppBar(title: const Text('YouTube 共有'), backgroundColor: AppColors.sumi),
         body: const Center(
-          child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+          child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
         ),
       );
     }
@@ -32,11 +33,11 @@ class YouTubeShareScreen extends ConsumerWidget {
     final autoShare = ref.watch(youtubeAutoShareProvider(uid));
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('YouTube 共有'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
       ),
       body: isConnected.when(
@@ -54,7 +55,7 @@ class YouTubeShareScreen extends ConsumerWidget {
         error: (error, stack) => Center(
           child: Text(
             'エラー: $error',
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: AppColors.washi),
           ),
         ),
       ),
@@ -70,20 +71,20 @@ class YouTubeShareScreen extends ConsumerWidget {
           Icon(
             Icons.video_library,
             size: 64,
-            color: Colors.red[400],
+            color: AppColors.shuLight,
           ),
           const SizedBox(height: 24),
           Text(
             'YouTube チャンネルを接続',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             'ゲーム動画を自動的に YouTube にアップロードできます',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),
@@ -92,7 +93,7 @@ class YouTubeShareScreen extends ConsumerWidget {
             icon: const Icon(Icons.login),
             label: const Text('YouTube で接続'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red[600],
+              backgroundColor: AppColors.shuLight,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             onPressed: () => _connectYouTube(context),
@@ -116,10 +117,10 @@ class YouTubeShareScreen extends ConsumerWidget {
           // 接続済みヘッダー
           Container(
             padding: const EdgeInsets.all(20),
-            color: Colors.green[900]?.withAlpha(50),
+            color: AppColors.wakatakeDark.withAlpha(50),
             child: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green[400]),
+                Icon(Icons.check_circle, color: AppColors.wakatake),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +128,7 @@ class YouTubeShareScreen extends ConsumerWidget {
                     Text(
                       'YouTube チャンネル接続済み',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Colors.green[400],
+                        color: AppColors.wakatake,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -135,7 +136,7 @@ class YouTubeShareScreen extends ConsumerWidget {
                     Text(
                       'ゲーム動画を共有できます',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                   ],
@@ -157,7 +158,7 @@ class YouTubeShareScreen extends ConsumerWidget {
                 children: [
                   Icon(
                     Icons.auto_awesome,
-                    color: Colors.amber[400],
+                    color: AppColors.kin,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -167,14 +168,14 @@ class YouTubeShareScreen extends ConsumerWidget {
                         Text(
                           '自動共有',
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.washi,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'ゲーム終了後に自動的にアップロード',
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         ),
                       ],
@@ -183,7 +184,7 @@ class YouTubeShareScreen extends ConsumerWidget {
                   Switch(
                     value: enabled,
                     onChanged: (value) => _toggleAutoShare(context, ref, uid, value),
-                    activeColor: Colors.red[600],
+                    activeColor: AppColors.shuLight,
                   ),
                 ],
               ),
@@ -201,7 +202,7 @@ class YouTubeShareScreen extends ConsumerWidget {
                 Text(
                   'アップロード履歴',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -253,7 +254,7 @@ class YouTubeShareScreen extends ConsumerWidget {
               icon: const Icon(Icons.logout),
               label: const Text('YouTube を切断'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[700],
+                backgroundColor: AppColors.washiDim,
               ),
               onPressed: () => _disconnectYouTube(context, ref, uid),
             ),
@@ -270,16 +271,16 @@ class YouTubeShareScreen extends ConsumerWidget {
 
     switch (upload.status) {
       case 'completed':
-        statusColor = Colors.green[400]!;
+        statusColor = AppColors.wakatake;
         statusIcon = Icons.check_circle;
       case 'processing':
-        statusColor = Colors.amber[400]!;
+        statusColor = AppColors.kin;
         statusIcon = Icons.hourglass_bottom;
       case 'failed':
-        statusColor = Colors.red[400]!;
+        statusColor = AppColors.shuLight;
         statusIcon = Icons.error;
       default:
-        statusColor = Colors.grey[400]!;
+        statusColor = AppColors.washiDim;
         statusIcon = Icons.info;
     }
 
@@ -304,7 +305,7 @@ class YouTubeShareScreen extends ConsumerWidget {
                     Text(
                       upload.title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.washi,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -361,7 +362,7 @@ class YouTubeShareScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('YouTube 連携は準備中です'),
         content: const Text('実際のYouTubeアカウント連携（OAuth）はまだこのビルドでは利用できません。'),
         actions: [
@@ -397,7 +398,7 @@ class YouTubeShareScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('YouTube を切断'),
         content: const Text('本当に YouTube との接続を切断しますか？'),
         actions: [

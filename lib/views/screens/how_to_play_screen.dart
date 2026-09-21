@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:goen/config/theme.dart';
 
 /// 遊び方説明 - オンボーディングと違い、いつでも開けるルールリファレンス。
 /// 対局中に「これどうだったっけ」となったときに参照できることを意図している。
@@ -47,10 +48,10 @@ class HowToPlayScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('遊び方'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: ListView.separated(
@@ -66,13 +67,13 @@ class HowToPlayScreen extends StatelessWidget {
     return Theme(
       data: ThemeData.dark().copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        leading: Icon(section.icon, color: Colors.amber[600]),
+        leading: Icon(section.icon, color: AppColors.kin),
         title: Text(
           section.title,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
         ),
-        collapsedBackgroundColor: Colors.grey[900],
-        backgroundColor: Colors.grey[900],
+        collapsedBackgroundColor: AppColors.sumiSurface,
+        backgroundColor: AppColors.sumiSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide.none,
@@ -88,7 +89,7 @@ class HowToPlayScreen extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 section.body,
-                style: TextStyle(color: Colors.grey[300], height: 1.7),
+                style: TextStyle(color: AppColors.washiDim, height: 1.7),
               ),
             ),
           ),

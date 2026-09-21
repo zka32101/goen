@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'spectator_view_screen.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -16,10 +17,10 @@ class LiveFriendsScreen extends ConsumerWidget {
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('いま対局中のフレンド'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: uid == null
             ? null
@@ -32,7 +33,7 @@ class LiveFriendsScreen extends ConsumerWidget {
       ),
       body: uid == null
           ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
             )
           : _buildActivityList(context, ref, uid),
     );
@@ -46,7 +47,7 @@ class LiveFriendsScreen extends ConsumerWidget {
           return Center(
             child: Text(
               'いま対局中のフレンドはいません',
-              style: TextStyle(color: Colors.grey[500]),
+              style: TextStyle(color: AppColors.washiDim),
             ),
           );
         }
@@ -57,21 +58,21 @@ class LiveFriendsScreen extends ConsumerWidget {
           itemBuilder: (context, index) {
             final activity = activities[index];
             return Card(
-              color: Colors.grey[900],
+              color: AppColors.sumiSurface,
               child: ListTile(
                 leading: const CircleAvatar(
                   backgroundColor: Colors.redAccent,
-                  child: Icon(Icons.live_tv, color: Colors.white),
+                  child: Icon(Icons.live_tv, color: AppColors.washi),
                 ),
-                title: Text(activity.hostDisplayName, style: const TextStyle(color: Colors.white)),
+                title: Text(activity.hostDisplayName, style: const TextStyle(color: AppColors.washi)),
                 subtitle: Text(
                   '${activity.gameType} / 観戦者 ${activity.spectatorCount}人',
-                  style: TextStyle(color: Colors.grey[400]),
+                  style: TextStyle(color: AppColors.washiDim),
                 ),
                 trailing: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red[400]),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.shuLight),
                   onPressed: () => _joinSpectate(context, ref, uid, activity.sessionId),
-                  child: const Text('観戦する', style: TextStyle(color: Colors.white)),
+                  child: const Text('観戦する', style: TextStyle(color: AppColors.washi)),
                 ),
               ),
             );

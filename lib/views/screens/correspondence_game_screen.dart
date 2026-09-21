@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -39,11 +40,11 @@ class CorrespondenceGameScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('手紙型対局'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -60,16 +61,16 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                   return const SizedBox.shrink();
                 }
                 return Container(
-                  color: Colors.amber.shade700,
+                  color: AppColors.kin,
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
-                      Icon(Icons.schedule, color: Colors.white),
+                      Icon(Icons.schedule, color: AppColors.washi),
                       const SizedBox(width: 8),
                       Text(
                         '待機中の着手: $count',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -115,7 +116,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           Text(
             'ゲーム一覧',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -138,7 +139,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.black,
+        color: AppColors.sumi,
         border: Border.all(
           color: statusColor,
           width: 2,
@@ -157,13 +158,13 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                   Text(
                     'ゲーム ID',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                   Text(
                     game.id.substring(0, 8),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'monospace',
                     ),
@@ -173,7 +174,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
               Chip(
                 label: Text(
                   game.status == 'active' ? 'アクティブ' : '完了',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: const TextStyle(color: AppColors.washi, fontSize: 12),
                 ),
                 backgroundColor: game.status == 'active'
                     ? Colors.blue.shade600
@@ -191,13 +192,13 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                   Text(
                     'ボードサイズ',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                   Text(
                     '${game.boardSize}×${game.boardSize}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                     ),
                   ),
                 ],
@@ -208,13 +209,13 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                   Text(
                     'ターン数',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                   Text(
                     '${game.currentTurnNumber}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -245,7 +246,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                   child: Text(
                     isMyTurn ? 'あなたの番です' : '相手の番を待機中',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -265,13 +266,13 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                   Text(
                     '最後の着手',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                   Text(
                     game.moveHistory.last,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'monospace',
                     ),
@@ -368,7 +369,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.black87,
+        backgroundColor: AppColors.sumi,
         title: const Text('ゲームを放棄しますか？'),
         content: const Text('この操作は取り消せません。'),
         actions: [
@@ -428,7 +429,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           Text(
             '手紙型対局がありません',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
           const SizedBox(height: 32),
@@ -452,7 +453,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           Text(
             'ゲーム一覧を読み込み中...',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -470,14 +471,14 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           Text(
             'エラーが発生しました',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             error,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -57,10 +58,10 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
     final isValid = ref.watch(isPuzzleRushSettingsValidProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('詰碁ラッシュ設定'),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -90,10 +91,10 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
 
   Widget _buildLoadingScreen(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('詰碁ラッシュ設定'),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -104,13 +105,13 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.kin),
             ),
             const SizedBox(height: 16),
             Text(
               '設定を読み込み中...',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white,
+                color: AppColors.washi,
               ),
             ),
           ],
@@ -149,7 +150,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
     return Text(
       title,
       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-        color: Colors.white,
+        color: AppColors.washi,
         fontWeight: FontWeight.bold,
       ),
     );
@@ -157,10 +158,10 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
 
   Widget _buildDifficultyCards(WidgetRef ref, String selected) {
     final difficulties = [
-      {'label': '初級', 'value': 'easy', 'color': Colors.green[700]},
+      {'label': '初級', 'value': 'easy', 'color': AppColors.wakatake},
       {'label': '中級', 'value': 'normal', 'color': Colors.yellow[700]},
       {'label': '上級', 'value': 'hard', 'color': Colors.orange[700]},
-      {'label': '最高級', 'value': 'expert', 'color': Colors.red[700]},
+      {'label': '最高級', 'value': 'expert', 'color': AppColors.shuLight},
     ];
 
     return Column(
@@ -178,11 +179,11 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
               decoration: BoxDecoration(
                 color: isSelected
                     ? (diff['color'] as Color?)?.withAlpha(100)
-                    : Colors.grey[900],
+                    : AppColors.sumiSurface,
                 border: Border.all(
                   color: isSelected
                       ? (diff['color'] as Color?)!
-                      : Colors.grey[700]!,
+                      : AppColors.washiDim,
                   width: isSelected ? 2 : 1,
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -194,7 +195,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
                     diff['label'] as String,
                     style:
                         Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: isSelected ? Colors.white : Colors.white70,
+                      color: isSelected ? AppColors.washi : AppColors.washiDim,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -213,7 +214,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: AppColors.sumiSurface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -222,18 +223,18 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
           Text(
             'セッション情報',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.timer, color: Colors.amber[600], size: 20),
+              Icon(Icons.timer, color: AppColors.kin, size: 20),
               const SizedBox(width: 8),
               Text(
                 '5分間のセッション',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
+                  color: AppColors.washiDim,
                 ),
               ),
             ],
@@ -246,7 +247,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
               Text(
                 'コンボシステム搭載',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
+                  color: AppColors.washiDim,
                 ),
               ),
             ],
@@ -254,12 +255,12 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.leaderboard, color: Colors.amber[400], size: 20),
+              Icon(Icons.leaderboard, color: AppColors.kin, size: 20),
               const SizedBox(width: 8),
               Text(
                 'グローバルリーダーボード',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
+                  color: AppColors.washiDim,
                 ),
               ),
             ],
@@ -274,7 +275,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isValid ? Colors.amber[600] : Colors.grey[600],
+          backgroundColor: isValid ? AppColors.kin : AppColors.washiDim,
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),
         onPressed: isValid

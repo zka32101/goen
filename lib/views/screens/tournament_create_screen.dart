@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -32,10 +33,10 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('トーナメントを作成'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -46,14 +47,14 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
             _buildLabel('大会名'),
             TextField(
               controller: _nameController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.washi),
               decoration: _inputDecoration('例: 週末杯'),
             ),
             const SizedBox(height: 16),
             _buildLabel('説明'),
             TextField(
               controller: _descriptionController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.washi),
               maxLines: 3,
               decoration: _inputDecoration('大会の説明を入力'),
             ),
@@ -83,12 +84,12 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.account_tree, color: Colors.amber, size: 18),
+                  const Icon(Icons.account_tree, color: AppColors.kin, size: 18),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'シングルエリミネーション（トーナメント表形式）',
-                      style: TextStyle(color: Colors.grey[300], fontSize: 13),
+                      style: TextStyle(color: AppColors.washiDim, fontSize: 13),
                     ),
                   ),
                 ],
@@ -106,7 +107,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
               child: ElevatedButton(
                 onPressed: _isSubmitting ? null : _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber[600],
+                  backgroundColor: AppColors.kin,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: _isSubmitting
@@ -117,7 +118,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
                       )
                     : const Text(
                         '大会を作成する',
-                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold),
                       ),
               ),
             ),
@@ -130,16 +131,16 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      child: Text(text, style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold)),
     );
   }
 
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[600]),
+      hintStyle: TextStyle(color: AppColors.washiDim),
       filled: true,
-      fillColor: Colors.white.withOpacity(0.05),
+      fillColor: AppColors.washi.withOpacity(0.05),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide.none,
@@ -161,8 +162,8 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
             label: Text(labelBuilder(value)),
             selected: selected == value,
             onSelected: (_) => onSelected(value),
-            selectedColor: Colors.amber[600],
-            backgroundColor: Colors.grey[800],
+            selectedColor: AppColors.kin,
+            backgroundColor: AppColors.sumiCard,
           ),
         );
       }).toList(),
@@ -192,7 +193,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
             const SizedBox(width: 8),
             Text(
               '${date.year}/${date.month}/${date.day}',
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.washi),
             ),
           ],
         ),

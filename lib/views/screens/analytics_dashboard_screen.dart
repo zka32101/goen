@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import '../widgets/index.dart';
+import 'package:goen/config/theme.dart';
 
 /// Analytics dashboard screen
 class AnalyticsDashboardScreen extends ConsumerWidget {
@@ -14,10 +15,10 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('ゲーム統計'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: currentUser == null
@@ -60,7 +61,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
           if (stats == null) {
             return Center(
               child: Text('統計データはまだありません',
-                  style: TextStyle(color: Colors.grey[400])),
+                  style: TextStyle(color: AppColors.washiDim)),
             );
           }
 
@@ -77,22 +78,22 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                   _buildStatCard(
                     '${stats.totalGamesPlayed}',
                     'ゲーム数',
-                    Colors.blue[700]!,
+                    AppColors.aiLight,
                   ),
                   _buildStatCard(
                     '${stats.totalWins}',
                     '勝利',
-                    Colors.green[700]!,
+                    AppColors.wakatake,
                   ),
                   _buildStatCard(
                     '${stats.winRate.toStringAsFixed(1)}%',
                     '勝率',
-                    Colors.amber[700]!,
+                    AppColors.kin,
                   ),
                   _buildStatCard(
                     '${stats.averageGameDuration.toStringAsFixed(0)}分',
                     '平均時間',
-                    Colors.purple[700]!,
+                    AppColors.fuji,
                   ),
                 ],
               ),
@@ -100,7 +101,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
 
               // Favorite info
               Card(
-                color: Colors.grey[900],
+                color: AppColors.sumiSurface,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(
@@ -109,12 +110,12 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                       Column(
                         children: [
                           Text('好みのモード',
-                              style: TextStyle(color: Colors.grey[400],
+                              style: TextStyle(color: AppColors.washiDim,
                                   fontSize: 12)),
                           const SizedBox(height: 4),
                           Text(stats.favoriteGameMode,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.washi,
                                 fontWeight: FontWeight.bold,
                               )),
                         ],
@@ -122,12 +123,12 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                       Column(
                         children: [
                           Text('好みのレベル',
-                              style: TextStyle(color: Colors.grey[400],
+                              style: TextStyle(color: AppColors.washiDim,
                                   fontSize: 12)),
                           const SizedBox(height: 4),
                           Text('Lv${stats.favoriteAiLevel}',
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.washi,
                                 fontWeight: FontWeight.bold,
                               )),
                         ],
@@ -135,12 +136,12 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                       Column(
                         children: [
                           Text('好みのサイズ',
-                              style: TextStyle(color: Colors.grey[400],
+                              style: TextStyle(color: AppColors.washiDim,
                                   fontSize: 12)),
                           const SizedBox(height: 4),
                           Text('${stats.favoriteBoardSize}×${stats.favoriteBoardSize}',
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.washi,
                                 fontWeight: FontWeight.bold,
                               )),
                         ],
@@ -177,7 +178,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              style: TextStyle(color: AppColors.washiDim, fontSize: 12),
             ),
           ],
         ),
@@ -201,11 +202,11 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Card(
-          color: Colors.grey[900],
+          color: AppColors.sumiSurface,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text('エラー: $err',
-                style: TextStyle(color: Colors.red[600])),
+                style: TextStyle(color: AppColors.shuLight)),
           ),
         ),
       ),
@@ -233,11 +234,11 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Card(
-          color: Colors.grey[900],
+          color: AppColors.sumiSurface,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text('エラー: $err',
-                style: TextStyle(color: Colors.red[600])),
+                style: TextStyle(color: AppColors.shuLight)),
           ),
         ),
       ),
@@ -254,18 +255,18 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
         children: [
           Text(
             'アチーブメント',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           achievementsAsync.when(
             data: (achievements) {
               if (achievements.isEmpty) {
                 return Card(
-                  color: Colors.grey[900],
+                  color: AppColors.sumiSurface,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text('アチーブメントを獲得してください',
-                        style: TextStyle(color: Colors.grey[400])),
+                        style: TextStyle(color: AppColors.washiDim)),
                   ),
                 );
               }

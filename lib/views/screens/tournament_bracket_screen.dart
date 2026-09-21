@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/tournament.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'pvp_game_screen.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -30,10 +31,10 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
     );
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: Text(widget.tournament.name),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: matchesAsync.when(
@@ -62,26 +63,26 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
             children: [
               Text(
                 'まだブラケットは作成されていません',
-                style: TextStyle(color: Colors.grey[400]),
+                style: TextStyle(color: AppColors.washiDim),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               if (widget.tournament.participantUids.length >= 2)
                 ElevatedButton(
                   onPressed: _isStarting ? null : () => _startTournament(context),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[600]),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
                   child: _isStarting
                       ? const SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('トーナメントを開始する', style: TextStyle(color: Colors.black)),
+                      : const Text('トーナメントを開始する', style: TextStyle(color: AppColors.sumi)),
                 )
               else
                 Text(
                   '開始には最低2人の参加者が必要です',
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                 ),
             ],
           ),
@@ -91,7 +92,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
 
     if (matches.isEmpty) {
       return Center(
-        child: Text('試合データがありません', style: TextStyle(color: Colors.grey[500])),
+        child: Text('試合データがありません', style: TextStyle(color: AppColors.washiDim)),
       );
     }
 
@@ -108,7 +109,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
         for (final round in rounds) ...[
           Text(
             round == rounds.last && widget.tournament.isCompleted ? '決勝' : '第$round回戦',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
           ...byRound[round]!.map((match) => _buildMatchCard(context, match, uid, myDisplayName)),
@@ -126,18 +127,18 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.amber[600]!, width: 2),
+        border: Border.all(color: AppColors.kin, width: 2),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.amber[600]?.withOpacity(0.1),
+        color: AppColors.kin.withOpacity(0.1),
       ),
       child: Row(
         children: [
-          Icon(Icons.emoji_events, color: Colors.amber[600], size: 32),
+          Icon(Icons.emoji_events, color: AppColors.kin, size: 32),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               championName != null ? '優勝: $championName' : 'トーナメント終了',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -172,7 +173,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
         myDisplayName != null;
 
     return Card(
-      color: isMyMatch ? Colors.amber[600]?.withOpacity(0.08) : Colors.grey[900],
+      color: isMyMatch ? AppColors.kin.withOpacity(0.08) : AppColors.sumiSurface,
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -182,7 +183,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
             Row(
               children: [
                 Expanded(child: _buildPlayerLabel(match.player1Uid, match.player1DisplayName, match.winnerUid)),
-                Text(match.isBye ? 'BYE' : 'vs', style: TextStyle(color: Colors.grey[600])),
+                Text(match.isBye ? 'BYE' : 'vs', style: TextStyle(color: AppColors.washiDim)),
                 Expanded(
                   child: _buildPlayerLabel(
                     match.player2Uid,
@@ -221,7 +222,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
       return Text(
         '(不戦勝待ち)',
         textAlign: alignEnd ? TextAlign.end : TextAlign.start,
-        style: TextStyle(color: Colors.grey[600], fontStyle: FontStyle.italic),
+        style: TextStyle(color: AppColors.washiDim, fontStyle: FontStyle.italic),
       );
     }
     final isWinner = winnerUid == uid;
@@ -229,7 +230,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
       displayName ?? 'Player',
       textAlign: alignEnd ? TextAlign.end : TextAlign.start,
       style: TextStyle(
-        color: isWinner ? Colors.amber[400] : Colors.white,
+        color: isWinner ? AppColors.kin : AppColors.washi,
         fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
       ),
     );

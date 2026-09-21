@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -61,11 +62,11 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('Team ゲーム'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -90,7 +91,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
         children: [
           // Team information
           Container(
-            color: Colors.black,
+            color: AppColors.sumi,
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
@@ -99,7 +100,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                   context,
                   'チーム1 (白)',
                   widget.team1Players,
-                  Colors.white,
+                  AppColors.washi,
                 ),
                 const SizedBox(height: 16),
                 const Divider(color: Colors.white24),
@@ -109,7 +110,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                   context,
                   'チーム2 (黒)',
                   widget.team2Players,
-                  Colors.black,
+                  AppColors.sumi,
                 ),
               ],
             ),
@@ -122,7 +123,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: AppColors.sumi,
                 border: Border.all(color: Colors.white24),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -135,14 +136,14 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                       Text(
                         'ゲーム状態',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
+                          color: AppColors.washiDim,
                         ),
                       ),
                       Chip(
                         label: Text(
                           game.result == 'draw' ? '進行中' : game.result,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.washi,
                             fontSize: 12,
                           ),
                         ),
@@ -162,13 +163,13 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                           Text(
                             'ボードサイズ',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white70,
+                              color: AppColors.washiDim,
                             ),
                           ),
                           Text(
                             '${game.boardSize}×${game.boardSize}',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.washi,
                             ),
                           ),
                         ],
@@ -179,13 +180,13 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                           Text(
                             '着手数',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white70,
+                              color: AppColors.washiDim,
                             ),
                           ),
                           Text(
                             '${game.moveHistory.length}',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.washi,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -208,14 +209,14 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                 Text(
                   'チーム1の着手',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: AppColors.sumi,
                     border: Border.all(color: Colors.white24),
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -223,13 +224,13 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                       ? Text(
                           'まだ着手なし',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         )
                       : Text(
                           game.team1Moves,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.washi,
                             fontFamily: 'monospace',
                           ),
                         ),
@@ -247,14 +248,14 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                 Text(
                   'チーム2の着手',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: AppColors.sumi,
                     border: Border.all(color: Colors.white24),
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -262,13 +263,13 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                       ? Text(
                           'まだ着手なし',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         )
                       : Text(
                           game.team2Moves,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.washi,
                             fontFamily: 'monospace',
                           ),
                         ),
@@ -335,7 +336,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
             Text(
               teamName,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Colors.white,
+                color: AppColors.washi,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -349,7 +350,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
             return Chip(
               label: Text(
                 player.length > 8 ? '${player.substring(0, 8)}...' : player,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: const TextStyle(color: AppColors.washi, fontSize: 12),
               ),
               backgroundColor: Colors.grey.shade800,
             );
@@ -443,7 +444,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
           Text(
             'ゲームを準備中...',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -461,14 +462,14 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
           Text(
             'エラーが発生しました',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             error,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),

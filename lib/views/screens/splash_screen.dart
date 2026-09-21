@@ -65,13 +65,13 @@ class SplashScreen extends ConsumerWidget {
               Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Colors.red[400],
+                color: AppColors.shuLight,
               ),
               const SizedBox(height: 24),
               Text(
                 'Initialization Error',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: AppColors.white,
+                  color: AppColors.washi,
                 ),
               ),
               const SizedBox(height: 12),
@@ -158,7 +158,7 @@ class SplashScreen extends ConsumerWidget {
               Text(
                 '碁',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: AppColors.white,
+                  color: AppColors.washi,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -169,7 +169,7 @@ class SplashScreen extends ConsumerWidget {
         Text(
           '碁縁',
           style: Theme.of(context).textTheme.displayLarge?.copyWith(
-            color: AppColors.white,
+            color: AppColors.washi,
             fontWeight: FontWeight.bold,
             letterSpacing: 4,
           ),

@@ -162,7 +162,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                           '${boardState.boardSize}×${boardState.boardSize}',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
-                                color: AppColors.white,
+                                color: AppColors.washi,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -179,7 +179,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                           '${boardState.capturedBlack} / ${boardState.capturedWhite}',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
-                                color: AppColors.white,
+                                color: AppColors.washi,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -197,7 +197,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                           '$movesCount',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
-                                color: AppColors.white,
+                                color: AppColors.washi,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -335,7 +335,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
+              color: AppColors.sumi.withOpacity(0.5),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -348,7 +348,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
               child: IgnorePointer(
                 child: CustomPaint(
                   painter: WoodGrainPainter(
-                    color: Colors.black.withOpacity(0.08),
+                    color: AppColors.sumi.withOpacity(0.08),
                   ),
                 ),
               ),
@@ -376,8 +376,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: lastMove.player == 'black'
-                            ? Colors.white
-                            : Colors.black,
+                            ? AppColors.washi
+                            : AppColors.sumi,
                         width: 1.5,
                       ),
                     ),
@@ -437,7 +437,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           final isBlack = stone == 1;
           final border = isBlack
               ? null
-              : Border.all(color: Colors.grey[400]!, width: 0.5);
+              : Border.all(color: AppColors.washiDim, width: 0.5);
 
           stoneWidgets.add(
             Positioned(
@@ -455,8 +455,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     center: const Alignment(-0.35, -0.4),
                     radius: 0.9,
                     colors: isBlack
-                        ? [Colors.grey[700]!, Colors.black]
-                        : [Colors.white, Colors.grey[350]!],
+                        ? [AppColors.washiDim, AppColors.sumi]
+                        : [AppColors.washi, AppColors.washiDim],
                   ),
                   boxShadow: const [
                     BoxShadow(
@@ -661,7 +661,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
         // Determine color based on score difference
         final evalColor = scoreDiff > 0
-            ? Colors.blue[400]! // Black winning
+            ? AppColors.aiLight // Black winning
             : scoreDiff < 0
             ? Colors.orange[400]! // White winning
             : AppColors.accent; // Even
@@ -671,7 +671,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           decoration: BoxDecoration(
             border: Border.all(color: evalColor, width: 1),
             borderRadius: BorderRadius.circular(8),
-            color: Colors.grey[850]?.withOpacity(0.5),
+            color: AppColors.washiDim.withOpacity(0.5),
           ),
           child: Column(
             children: [
@@ -693,13 +693,13 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     'Score Diff: ${scoreDiff.toStringAsFixed(1)}',
                     style: Theme.of(
                       context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.washiDim),
                   ),
                   Text(
                     '黒勝率: ${(blackWinProb * 100).toStringAsFixed(1)}%',
                     style: Theme.of(
                       context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                    ).textTheme.bodySmall?.copyWith(color: AppColors.washiDim),
                   ),
                 ],
               ),
@@ -711,7 +711,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 child: LinearProgressIndicator(
                   value: blackWinProb,
                   minHeight: 8,
-                  backgroundColor: Colors.white30,
+                  backgroundColor: AppColors.grey500,
                   valueColor: AlwaysStoppedAnimation(evalColor),
                 ),
               ),
@@ -722,9 +722,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       loading: () => Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white30, width: 1),
+          border: Border.all(color: AppColors.grey500, width: 1),
           borderRadius: BorderRadius.circular(8),
-          color: Colors.grey[850]?.withOpacity(0.5),
+          color: AppColors.washiDim.withOpacity(0.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -742,7 +742,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
               '形勢を計算中...',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+              ).textTheme.bodySmall?.copyWith(color: AppColors.washiDim),
             ),
           ],
         ),
@@ -750,15 +750,15 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       error: (error, stack) => Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.red[400]!, width: 1),
+          border: Border.all(color: AppColors.shuLight, width: 1),
           borderRadius: BorderRadius.circular(8),
-          color: Colors.red[900]?.withOpacity(0.2),
+          color: AppColors.shuDark.withOpacity(0.2),
         ),
         child: Text(
           '形勢評価エラー',
           style: Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: Colors.red[400]),
+          ).textTheme.bodySmall?.copyWith(color: AppColors.shuLight),
         ),
       ),
     );
@@ -797,10 +797,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     height: 10,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isBlack ? Colors.black : Colors.white,
+                      color: isBlack ? AppColors.sumi : AppColors.washi,
                       border: isBlack
                           ? null
-                          : Border.all(color: Colors.grey[400]!),
+                          : Border.all(color: AppColors.washiDim),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -808,7 +808,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     '${index + 1}',
                     style: Theme.of(
                       context,
-                    ).textTheme.labelSmall?.copyWith(color: AppColors.white),
+                    ).textTheme.labelSmall?.copyWith(color: AppColors.washi),
                   ),
                 ],
               ),
@@ -866,7 +866,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         backgroundColor: AppColors.primaryDark,
         title: Text(
           '${index + 1}手目の局面',
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: AppColors.washi),
         ),
         content: SizedBox(
           width: 240,
@@ -918,8 +918,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
               height: radius * 2,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isBlack ? Colors.black : Colors.white,
-                border: isBlack ? null : Border.all(color: Colors.grey[400]!),
+                color: isBlack ? AppColors.sumi : AppColors.washi,
+                border: isBlack ? null : Border.all(color: AppColors.washiDim),
               ),
             ),
           ),
@@ -984,7 +984,7 @@ class _AiThinkingIndicatorState extends State<_AiThinkingIndicator>
               height: 18,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.black.withOpacity(0.25 + 0.35 * t),
+                color: AppColors.sumi.withOpacity(0.25 + 0.35 * t),
                 border: Border.all(
                   color: AppColors.accent.withOpacity(0.4 + 0.4 * t),
                   width: 1.5,
@@ -1014,7 +1014,7 @@ class _GoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white30
+      ..color = AppColors.grey500
       ..strokeWidth = 1;
 
     final step = size.width / boardSize;
@@ -1123,7 +1123,7 @@ class _CaptureFlashState extends State<_CaptureFlash> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.85),
+              color: AppColors.sumi.withOpacity(0.85),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppColors.accent, width: 2),
             ),

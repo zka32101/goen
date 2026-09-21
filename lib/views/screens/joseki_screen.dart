@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:goen/config/theme.dart';
 
 /// 戦法（定石）ライブラリ - 代表的な隅の定石を、手順と狙いの解説付きで紹介する。
 /// 対局のインポートやリプレイは行わず、静的な参考資料として提供する。
@@ -42,10 +43,10 @@ class JosekiScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('戦法（定石）'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: ListView.separated(
@@ -59,7 +60,7 @@ class JosekiScreen extends StatelessWidget {
               child: Text(
                 '代表的な隅の定石とその狙いを紹介します。丸暗記より、'
                 '「なぜその手が打たれるか」を意識すると実戦で活きます。',
-                style: TextStyle(color: Colors.grey[400], height: 1.6),
+                style: TextStyle(color: AppColors.washiDim, height: 1.6),
               ),
             );
           }
@@ -75,24 +76,24 @@ class JosekiScreen extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             joseki.name,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
             joseki.moves,
-            style: TextStyle(color: Colors.amber[600], fontSize: 13),
+            style: TextStyle(color: AppColors.kin, fontSize: 13),
           ),
           const SizedBox(height: 8),
           Text(
             joseki.idea,
-            style: TextStyle(color: Colors.grey[300], height: 1.6),
+            style: TextStyle(color: AppColors.washiDim, height: 1.6),
           ),
         ],
       ),

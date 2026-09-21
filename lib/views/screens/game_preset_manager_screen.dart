@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 /// Game preset manager screen
 class GamePresetManagerScreen extends ConsumerStatefulWidget {
@@ -23,10 +24,10 @@ class _GamePresetManagerScreenState
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('ゲームプリセット'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: currentUser == null
@@ -62,7 +63,7 @@ class _GamePresetManagerScreenState
           ? null
           : FloatingActionButton(
               onPressed: () => _showCreatePresetDialog(context, currentUser.uid),
-              backgroundColor: Colors.amber[700],
+              backgroundColor: AppColors.kin,
               child: const Icon(Icons.add),
             ),
     );
@@ -77,10 +78,10 @@ class _GamePresetManagerScreenState
           _selectedMode = selected ? value : _selectedMode;
         });
       },
-      backgroundColor: Colors.grey[800],
-      selectedColor: Colors.amber[700],
+      backgroundColor: AppColors.sumiCard,
+      selectedColor: AppColors.kin,
       labelStyle: TextStyle(
-        color: _selectedMode == value ? Colors.black : Colors.white,
+        color: _selectedMode == value ? AppColors.sumi : AppColors.washi,
       ),
     );
   }
@@ -95,10 +96,10 @@ class _GamePresetManagerScreenState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.tune_outlined, size: 64, color: Colors.grey[600]),
+                Icon(Icons.tune_outlined, size: 64, color: AppColors.washiDim),
                 const SizedBox(height: 16),
                 Text('このモードのプリセットはありません',
-                    style: TextStyle(color: Colors.grey[400])),
+                    style: TextStyle(color: AppColors.washiDim)),
               ],
             ),
           );
@@ -123,7 +124,7 @@ class _GamePresetManagerScreenState
     GamePreset preset,
   ) {
     return Card(
-      color: Colors.grey[900],
+      color: AppColors.sumiSurface,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -139,7 +140,7 @@ class _GamePresetManagerScreenState
                       Text(
                         preset.name,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -155,13 +156,13 @@ class _GamePresetManagerScreenState
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue[900],
+                              color: AppColors.aiLight,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               'Level ${preset.aiLevel}',
                               style: TextStyle(
-                                color: Colors.blue[300],
+                                color: AppColors.aiLight,
                                 fontSize: 12,
                               ),
                             ),
@@ -191,13 +192,13 @@ class _GamePresetManagerScreenState
                       Text(
                         '使用回数: ${preset.usageCount}',
                         style:
-                            TextStyle(color: Colors.grey[500], fontSize: 12),
+                            TextStyle(color: AppColors.washiDim, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
                 PopupMenuButton<String>(
-                  color: Colors.grey[900],
+                  color: AppColors.sumiSurface,
                   itemBuilder: (context) => [
                     const PopupMenuItem(
                       child: Text('このプリセットでゲーム開始'),
@@ -235,13 +236,13 @@ class _GamePresetManagerScreenState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.purple[900],
+        color: AppColors.fuji,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         '$emoji ${boardSize}×$boardSize',
         style: TextStyle(
-          color: Colors.purple[300],
+          color: AppColors.fuji,
           fontSize: 12,
         ),
       ),
@@ -271,7 +272,7 @@ class _GamePresetManagerScreenState
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Colors.grey[900],
+          backgroundColor: AppColors.sumiSurface,
           title: const Text('新しいプリセットを作成'),
           content: SingleChildScrollView(
             child: Column(
@@ -282,15 +283,15 @@ class _GamePresetManagerScreenState
                   controller: nameController,
                   decoration: InputDecoration(
                     hintText: 'プリセット名',
-                    hintStyle: TextStyle(color: Colors.grey[500]),
+                    hintStyle: TextStyle(color: AppColors.washiDim),
                     enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.amber[700]!),
+                      borderSide: BorderSide(color: AppColors.kin),
                     ),
                   ),
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppColors.washi),
                 ),
                 const SizedBox(height: 20),
-                Text('盤の大きさ', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                Text('盤の大きさ', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -299,10 +300,10 @@ class _GamePresetManagerScreenState
                       label: Text('$size路盤'),
                       selected: selectedBoardSize == size,
                       onSelected: (_) => setDialogState(() => selectedBoardSize = size),
-                      backgroundColor: Colors.grey[800],
-                      selectedColor: Colors.amber[700],
+                      backgroundColor: AppColors.sumiCard,
+                      selectedColor: AppColors.kin,
                       labelStyle: TextStyle(
-                        color: selectedBoardSize == size ? Colors.black : Colors.white,
+                        color: selectedBoardSize == size ? AppColors.sumi : AppColors.washi,
                       ),
                     );
                   }).toList(),
@@ -310,7 +311,7 @@ class _GamePresetManagerScreenState
                 const SizedBox(height: 20),
                 Text(
                   'AIレベル: $selectedAiLevel',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                 ),
                 Slider(
                   value: selectedAiLevel.toDouble(),
@@ -318,12 +319,12 @@ class _GamePresetManagerScreenState
                   max: 10,
                   divisions: 9,
                   label: '$selectedAiLevel',
-                  activeColor: Colors.amber[700],
+                  activeColor: AppColors.kin,
                   onChanged: (value) =>
                       setDialogState(() => selectedAiLevel = value.toInt()),
                 ),
                 const SizedBox(height: 12),
-                Text('置き碁（ハンディキャップ）', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                Text('置き碁（ハンディキャップ）', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -333,10 +334,10 @@ class _GamePresetManagerScreenState
                       label: Text(label),
                       selected: handicapStones == stones,
                       onSelected: (_) => setDialogState(() => handicapStones = stones),
-                      backgroundColor: Colors.grey[800],
+                      backgroundColor: AppColors.sumiCard,
                       selectedColor: Colors.orange[800],
                       labelStyle: TextStyle(
-                        color: handicapStones == stones ? Colors.black : Colors.white,
+                        color: handicapStones == stones ? AppColors.sumi : AppColors.washi,
                       ),
                     );
                   }).toList(),
@@ -364,7 +365,7 @@ class _GamePresetManagerScreenState
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700]),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
               child: const Text('作成'),
             ),
           ],
@@ -428,7 +429,7 @@ class _GamePresetManagerScreenState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('プリセットを削除しますか？'),
         content: const Text('この操作は取り消せません。'),
         actions: [
@@ -446,7 +447,7 @@ class _GamePresetManagerScreenState
               _showMessage(context,
                   success ? '削除しました' : 'エラーが発生しました');
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700]),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.shuLight),
             child: const Text('削除'),
           ),
         ],

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:goen/config/theme.dart';
 
 /// 円相（えんそう）風の一筆書きの円。禅画・書道で悟りや無限を表す図案で、
 /// 完全な円にせず、筆を持ち上げる際のかすれ・重なりを表現するために
@@ -143,14 +144,14 @@ class HankoSeal extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: const Color(0xFF8C2A2A), width: 1),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 3, offset: const Offset(1, 1)),
+          BoxShadow(color: AppColors.sumi.withOpacity(0.3), blurRadius: 3, offset: const Offset(1, 1)),
         ],
       ),
       alignment: Alignment.center,
       child: Text(
         character,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.92),
+          color: AppColors.washi.withOpacity(0.92),
           fontSize: size * 0.55,
           fontWeight: FontWeight.bold,
           height: 1,

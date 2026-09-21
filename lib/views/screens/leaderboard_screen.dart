@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import '../../utils/go_rank.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -17,10 +18,10 @@ class LeaderboardScreen extends ConsumerWidget {
     final type = ref.watch(leaderboardTypeProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('リーダーボード'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: Column(
@@ -53,8 +54,8 @@ class LeaderboardScreen extends ConsumerWidget {
                               period;
                         }
                       },
-                      selectedColor: Colors.amber[600],
-                      backgroundColor: Colors.grey[800],
+                      selectedColor: AppColors.kin,
+                      backgroundColor: AppColors.sumiCard,
                     ),
                   ))
               .toList(),
@@ -81,8 +82,8 @@ class LeaderboardScreen extends ConsumerWidget {
                               type;
                         }
                       },
-                      selectedColor: Colors.amber[600],
-                      backgroundColor: Colors.grey[800],
+                      selectedColor: AppColors.kin,
+                      backgroundColor: AppColors.sumiCard,
                     ),
                   ))
               .toList(),
@@ -106,14 +107,14 @@ class LeaderboardScreen extends ConsumerWidget {
           return Center(
             child: Text(
               'ランキングデータはまだありません',
-              style: TextStyle(color: Colors.grey[400]),
+              style: TextStyle(color: AppColors.washiDim),
             ),
           );
         }
 
         return ListView.separated(
           separatorBuilder: (context, index) =>
-              Divider(color: Colors.grey[800], height: 1),
+              Divider(color: AppColors.sumiCard, height: 1),
           itemCount: entries.length,
           itemBuilder: (context, index) {
             final entry = entries[index];
@@ -134,7 +135,7 @@ class LeaderboardScreen extends ConsumerWidget {
     final medalEmoji = _getMedalEmoji(entry.rank);
 
     return Container(
-      color: entry.rank <= 3 ? Colors.grey[850] : Colors.transparent,
+      color: entry.rank <= 3 ? AppColors.washiDim : Colors.transparent,
       child: ListTile(
         leading: Container(
           width: 40,
@@ -153,13 +154,13 @@ class LeaderboardScreen extends ConsumerWidget {
         title: Text(
           entry.displayName,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.washi,
             fontWeight: FontWeight.w500,
           ),
         ),
         subtitle: Text(
           'レート: ${entry.rating} (${formatGoRank(entry.rating)}) | ${entry.gamesPlayed}試合 (勝: ${entry.wins})',
-          style: TextStyle(color: Colors.grey[400], fontSize: 12),
+          style: TextStyle(color: AppColors.washiDim, fontSize: 12),
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -168,13 +169,13 @@ class LeaderboardScreen extends ConsumerWidget {
             Text(
               '${entry.rank}位',
               style: TextStyle(
-                color: Colors.amber[600],
+                color: AppColors.kin,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               '勝率: ${(entry.winRate * 100).toStringAsFixed(1)}%',
-              style: TextStyle(color: Colors.grey[400], fontSize: 11),
+              style: TextStyle(color: AppColors.washiDim, fontSize: 11),
             ),
           ],
         ),
@@ -187,11 +188,11 @@ class LeaderboardScreen extends ConsumerWidget {
       case 1:
         return Colors.yellow[700]!;
       case 2:
-        return Colors.grey[400]!;
+        return AppColors.washiDim;
       case 3:
         return Colors.orange[700]!;
       default:
-        return Colors.grey[700]!;
+        return AppColors.washiDim;
     }
   }
 

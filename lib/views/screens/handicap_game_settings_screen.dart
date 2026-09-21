@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -29,10 +30,10 @@ class _HandicapGameSettingsScreenState
     _logger.i('Building HandicapGameSettingsScreen');
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('ハンディキャップ戦'),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -46,7 +47,7 @@ class _HandicapGameSettingsScreenState
             Text(
               'ハンディキャップ石を先に盤上に置いた状態で、白番（AI）から対局を始めます。',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white70,
+                color: AppColors.washiDim,
               ),
             ),
             const SizedBox(height: 32),
@@ -72,7 +73,7 @@ class _HandicapGameSettingsScreenState
     return Text(
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        color: Colors.white,
+        color: AppColors.washi,
         fontWeight: FontWeight.bold,
       ),
     );
@@ -87,13 +88,13 @@ class _HandicapGameSettingsScreenState
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: selected ? Colors.amber[600] : Colors.grey[800],
+                backgroundColor: selected ? AppColors.kin : AppColors.sumiCard,
               ),
               onPressed: () => setState(() => _boardSize = size),
               child: Text(
                 '$size×$size',
                 style: TextStyle(
-                  color: selected ? Colors.black : Colors.white,
+                  color: selected ? AppColors.sumi : AppColors.washi,
                 ),
               ),
             ),
@@ -112,7 +113,7 @@ class _HandicapGameSettingsScreenState
           min: 2,
           max: 9,
           divisions: 7,
-          activeColor: Colors.amber[600],
+          activeColor: AppColors.kin,
           onChanged: (value) => setState(() => _handicapStones = value.toInt()),
         ),
         Padding(
@@ -121,7 +122,7 @@ class _HandicapGameSettingsScreenState
             child: Text(
               '$_handicapStones 子',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Colors.white,
+                color: AppColors.washi,
               ),
             ),
           ),
@@ -135,7 +136,7 @@ class _HandicapGameSettingsScreenState
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.amber[600],
+          backgroundColor: AppColors.kin,
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),
         onPressed: () {

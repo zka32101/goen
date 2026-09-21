@@ -6,6 +6,7 @@ import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/shoji_transition.dart';
 import 'ai_game_screen.dart';
 import 'game_mode_selector_screen.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -28,11 +29,11 @@ class HomeScreen extends ConsumerWidget {
     final isSubscriptionActive = ref.watch(isSubscriptionActiveProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('碁縁'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         actions: [
           _buildNotificationButton(context, ref, currentUser?.uid),
@@ -58,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
                   Text(
                     'Welcome back',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -68,7 +69,7 @@ class HomeScreen extends ConsumerWidget {
                       Text(
                         currentUser?.displayName ?? 'Player',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -79,13 +80,13 @@ class HomeScreen extends ConsumerWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.amber[600],
+                            color: AppColors.kin,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             'Premium',
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: Colors.black,
+                              color: AppColors.sumi,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -107,7 +108,7 @@ class HomeScreen extends ConsumerWidget {
                     title: 'Game Modes',
                     subtitle: 'Choose your game style',
                     icon: Icons.sports_esports,
-                    color: Colors.amber[600]!,
+                    color: AppColors.kin,
                     onTap: () => _navigateToGameModeSelector(context),
                     isPrimary: true,
                   ),
@@ -119,7 +120,7 @@ class HomeScreen extends ConsumerWidget {
                     title: 'Play AI Game',
                     subtitle: 'Challenge the Go engine',
                     icon: Icons.smart_toy,
-                    color: Colors.amber[500]!,
+                    color: AppColors.kin,
                     onTap: () => _navigateToAiGame(context, ref),
                   ),
                   const SizedBox(height: 16),
@@ -130,7 +131,7 @@ class HomeScreen extends ConsumerWidget {
                     title: "Today's Puzzle",
                     subtitle: 'Solve the daily tsume-go',
                     icon: Icons.lightbulb,
-                    color: Colors.cyan[400]!,
+                    color: AppColors.aiLight,
                     onTap: () => _navigateToTsumeGo(context),
                   ),
                   const SizedBox(height: 16),
@@ -141,7 +142,7 @@ class HomeScreen extends ConsumerWidget {
                     title: 'Watch & Learn',
                     subtitle: 'Study historical games',
                     icon: Icons.visibility,
-                    color: Colors.green[600]!,
+                    color: AppColors.wakatake,
                     onTap: () => _navigateToKifuObservation(context),
                   ),
                   const SizedBox(height: 16),
@@ -152,7 +153,7 @@ class HomeScreen extends ConsumerWidget {
                     title: 'My Games',
                     subtitle: 'Review your past games',
                     icon: Icons.history,
-                    color: Colors.purple[400]!,
+                    color: AppColors.fuji,
                     onTap: () => _navigateToGameHistory(context),
                   ),
                   const SizedBox(height: 16),
@@ -174,7 +175,7 @@ class HomeScreen extends ConsumerWidget {
                     title: 'トーナメント',
                     subtitle: '大会に参加して腕を試そう',
                     icon: Icons.emoji_events,
-                    color: Colors.amber[700]!,
+                    color: AppColors.kin,
                     onTap: () => _navigateToTournament(context),
                   ),
                   const SizedBox(height: 16),
@@ -258,7 +259,7 @@ class HomeScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           color: isPrimary
               ? color.withOpacity(0.15)
-              : Colors.white.withOpacity(0.05),
+              : AppColors.washi.withOpacity(0.05),
         ),
         child: Row(
           children: [
@@ -279,7 +280,7 @@ class HomeScreen extends ConsumerWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -287,7 +288,7 @@ class HomeScreen extends ConsumerWidget {
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                 ],
@@ -311,7 +312,7 @@ class HomeScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -351,7 +352,7 @@ class HomeScreen extends ConsumerWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: Colors.amber[600],
+            color: AppColors.kin,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -359,7 +360,7 @@ class HomeScreen extends ConsumerWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
       ],
@@ -371,9 +372,9 @@ class HomeScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.red[700]!, width: 1),
+        border: Border.all(color: AppColors.shuLight, width: 1),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.red[900]?.withOpacity(0.1),
+        color: AppColors.shuDark.withOpacity(0.1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,14 +383,14 @@ class HomeScreen extends ConsumerWidget {
             children: [
               Icon(
                 Icons.refresh,
-                color: Colors.red[600],
+                color: AppColors.shuLight,
                 size: 20,
               ),
               const SizedBox(width: 12),
               Text(
                 'Game Settings',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -399,7 +400,7 @@ class HomeScreen extends ConsumerWidget {
           Text(
             'Reset all game settings (board size, difficulty, etc.) to defaults.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.5,
             ),
           ),
@@ -408,7 +409,7 @@ class HomeScreen extends ConsumerWidget {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[700],
+                backgroundColor: AppColors.shuLight,
                 // vertical: 10 rendered a ~40dp-tall touch target, short of
                 // WCAG's 44dp minimum.
                 minimumSize: const Size.fromHeight(44),
@@ -418,7 +419,7 @@ class HomeScreen extends ConsumerWidget {
               child: Text(
                 'Reset Settings',
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -434,9 +435,9 @@ class HomeScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.amber[600]!, width: 2),
+        border: Border.all(color: AppColors.kin, width: 2),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.amber[600]?.withOpacity(0.1),
+        color: AppColors.kin.withOpacity(0.1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,14 +446,14 @@ class HomeScreen extends ConsumerWidget {
             children: [
               Icon(
                 Icons.star,
-                color: Colors.amber[600],
+                color: AppColors.kin,
                 size: 24,
               ),
               const SizedBox(width: 12),
               Text(
                 'Unlock Premium',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -462,7 +463,7 @@ class HomeScreen extends ConsumerWidget {
           Text(
             'Play unlimited games, get detailed AI analysis, and watch expert kifu commentary.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.5,
             ),
           ),
@@ -471,14 +472,14 @@ class HomeScreen extends ConsumerWidget {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber[600],
+                backgroundColor: AppColors.kin,
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               onPressed: () => _navigateToPaywall(context, ref),
               child: Text(
                 'Upgrade Now',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Colors.black,
+                  color: AppColors.sumi,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -588,7 +589,7 @@ class HomeScreen extends ConsumerWidget {
               constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
               child: Text(
                 unreadCount > 9 ? '9+' : '$unreadCount',
-                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: AppColors.washi, fontSize: 9, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -620,17 +621,17 @@ class HomeScreen extends ConsumerWidget {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.grey[900],
+          backgroundColor: AppColors.sumiSurface,
           title: Text(
             'Reset Settings?',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           content: Text(
             'This will reset all game settings (board size, difficulty, player color, etc.) to their default values.\n\nThis action cannot be undone.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
           actions: [
@@ -638,7 +639,7 @@ class HomeScreen extends ConsumerWidget {
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.blue[400]),
+                style: TextStyle(color: AppColors.aiLight),
               ),
             ),
             TextButton(
@@ -675,7 +676,7 @@ class HomeScreen extends ConsumerWidget {
               },
               child: Text(
                 'Reset',
-                style: TextStyle(color: Colors.red[600]),
+                style: TextStyle(color: AppColors.shuLight),
               ),
             ),
           ],
@@ -690,17 +691,17 @@ class HomeScreen extends ConsumerWidget {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.grey[900],
+          backgroundColor: AppColors.sumiSurface,
           content: Row(
             children: [
               CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.kin),
               ),
               const SizedBox(width: 16),
               Text(
                 'Resetting settings...',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                 ),
               ),
             ],
@@ -715,19 +716,19 @@ class HomeScreen extends ConsumerWidget {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green[400]),
+            Icon(Icons.check_circle, color: AppColors.wakatake),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'All settings have been reset to defaults',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: Colors.green[900],
+        backgroundColor: AppColors.wakatakeDark,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
@@ -740,19 +741,19 @@ class HomeScreen extends ConsumerWidget {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error, color: Colors.red[400]),
+            Icon(Icons.error, color: AppColors.shuLight),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Failed to reset settings',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: Colors.red[900],
+        backgroundColor: AppColors.shuDark,
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),

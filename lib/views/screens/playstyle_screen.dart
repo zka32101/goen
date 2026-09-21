@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -16,10 +17,10 @@ class PlaystyleScreen extends ConsumerWidget {
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('棋風の相性'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: uid == null
             ? null
@@ -33,7 +34,7 @@ class PlaystyleScreen extends ConsumerWidget {
       ),
       body: uid == null
           ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -45,7 +46,7 @@ class PlaystyleScreen extends ConsumerWidget {
                   Text(
                     'フレンドとの相性',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
@@ -67,16 +68,16 @@ class PlaystyleScreen extends ConsumerWidget {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.cyan[400]!),
+            border: Border.all(color: AppColors.aiLight),
             borderRadius: BorderRadius.circular(12),
-            color: Colors.cyan[400]?.withOpacity(0.08),
+            color: AppColors.aiLight.withOpacity(0.08),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'あなたの棋風（${profile.gamesAnalyzed}局分析）',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               _buildBar('攻撃性', profile.aggressiveness, Colors.redAccent),
@@ -100,14 +101,14 @@ class PlaystyleScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey[300], fontSize: 12)),
+        Text(label, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
         const SizedBox(height: 4),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: value.clamp(0.0, 1.0),
             minHeight: 8,
-            backgroundColor: Colors.grey[800],
+            backgroundColor: AppColors.sumiCard,
             valueColor: AlwaysStoppedAnimation(color),
           ),
         ),
@@ -132,21 +133,21 @@ class PlaystyleScreen extends ConsumerWidget {
               children: results.map((c) {
                 final isComplementary = c.compatibilityType == 'complementary';
                 return Card(
-                  color: Colors.grey[900],
+                  color: AppColors.sumiSurface,
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     leading: Icon(
                       isComplementary ? Icons.compare_arrows : Icons.favorite,
                       color: isComplementary ? Colors.orangeAccent : Colors.pinkAccent,
                     ),
-                    title: Text(c.otherDisplayName, style: const TextStyle(color: Colors.white)),
+                    title: Text(c.otherDisplayName, style: const TextStyle(color: AppColors.washi)),
                     subtitle: Text(
                       isComplementary ? '補完し合う棋風 - 学び合える相手' : '似た棋風 - 共感し合える相手',
-                      style: TextStyle(color: Colors.grey[400]),
+                      style: TextStyle(color: AppColors.washiDim),
                     ),
                     trailing: Text(
                       '${(c.compatibilityScore * 100).round()}%',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
                     ),
                   ),
                 );
@@ -175,7 +176,7 @@ class PlaystyleScreen extends ConsumerWidget {
         border: Border.all(color: Colors.white24),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(message, style: TextStyle(color: Colors.grey[400])),
+      child: Text(message, style: TextStyle(color: AppColors.washiDim)),
     );
   }
 

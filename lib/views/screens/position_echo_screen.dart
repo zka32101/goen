@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -15,15 +16,15 @@ class PositionEchoScreen extends ConsumerWidget {
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('局面の轍'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: uid == null
           ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
             )
           : Padding(
               padding: const EdgeInsets.all(16),
@@ -32,7 +33,7 @@ class PositionEchoScreen extends ConsumerWidget {
                 children: [
                   Text(
                     '対局中に名局(秀策の碁など)と同じ局面へ辿り着くと、ここに記録されます',
-                    style: TextStyle(color: Colors.grey[400]),
+                    style: TextStyle(color: AppColors.washiDim),
                   ),
                   const SizedBox(height: 16),
                   Expanded(child: _buildEchoList(ref, uid)),
@@ -50,28 +51,28 @@ class PositionEchoScreen extends ConsumerWidget {
           return Center(
             child: Text(
               'まだ名局との縁は記録されていません',
-              style: TextStyle(color: Colors.grey[500]),
+              style: TextStyle(color: AppColors.washiDim),
             ),
           );
         }
         return ListView.separated(
           itemCount: echoes.length,
-          separatorBuilder: (_, __) => Divider(color: Colors.grey[850]),
+          separatorBuilder: (_, __) => Divider(color: AppColors.washiDim),
           itemBuilder: (context, index) {
             final echo = echoes[index];
             return ListTile(
               leading: const Icon(Icons.history_edu, color: Colors.deepPurpleAccent),
               title: Text(
                 echo.kifuTitle ?? '名局',
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.washi),
               ),
               subtitle: Text(
                 '${echo.moveNumber}手目 / ${echo.boardSize}路盤',
-                style: TextStyle(color: Colors.grey[400]),
+                style: TextStyle(color: AppColors.washiDim),
               ),
               trailing: Text(
                 _formatDate(echo.reachedAt),
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                style: TextStyle(color: AppColors.washiDim, fontSize: 12),
               ),
             );
           },

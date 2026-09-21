@@ -193,10 +193,10 @@ class _PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
       ),
       body: Center(
         child: Column(
@@ -205,20 +205,20 @@ class _PlaceholderScreen extends StatelessWidget {
             Icon(
               Icons.construction,
               size: 64,
-              color: Colors.amber[600],
+              color: AppColors.kin,
             ),
             const SizedBox(height: 24),
             Text(
               'Coming Soon',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
+                color: AppColors.washi,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               'This screen is under development',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white70,
+                color: AppColors.washiDim,
               ),
             ),
             const SizedBox(height: 24),

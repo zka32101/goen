@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -16,15 +17,15 @@ class FatefulMovesScreen extends ConsumerWidget {
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('運命の一手'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: uid == null
           ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
             )
           : _buildMovesList(ref, uid),
     );
@@ -39,7 +40,7 @@ class FatefulMovesScreen extends ConsumerWidget {
             child: Text(
               '大石を仕留めたり劫を制したりすると、ここに記録されます',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[500]),
+              style: TextStyle(color: AppColors.washiDim),
             ),
           );
         }
@@ -50,16 +51,16 @@ class FatefulMovesScreen extends ConsumerWidget {
           itemBuilder: (context, index) {
             final move = moves[index];
             return Card(
-              color: Colors.grey[900],
+              color: AppColors.sumiSurface,
               child: ListTile(
                 leading: Icon(_iconFor(move.type), color: Colors.orangeAccent),
                 title: Text(
                   move.type.getDisplayName(),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
                   '${move.moveNumber}手目 / ${move.stonesCaptured}子捕獲',
-                  style: TextStyle(color: Colors.grey[400]),
+                  style: TextStyle(color: AppColors.washiDim),
                 ),
                 trailing: move.sharedWithFriends
                     ? const Icon(Icons.share, color: Colors.greenAccent, size: 18)

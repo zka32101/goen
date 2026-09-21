@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import 'share_dialog.dart';
+import 'package:goen/config/theme.dart';
 
 /// Widget for sharing game results
 class GameShareButton extends ConsumerWidget {
@@ -21,7 +22,7 @@ class GameShareButton extends ConsumerWidget {
       onPressed: () => _showShareDialog(context, ref),
       icon: const Icon(Icons.share),
       label: const Text('シェア'),
-      backgroundColor: Colors.amber[700],
+      backgroundColor: AppColors.kin,
     );
   }
 
@@ -112,7 +113,7 @@ class PuzzleShareButton extends ConsumerWidget {
       onPressed: () => _showShareDialog(context, ref),
       icon: const Icon(Icons.share),
       label: const Text('シェア'),
-      backgroundColor: Colors.cyan[700],
+      backgroundColor: AppColors.aiLight,
     );
   }
 

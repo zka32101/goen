@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import '../widgets/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -39,10 +40,10 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('フレンド'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
@@ -67,7 +68,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
           ? null
           : FloatingActionButton(
               onPressed: () => _showSearchDialog(context),
-              backgroundColor: Colors.amber[700],
+              backgroundColor: AppColors.kin,
               child: const Icon(Icons.person_add),
             ),
     );
@@ -115,7 +116,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
         if (pending.isEmpty) {
           return Center(
             child: Text('待機中のリクエストはありません',
-                style: TextStyle(color: Colors.grey[400])),
+                style: TextStyle(color: AppColors.washiDim)),
           );
         }
 
@@ -138,16 +139,16 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     Friend request,
   ) {
     return Card(
-      color: Colors.amber[900]?.withOpacity(0.3),
+      color: AppColors.kin.withOpacity(0.3),
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Colors.amber[700],
+              backgroundColor: AppColors.kin,
               radius: 24,
-              child: const Icon(Icons.person, color: Colors.white),
+              child: const Icon(Icons.person, color: AppColors.washi),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -157,13 +158,13 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
                   Text(
                     request.displayName,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     'リクエスト待機中',
-                    style: TextStyle(color: Colors.amber[600], fontSize: 12),
+                    style: TextStyle(color: AppColors.kin, fontSize: 12),
                   ),
                 ],
               ),
@@ -174,7 +175,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
               icon: const Icon(Icons.check),
               label: const Text('承認'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
+                backgroundColor: AppColors.wakatake,
               ),
             ),
             const SizedBox(width: 8),
@@ -184,7 +185,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
               icon: const Icon(Icons.close),
               label: const Text('拒否'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red[400],
+                foregroundColor: AppColors.shuLight,
               ),
             ),
           ],
@@ -206,7 +207,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
         if (blocked.isEmpty) {
           return Center(
             child: Text('ブロック中のユーザーはいません',
-                style: TextStyle(color: Colors.grey[400])),
+                style: TextStyle(color: AppColors.washiDim)),
           );
         }
 
@@ -215,23 +216,23 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
           itemBuilder: (context, index) {
             final user = blocked[index];
             return Card(
-              color: Colors.grey[900],
+              color: AppColors.sumiSurface,
               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: Colors.red[700],
+                      backgroundColor: AppColors.shuLight,
                       radius: 24,
-                      child: const Icon(Icons.person, color: Colors.white),
+                      child: const Icon(Icons.person, color: AppColors.washi),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
                         user.displayName,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -241,7 +242,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
                           _unblockUser(context, uid, user.uid),
                       child: const Text('ブロック解除'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.grey[400],
+                        foregroundColor: AppColors.washiDim,
                       ),
                     ),
                   ],
@@ -271,7 +272,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
   void _searchFriends(BuildContext context, String query) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppColors.sumiSurface,
       builder: (context) {
         final resultsAsync = ref.watch(searchUsersProvider(query));
 
@@ -280,7 +281,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
             if (results.isEmpty) {
               return Center(
                 child: Text('ユーザーが見つかりません',
-                    style: TextStyle(color: Colors.grey[400])),
+                    style: TextStyle(color: AppColors.washiDim)),
               );
             }
 
@@ -290,9 +291,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
                 final user = results[index];
                 return ListTile(
                   title: Text(user.displayName,
-                      style: const TextStyle(color: Colors.white)),
+                      style: const TextStyle(color: AppColors.washi)),
                   subtitle: Text('${user.totalGamesPlayed} games',
-                      style: TextStyle(color: Colors.grey[400])),
+                      style: TextStyle(color: AppColors.washiDim)),
                   trailing: ElevatedButton(
                     onPressed: () => _addFriend(context, user.uid),
                     child: const Text('追加'),
@@ -385,7 +386,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: Text('$displayNameを招待'),
         content: const Text('ゲームモードを選択してください'),
         actions: [
@@ -430,18 +431,18 @@ class _FriendSearchDialogState extends State<_FriendSearchDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppColors.sumiSurface,
       title: const Text('フレンドを検索'),
       content: TextField(
         controller: _controller,
         decoration: InputDecoration(
           hintText: 'ユーザー名を入力',
-          hintStyle: TextStyle(color: Colors.grey[500]),
+          hintStyle: TextStyle(color: AppColors.washiDim),
           enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: Colors.amber[700]!),
+            borderSide: BorderSide(color: AppColors.kin),
           ),
         ),
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: AppColors.washi),
       ),
       actions: [
         TextButton(
@@ -454,7 +455,7 @@ class _FriendSearchDialogState extends State<_FriendSearchDialog> {
               widget.onSearch(_controller.text);
             }
           },
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700]),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
           child: const Text('検索'),
         ),
       ],

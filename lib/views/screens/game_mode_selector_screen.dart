@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -27,11 +28,11 @@ class GameModeSelectorScreen extends ConsumerWidget {
     final uiState = ref.watch(gameModeUIProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('ゲームモード選択'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -69,7 +70,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
             Text(
               'マッチするモードを選択',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Colors.white70,
+                color: AppColors.washiDim,
               ),
             ),
             const SizedBox(height: 16),
@@ -121,11 +122,11 @@ class GameModeSelectorScreen extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? Colors.amber[600]! : Colors.grey[700]!,
+            color: isSelected ? AppColors.kin : AppColors.washiDim,
             width: isSelected ? 3 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? Colors.amber[900]?.withAlpha(50) : Colors.grey[900],
+          color: isSelected ? AppColors.kin.withAlpha(50) : AppColors.sumiSurface,
         ),
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -142,7 +143,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
                   Text(
                     mode.name,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 2,
@@ -187,22 +188,22 @@ class GameModeSelectorScreen extends ConsumerWidget {
     switch (type) {
       case GameModeType.blitz:
         iconData = Icons.bolt;
-        color = Colors.red[400]!;
+        color = AppColors.shuLight;
       case GameModeType.correspondence:
         iconData = Icons.schedule;
-        color = Colors.blue[400]!;
+        color = AppColors.aiLight;
       case GameModeType.team:
         iconData = Icons.group;
-        color = Colors.green[400]!;
+        color = AppColors.wakatake;
       case GameModeType.puzzleRush:
         iconData = Icons.quiz;
-        color = Colors.purple[400]!;
+        color = AppColors.fuji;
       case GameModeType.handicap:
         iconData = Icons.balance;
         color = Colors.orange[400]!;
       case GameModeType.traditional:
         iconData = Icons.grid_on;
-        color = Colors.grey[400]!;
+        color = AppColors.washiDim;
     }
 
     return Icon(iconData, color: color, size: 28);
@@ -215,19 +216,19 @@ class GameModeSelectorScreen extends ConsumerWidget {
 
     switch (mode.difficulty) {
       case 'easy':
-        badgeColor = Colors.green[700]!;
+        badgeColor = AppColors.wakatake;
         difficultyText = '初級';
       case 'medium':
         badgeColor = Colors.yellow[700]!;
         difficultyText = '中級';
       case 'hard':
-        badgeColor = Colors.red[700]!;
+        badgeColor = AppColors.shuLight;
         difficultyText = '上級';
       case 'master':
-        badgeColor = Colors.purple[700]!;
+        badgeColor = AppColors.fuji;
         difficultyText = 'マスター';
       default:
-        badgeColor = Colors.grey[600]!;
+        badgeColor = AppColors.washiDim;
         difficultyText = mode.difficulty;
     }
 
@@ -240,7 +241,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
       child: Text(
         difficultyText,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColors.washi,
           fontSize: 10,
           fontWeight: FontWeight.bold,
         ),
@@ -317,13 +318,13 @@ class GameModeSelectorScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.kin),
           ),
           const SizedBox(height: 16),
           Text(
             'ゲームモード読込中...',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -339,13 +340,13 @@ class GameModeSelectorScreen extends ConsumerWidget {
           Icon(
             Icons.sports_esports_outlined,
             size: 48,
-            color: Colors.white30,
+            color: AppColors.grey500,
           ),
           const SizedBox(height: 16),
           Text(
             'ゲームモードがありません',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -361,13 +362,13 @@ class GameModeSelectorScreen extends ConsumerWidget {
           Icon(
             Icons.error_outline,
             size: 48,
-            color: Colors.red[400],
+            color: AppColors.shuLight,
           ),
           const SizedBox(height: 16),
           Text(
             'エラーが発生しました',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
@@ -387,18 +388,18 @@ class GameModeSelectorScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red[900],
+        color: AppColors.shuDark,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: Colors.red[300]),
+          Icon(Icons.error_outline, color: AppColors.shuLight),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               error,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.washi,
                 fontSize: 12,
               ),
             ),

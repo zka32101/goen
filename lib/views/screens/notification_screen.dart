@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/notification.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'pvp_game_screen.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -17,10 +18,10 @@ class NotificationScreen extends ConsumerWidget {
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('通知'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: uid == null
             ? null
@@ -39,7 +40,7 @@ class NotificationScreen extends ConsumerWidget {
       ),
       body: uid == null
           ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
             )
           : _buildNotificationList(context, ref, uid),
     );
@@ -51,31 +52,31 @@ class NotificationScreen extends ConsumerWidget {
       data: (notifications) {
         if (notifications.isEmpty) {
           return Center(
-            child: Text('通知はまだありません', style: TextStyle(color: Colors.grey[500])),
+            child: Text('通知はまだありません', style: TextStyle(color: AppColors.washiDim)),
           );
         }
         return ListView.separated(
           itemCount: notifications.length,
-          separatorBuilder: (_, __) => Divider(color: Colors.grey[850], height: 1),
+          separatorBuilder: (_, __) => Divider(color: AppColors.washiDim, height: 1),
           itemBuilder: (context, index) {
             final n = notifications[index];
             final gameId = n.type == 'pvp_challenge' ? (n.data?['gameId'] as String?) : null;
             return ListTile(
-              tileColor: n.isRead ? null : Colors.amber[600]?.withOpacity(0.05),
-              leading: Icon(_iconFor(n.type), color: n.isRead ? Colors.grey[500] : Colors.amber[600]),
+              tileColor: n.isRead ? null : AppColors.kin.withOpacity(0.05),
+              leading: Icon(_iconFor(n.type), color: n.isRead ? AppColors.washiDim : AppColors.kin),
               title: Text(
                 n.title,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.washi,
                   fontWeight: n.isRead ? FontWeight.normal : FontWeight.bold,
                 ),
               ),
-              subtitle: Text(n.body, style: TextStyle(color: Colors.grey[400])),
+              subtitle: Text(n.body, style: TextStyle(color: AppColors.washiDim)),
               trailing: gameId != null
-                  ? const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.amber)
+                  ? const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.kin)
                   : Text(
                       _formatDate(n.createdAt),
-                      style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                      style: TextStyle(color: AppColors.washiDim, fontSize: 11),
                     ),
               onTap: gameId != null
                   ? () => _openPvpGame(context, ref, uid, n, gameId)
@@ -140,17 +141,17 @@ class NotificationScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text('通知をすべて削除しますか？', style: TextStyle(color: Colors.white)),
-        content: const Text('この操作は取り消せません。', style: TextStyle(color: Colors.white70)),
+        backgroundColor: AppColors.sumiSurface,
+        title: const Text('通知をすべて削除しますか？', style: TextStyle(color: AppColors.washi)),
+        content: const Text('この操作は取り消せません。', style: TextStyle(color: AppColors.washiDim)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('キャンセル', style: TextStyle(color: Colors.blue[400])),
+            child: Text('キャンセル', style: TextStyle(color: AppColors.aiLight)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text('削除', style: TextStyle(color: Colors.red[400])),
+            child: Text('削除', style: TextStyle(color: AppColors.shuLight)),
           ),
         ],
       ),
@@ -228,8 +229,8 @@ class _NotificationPreferenceDialogState extends State<_NotificationPreferenceDi
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.grey[900],
-      title: const Text('通知設定', style: TextStyle(color: Colors.white)),
+      backgroundColor: AppColors.sumiSurface,
+      title: const Text('通知設定', style: TextStyle(color: AppColors.washi)),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -246,7 +247,7 @@ class _NotificationPreferenceDialogState extends State<_NotificationPreferenceDi
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('キャンセル', style: TextStyle(color: Colors.blue[400])),
+          child: Text('キャンセル', style: TextStyle(color: AppColors.aiLight)),
         ),
         TextButton(
           onPressed: () async {
@@ -260,7 +261,7 @@ class _NotificationPreferenceDialogState extends State<_NotificationPreferenceDi
             ));
             if (context.mounted) Navigator.pop(context);
           },
-          child: Text('保存', style: TextStyle(color: Colors.amber[600])),
+          child: Text('保存', style: TextStyle(color: AppColors.kin)),
         ),
       ],
     );
@@ -268,9 +269,9 @@ class _NotificationPreferenceDialogState extends State<_NotificationPreferenceDi
 
   Widget _buildSwitch(String label, bool value, ValueChanged<bool> onChanged) {
     return SwitchListTile(
-      title: Text(label, style: const TextStyle(color: Colors.white)),
+      title: Text(label, style: const TextStyle(color: AppColors.washi)),
       value: value,
-      activeColor: Colors.amber[600],
+      activeColor: AppColors.kin,
       onChanged: onChanged,
       contentPadding: EdgeInsets.zero,
     );

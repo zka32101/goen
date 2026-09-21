@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -103,11 +104,11 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('Blitz ゲーム'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -132,7 +133,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
         children: [
           // Timer and info
           Container(
-            color: Colors.black,
+            color: AppColors.sumi,
             padding: const EdgeInsets.all(16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -142,7 +143,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                     Text(
                       '残り時間',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                     Text(
@@ -150,7 +151,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: _timeRemainingSeconds < 30
                             ? Colors.red
-                            : Colors.white,
+                            : AppColors.washi,
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -161,13 +162,13 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                     Text(
                       'AIレベル',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                     Text(
                       widget.aiLevel ?? 'N/A',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -178,13 +179,13 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                     Text(
                       'ボードサイズ',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                     Text(
                       '${game.boardSize}×${game.boardSize}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -201,13 +202,13 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.shade700,
+                color: AppColors.kin,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 'ゲーム終了: ${game.result}',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -223,14 +224,14 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                 Text(
                   '着手履歴',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: AppColors.sumi,
                     border: Border.all(color: Colors.white24),
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -238,7 +239,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                       ? Text(
                           'まだ手はありません',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         )
                       : Wrap(
@@ -251,7 +252,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                               label: Text('$moveNum: $move'),
                               backgroundColor: Colors.grey.shade800,
                               labelStyle: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.washi,
                                 fontSize: 12,
                               ),
                             );
@@ -384,7 +385,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
           Text(
             'ゲームを準備中...',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -402,14 +403,14 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
           Text(
             'エラーが発生しました',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             error,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),

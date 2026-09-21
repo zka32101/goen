@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/spectator.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -17,17 +18,17 @@ class SpectatorViewScreen extends ConsumerWidget {
     final sessionAsync = ref.watch(spectatorSessionStreamProvider(sessionId));
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('ライブ観戦'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: sessionAsync.when(
         data: (session) {
           if (session == null) {
             return Center(
-              child: Text('観戦セッションが見つかりません', style: TextStyle(color: Colors.grey[500])),
+              child: Text('観戦セッションが見つかりません', style: TextStyle(color: AppColors.washiDim)),
             );
           }
           return _buildContent(context, session);
@@ -56,13 +57,13 @@ class SpectatorViewScreen extends ConsumerWidget {
               const SizedBox(width: 8),
               Text(
                 session.hostDisplayName ?? 'Player',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(width: 12),
               Text(
                 session.isActive ? 'LIVE' : '終了',
                 style: TextStyle(
-                  color: session.isActive ? Colors.redAccent : Colors.grey[500],
+                  color: session.isActive ? Colors.redAccent : AppColors.washiDim,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -72,7 +73,7 @@ class SpectatorViewScreen extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             '${session.moveIndex}手目 / 観戦者 ${session.spectatorCount}人',
-            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            style: TextStyle(color: AppColors.washiDim, fontSize: 12),
           ),
           const SizedBox(height: 24),
           Center(child: _buildBoard(session)),
@@ -93,8 +94,8 @@ class SpectatorViewScreen extends ConsumerWidget {
       width: boardPixelSize,
       height: boardPixelSize,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.amber[600]!, width: 2),
-        color: Colors.amber[100]?.withOpacity(0.1),
+        border: Border.all(color: AppColors.kin, width: 2),
+        color: AppColors.kinLight.withOpacity(0.1),
       ),
       child: Stack(
         children: [
@@ -129,8 +130,8 @@ class SpectatorViewScreen extends ConsumerWidget {
       for (int col = 0; col < boardSize; col++) {
         final stone = stones[row][col];
         if (stone != 0) {
-          final color = stone == 1 ? Colors.black : Colors.white;
-          final border = stone == 1 ? null : Border.all(color: Colors.black, width: 1);
+          final color = stone == 1 ? AppColors.sumi : AppColors.washi;
+          final border = stone == 1 ? null : Border.all(color: AppColors.sumi, width: 1);
 
           stoneWidgets.add(
             Positioned(
@@ -163,7 +164,7 @@ class SpectatorViewScreen extends ConsumerWidget {
       children: [
         Icon(Icons.circle, color: Colors.redAccent.withOpacity(0.8), size: 12),
         const SizedBox(width: 4),
-        Text('直前の一手', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+        Text('直前の一手', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
       ],
     );
   }
@@ -178,7 +179,7 @@ class _ReadOnlyGoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black87
+      ..color = AppColors.sumi
       ..strokeWidth = 1;
 
     final cellSize = size.width / boardSize;

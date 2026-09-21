@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -17,13 +18,13 @@ class SponsorshipScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
     if (currentUser == null) {
       return Scaffold(
-        backgroundColor: Colors.black87,
+        backgroundColor: AppColors.sumi,
         appBar: AppBar(
           title: const Text('スポンサーシップ'),
-          backgroundColor: Colors.black,
+          backgroundColor: AppColors.sumi,
         ),
         body: const Center(
-          child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+          child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
         ),
       );
     }
@@ -34,11 +35,11 @@ class SponsorshipScreen extends ConsumerWidget {
     final notifications = ref.watch(sponsorshipNotificationsProvider(uid));
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('スポンサーシップ'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
       ),
       body: sponsorInfo.when(
@@ -57,11 +58,11 @@ class SponsorshipScreen extends ConsumerWidget {
         },
         loading: () => const Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.kin),
           ),
         ),
         error: (error, stack) => Center(
-          child: Text('エラー: $error', style: const TextStyle(color: Colors.white)),
+          child: Text('エラー: $error', style: const TextStyle(color: AppColors.washi)),
         ),
       ),
     );
@@ -76,20 +77,20 @@ class SponsorshipScreen extends ConsumerWidget {
           Icon(
             Icons.favorite_border,
             size: 64,
-            color: Colors.amber[400],
+            color: AppColors.kin,
           ),
           const SizedBox(height: 24),
           Text(
             'スポンサーシップ',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             'スポンサーシップが設定されていません',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),
@@ -115,9 +116,9 @@ class SponsorshipScreen extends ConsumerWidget {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.amber[600]!, width: 2),
+              border: Border.all(color: AppColors.kin, width: 2),
               borderRadius: BorderRadius.circular(8),
-              color: Colors.amber[900]?.withAlpha(50),
+              color: AppColors.kin.withAlpha(50),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +126,7 @@ class SponsorshipScreen extends ConsumerWidget {
                 Text(
                   'スポンサーシップ統計',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.amber[400],
+                    color: AppColors.kin,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -137,19 +138,19 @@ class SponsorshipScreen extends ConsumerWidget {
                       context,
                       '${info.totalSponsorshipCount}',
                       'スポンサー数',
-                      Colors.amber[400]!,
+                      AppColors.kin,
                     ),
                     _buildStatColumn(
                       context,
                       '\$${(info.totalMonthlyUSD / 100).toStringAsFixed(2)}',
                       '月間収入',
-                      Colors.green[400]!,
+                      AppColors.wakatake,
                     ),
                     _buildStatColumn(
                       context,
                       '${info.availableTiers.length}',
                       'ティア',
-                      Colors.blue[400]!,
+                      AppColors.aiLight,
                     ),
                   ],
                 ),
@@ -166,7 +167,7 @@ class SponsorshipScreen extends ConsumerWidget {
                 Text(
                   'スポンサー一覧',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -199,7 +200,7 @@ class SponsorshipScreen extends ConsumerWidget {
                   },
                   loading: () => const Center(
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.kin),
                     ),
                   ),
                   error: (error, stack) => Text(
@@ -220,7 +221,7 @@ class SponsorshipScreen extends ConsumerWidget {
                 Text(
                   '最近のスポンサーシップ活動',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -253,7 +254,7 @@ class SponsorshipScreen extends ConsumerWidget {
                   },
                   loading: () => const Center(
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.kin),
                     ),
                   ),
                   error: (error, stack) => Text(
@@ -272,7 +273,7 @@ class SponsorshipScreen extends ConsumerWidget {
               icon: const Icon(Icons.add),
               label: const Text('ティアを追加'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber[600],
+                backgroundColor: AppColors.kin,
               ),
               onPressed: () => _showCreateTierDialog(context, ref, uid),
             ),
@@ -325,7 +326,7 @@ class SponsorshipScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.favorite, color: Colors.red[400], size: 20),
+              Icon(Icons.favorite, color: AppColors.shuLight, size: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -334,7 +335,7 @@ class SponsorshipScreen extends ConsumerWidget {
                     Text(
                       sponsor.sponsorDisplayName,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.washi,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -350,13 +351,13 @@ class SponsorshipScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.amber[600],
+                  color: AppColors.kin,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   '\$${(sponsor.amountUSD / 100).toStringAsFixed(2)}/月',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.black,
+                    color: AppColors.sumi,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -368,7 +369,7 @@ class SponsorshipScreen extends ConsumerWidget {
             Text(
               '「${sponsor.message}」',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white70,
+                color: AppColors.washiDim,
                 fontStyle: FontStyle.italic,
               ),
               maxLines: 2,
@@ -400,7 +401,7 @@ class SponsorshipScreen extends ConsumerWidget {
         children: [
           Icon(
             Icons.notifications,
-            color: Colors.amber[400],
+            color: AppColors.kin,
             size: 18,
           ),
           const SizedBox(width: 12),
@@ -411,7 +412,7 @@ class SponsorshipScreen extends ConsumerWidget {
                 Text(
                   '$typeText - ${notif.sponsorName}',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -441,7 +442,7 @@ class SponsorshipScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('新しいティアを追加'),
         content: SingleChildScrollView(
           child: Column(
@@ -450,20 +451,20 @@ class SponsorshipScreen extends ConsumerWidget {
               TextField(
                 controller: nameController,
                 decoration: const InputDecoration(hintText: 'ティア名（例: 応援者）'),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.washi),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: priceController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(hintText: '月額（USD）'),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.washi),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: descriptionController,
                 decoration: const InputDecoration(hintText: '説明'),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.washi),
                 maxLines: 2,
               ),
             ],
@@ -497,7 +498,7 @@ class SponsorshipScreen extends ConsumerWidget {
                 SnackBar(content: Text(result != null ? 'ティアを作成しました' : 'エラーが発生しました')),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[600]),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
             child: const Text('作成'),
           ),
         ],
