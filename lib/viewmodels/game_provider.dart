@@ -440,8 +440,16 @@ final saveGameRecordProvider = Provider<
       required String uid,
       required int boardSize,
       required String result,
+      double? blackScore,
+      double? whiteScore,
     })>((ref) {
-  return ({required uid, required boardSize, required result}) async {
+  return ({
+    required uid,
+    required boardSize,
+    required result,
+    blackScore,
+    whiteScore,
+  }) async {
     _logger.i('Saving game record for user: $uid');
 
     final boardState = ref.read(gameBoardStateProvider);
@@ -463,6 +471,8 @@ final saveGameRecordProvider = Provider<
       playedAt: DateTime.now(),
       movesCount: movesCount,
       gameDuration: Duration.zero, // TBD: track actual duration
+      blackScore: blackScore,
+      whiteScore: whiteScore,
     );
 
     final firestoreService = ref.read(firestoreServiceProvider);

@@ -286,7 +286,12 @@ class PvpGameService {
           return;
         }
 
-        final winnerUid = game.playerColorOf(uid) == 1 ? game.whiteUid : game.blackUid;
+        final color = game.playerColorOf(uid);
+        if (color == 0) {
+          _logger.w('Non-participant tried to resign PvP game: $gameId by=$uid');
+          return;
+        }
+        final winnerUid = color == 1 ? game.whiteUid : game.blackUid;
         transaction.update(docRef, {
           'status': 'finished',
           'winnerUid': winnerUid,

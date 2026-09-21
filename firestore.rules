@@ -283,7 +283,7 @@ service cloud.firestore {
 
       match /comments/{commentId} {
         allow read: if isSignedIn();
-        allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid;
+        allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
         // Like/unlike: add or remove only your own uid from likes.
         allow update: if isSignedIn() && onlyChanged(['likes']) &&
           request.resource.data.likes.toSet().difference(resource.data.likes.toSet())

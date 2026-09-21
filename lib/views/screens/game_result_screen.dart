@@ -462,6 +462,8 @@ class GameResultScreen extends ConsumerWidget {
         uid: currentUser.uid,
         boardSize: boardState.boardSize,
         result: result,
+        blackScore: blackScore,
+        whiteScore: whiteScore,
       );
       _logger.i('✅ Game saved: $gameId');
 
