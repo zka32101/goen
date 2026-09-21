@@ -171,7 +171,12 @@ class SponsorshipService {
     }
   }
 
-  /// スポンサーシップをアップグレード
+  /// スポンサーシップをアップグレード。
+  ///
+  /// 旧ティアの枠を解放し新ティアの枠を消費するため、`startSponsorship`と
+  /// 同様にトランザクション化して`currentSubscribers`を両ティアで
+  /// 整合的に増減する（以前は`sponsorships`ドキュメントのtierIdを
+  /// 書き換えるだけで、どちらのティアの購読者数も更新していなかった）。
   Future<bool> upgradeSponsorship(
     String sponsorshipId,
     String newTierId,
@@ -179,46 +184,85 @@ class SponsorshipService {
     try {
       _logger.i('Upgrading sponsorship: $sponsorshipId to tier: $newTierId');
 
-      final doc = await _firestore
-          .collection('sponsorships')
-          .doc(sponsorshipId)
-          .get();
+      final docRef = _firestore.collection('sponsorships').doc(sponsorshipId);
 
-      if (!doc.exists) {
-        throw Exception('Sponsorship not found');
-      }
+      late final String sponsoredUserId;
+      late final String sponsorUserId;
+      late final Map<String, dynamic> newTierData;
 
-      final data = doc.data()!;
-      final sponsoredUserId = data['sponsoredUserId'] as String;
+      await _firestore.runTransaction((transaction) async {
+        final doc = await transaction.get(docRef);
+        if (!doc.exists) {
+          throw Exception('Sponsorship not found');
+        }
 
-      // 新しいティアを取得
-      final tierDoc = await _firestore
-          .collection('users')
-          .doc(sponsoredUserId)
-          .collection('sponsorshipTiers')
-          .doc(newTierId)
-          .get();
+        final data = doc.data()!;
+        sponsoredUserId = data['sponsoredUserId'] as String;
+        sponsorUserId = data['sponsorUserId'] as String;
+        final oldTierId = data['tierId'] as String;
 
-      if (!tierDoc.exists) {
-        throw Exception('New tier not found');
-      }
+        if (oldTierId == newTierId) {
+          newTierData = {
+            'name': data['tierName'],
+            'priceUSD': data['amountUSD'],
+            'benefits': data['perks'],
+          };
+          return;
+        }
 
-      final tierData = tierDoc.data()!;
+        final oldTierRef = _firestore
+            .collection('users')
+            .doc(sponsoredUserId)
+            .collection('sponsorshipTiers')
+            .doc(oldTierId);
+        final newTierRef = _firestore
+            .collection('users')
+            .doc(sponsoredUserId)
+            .collection('sponsorshipTiers')
+            .doc(newTierId);
 
-      await doc.reference.update({
-        'tierId': newTierId,
-        'tierName': tierData['name'],
-        'amountUSD': tierData['priceUSD'],
-        'perks': tierData['benefits'] ?? [],
-        'lastUpdated': FieldValue.serverTimestamp(),
+        final oldTierDoc = await transaction.get(oldTierRef);
+        final newTierDoc = await transaction.get(newTierRef);
+
+        if (!newTierDoc.exists) {
+          throw Exception('New tier not found');
+        }
+        newTierData = newTierDoc.data()!;
+
+        final newMaxSlots = newTierData['maxSlots'] as int? ?? 0;
+        final newCurrentSubscribers =
+            newTierData['currentSubscribers'] as int? ?? 0;
+        if (newMaxSlots > 0 && newCurrentSubscribers >= newMaxSlots) {
+          throw Exception('New sponsorship tier is full');
+        }
+
+        transaction.update(docRef, {
+          'tierId': newTierId,
+          'tierName': newTierData['name'],
+          'amountUSD': newTierData['priceUSD'],
+          'perks': newTierData['benefits'] ?? [],
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
+
+        if (oldTierDoc.exists) {
+          final oldCurrentSubscribers =
+              oldTierDoc.data()?['currentSubscribers'] as int? ?? 0;
+          transaction.update(oldTierRef, {
+            'currentSubscribers':
+                oldCurrentSubscribers > 0 ? oldCurrentSubscribers - 1 : 0,
+          });
+        }
+        transaction.update(newTierRef, {
+          'currentSubscribers': newCurrentSubscribers + 1,
+        });
       });
 
       // アップグレード通知を作成
       await _createSponsorshipNotification(
         sponsoredUserId,
-        data['sponsorUserId'],
-        tierData['priceUSD'],
-        tierData['name'],
+        sponsorUserId,
+        newTierData['priceUSD'],
+        newTierData['name'],
         'tier_upgrade',
       );
 

@@ -2,75 +2,68 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:logger/logger.dart';
 import '../models/extended_game_models.dart';
+import '../models/game_record.dart' as real_game;
 
 final _logger = Logger();
 
 /// Service for game analytics and statistics
+///
+/// Reads from the top-level `gameRecords` collection -- the one
+/// saveGameRecordProvider (game_provider.dart) actually writes real AI
+/// games to via game_record.dart's GameRecord/toFirestore(). This service
+/// previously read/wrote a `users/{uid}/gameRecords` subcollection using a
+/// completely different, never-written GameRecord shape (this file's own,
+/// below), so every method here always returned empty/null regardless of
+/// how many games a user had actually played.
 class AnalyticsService {
   final FirebaseFirestore _firestore;
 
   AnalyticsService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  /// Record a completed game
-  Future<bool> recordGameResult({
-    required String userId,
-    required GameRecord gameRecord,
-  }) async {
-    try {
-      _logger.i('Recording game result for user: $userId');
-
-      final gameRecordId = _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('gameRecords')
-          .doc()
-          .id;
-
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('gameRecords')
-          .doc(gameRecordId)
-          .set({
-        ...gameRecord.toJson(),
-        'recordId': gameRecordId,
-      });
-
-      // Update user statistics
-      await _updateUserStats(userId);
-
-      return true;
-    } catch (e) {
-      _logger.e('Failed to record game result: $e');
-      return false;
-    }
+  /// Converts a real AI-game record into this service's own GameRecord
+  /// shape (extended_game_models.dart), which GameStatistics/achievements
+  /// are built around. Real AI games have no gameMode concept of their
+  /// own (they're always vs. the AI), so gameMode is fixed to 'ai'.
+  GameRecord _fromRealRecord(real_game.GameRecord g) {
+    final result = switch (g.result) {
+      real_game.GameResult.playerWin => 'win',
+      real_game.GameResult.aiWin => 'loss',
+      real_game.GameResult.draw => 'draw',
+      real_game.GameResult.resignation => 'loss',
+      real_game.GameResult.unknown => 'draw',
+    };
+    return GameRecord(
+      gameId: g.id,
+      result: result,
+      blackScore: g.blackScore ?? 0,
+      whiteScore: g.whiteScore ?? 0,
+      boardSize: g.boardSize,
+      aiLevel: g.aiLevel,
+      gameMode: 'ai',
+      playedAt: g.playedAt,
+      durationSeconds: g.gameDuration?.inSeconds ?? 0,
+      moveCount: g.movesCount ?? 0,
+    );
   }
 
-  /// Get user game statistics
+  /// Get user game statistics, computed on demand from the real game
+  /// records rather than a separately-maintained summary doc.
   Future<GameStatistics?> getUserStatistics({required String userId}) async {
     try {
       _logger.i('Getting statistics for user: $userId');
 
-      final doc = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('stats')
-          .doc('summary')
-          .get();
+      final games = await getRecentGames(userId: userId, limit: 1000);
+      if (games.isEmpty) return null;
 
-      if (!doc.exists) {
-        return null;
-      }
-
-      return GameStatistics.fromJson({...doc.data()!, 'userId': userId});
+      return _computeStatistics(userId, games);
     } catch (e) {
       _logger.e('Failed to get user statistics: $e');
       return null;
     }
   }
 
-  /// Get recent games
+  /// Get recent games from the real `gameRecords` collection.
   Future<List<GameRecord>> getRecentGames({
     required String userId,
     int limit = 20,
@@ -79,18 +72,15 @@ class AnalyticsService {
       _logger.i('Getting recent games for user: $userId');
 
       final querySnapshot = await _firestore
-          .collection('users')
-          .doc(userId)
           .collection('gameRecords')
+          .where('uid', isEqualTo: userId)
           .orderBy('playedAt', descending: true)
           .limit(limit)
           .get();
 
-      final games = querySnapshot.docs
-          .map((doc) => GameRecord.fromJson({...doc.data(), 'gameId': doc.id}))
+      return querySnapshot.docs
+          .map((doc) => _fromRealRecord(real_game.GameRecord.fromFirestore(doc)))
           .toList();
-
-      return games;
     } catch (e) {
       _logger.e('Failed to get recent games: $e');
       return [];
@@ -166,7 +156,10 @@ class AnalyticsService {
     }
   }
 
-  /// Get games by mode distribution
+  /// Get games by mode distribution. Real AI games have no gameMode of
+  /// their own, so every game counts as 'ai' -- kept for interface
+  /// compatibility with GameModeAnalyticsDashboard-style widgets rather
+  /// than removed outright.
   Future<Map<String, int>> getGameDistributionByMode({
     required String userId,
     int daysBack = 30,
@@ -174,27 +167,17 @@ class AnalyticsService {
     try {
       _logger.i('Getting game distribution for user: $userId');
 
-      // gameRecord.toJson() stores playedAt as an ISO8601 string (see
-      // GameRecord's generated toJson), so the query operand needs the
-      // same type/format for Firestore to actually match against it.
-      final cutoffDate =
-          DateTime.now().subtract(Duration(days: daysBack)).toIso8601String();
+      final cutoffDate = DateTime.now().subtract(Duration(days: daysBack));
 
       final querySnapshot = await _firestore
-          .collection('users')
-          .doc(userId)
           .collection('gameRecords')
-          .where('playedAt', isGreaterThan: cutoffDate)
+          .where('uid', isEqualTo: userId)
+          .where('playedAt', isGreaterThan: Timestamp.fromDate(cutoffDate))
           .get();
 
-      final distribution = <String, int>{};
+      if (querySnapshot.docs.isEmpty) return {};
 
-      for (final doc in querySnapshot.docs) {
-        final gameMode = doc['gameMode'] as String;
-        distribution[gameMode] = (distribution[gameMode] ?? 0) + 1;
-      }
-
-      return distribution;
+      return {'ai': querySnapshot.docs.length};
     } catch (e) {
       _logger.e('Failed to get game distribution: $e');
       return {};
@@ -222,18 +205,50 @@ class AnalyticsService {
     }
   }
 
-  /// Stream user statistics (real-time)
+  /// Stream user statistics (real-time), recomputed from the real
+  /// `gameRecords` collection whenever it changes.
   Stream<GameStatistics?> streamUserStatistics({required String userId}) {
     return _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('stats')
-        .doc('summary')
+        .collection('gameRecords')
+        .where('uid', isEqualTo: userId)
+        .orderBy('playedAt', descending: true)
+        .limit(1000)
         .snapshots()
         .map((snapshot) {
-      if (!snapshot.exists) return null;
-      return GameStatistics.fromJson({...snapshot.data()!, 'userId': userId});
+      if (snapshot.docs.isEmpty) return null;
+      final games = snapshot.docs
+          .map((doc) => _fromRealRecord(real_game.GameRecord.fromFirestore(doc)))
+          .toList();
+      return _computeStatistics(userId, games);
     });
+  }
+
+  GameStatistics _computeStatistics(String userId, List<GameRecord> games) {
+    final totalGames = games.length;
+    final totalWins = games.where((g) => g.result == 'win').length;
+    final totalLosses = games.where((g) => g.result == 'loss').length;
+    final winRate = totalGames > 0 ? (totalWins / totalGames) * 100 : 0.0;
+
+    final avgDuration = games.isEmpty
+        ? 0.0
+        : games.fold<int>(0, (sum, game) => sum + game.durationSeconds) /
+            games.length /
+            60;
+
+    return GameStatistics(
+      userId: userId,
+      totalGamesPlayed: totalGames,
+      totalWins: totalWins,
+      totalLosses: totalLosses,
+      recentGames: games.take(10).toList(),
+      winRate: winRate,
+      averageGameDuration: avgDuration,
+      favoriteGameMode: _getFavoritMode(games),
+      favoriteAiLevel: _getFavoriteLevel(games),
+      favoriteBoardSize: _getFavoriteBoardSize(games).toString(),
+      lastPlayedAt: games.isNotEmpty ? games.first.playedAt : null,
+      gamesByMode: totalGames > 0 ? {'ai': totalGames} : {},
+    );
   }
 
   /// Check and unlock achievements
@@ -301,65 +316,6 @@ class AnalyticsService {
   }
 
   /// Private helper methods
-
-  Future<void> _updateUserStats(String userId) async {
-    try {
-      final games = await getRecentGames(userId: userId, limit: 100);
-
-      if (games.isEmpty) return;
-
-      final totalGames = games.length;
-      final totalWins =
-          games.where((g) => g.result == 'win').length;
-      final totalLosses =
-          games.where((g) => g.result == 'loss').length;
-      final winRate =
-          totalGames > 0 ? (totalWins / totalGames) * 100 : 0.0;
-
-      final recentGames =
-          games.take(10).toList();
-
-      final avgDuration = games.fold<int>(
-            0,
-            (sum, game) => sum + game.durationSeconds,
-          ) /
-          games.length;
-
-      final favoriteGameMode =
-          _getFavoritMode(games);
-      final favoriteAiLevel =
-          _getFavoriteLevel(games);
-      final favoriteBoardSize =
-          _getFavoriteBoardSize(games);
-
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('stats')
-          .doc('summary')
-          .set({
-        'userId': userId,
-        'totalGamesPlayed': totalGames,
-        'totalWins': totalWins,
-        'totalLosses': totalLosses,
-        'winRate': winRate,
-        'averageGameDuration': avgDuration / 60,
-        'favoriteGameMode': favoriteGameMode,
-        'favoriteAiLevel': favoriteAiLevel,
-        // GameStatistics.favoriteBoardSize is a String despite
-        // _getFavoriteBoardSize returning an int - stringify to match what
-        // fromJson actually casts it as, or every later read throws.
-        'favoriteBoardSize': favoriteBoardSize.toString(),
-        // GameStatistics.fromJson parses lastPlayedAt via
-        // DateTime.parse(json[...] as String) - a raw DateTime would
-        // round-trip through Firestore as a Timestamp and fail that cast.
-        'lastPlayedAt': DateTime.now().toIso8601String(),
-        'recentGames': recentGames.map((g) => g.toJson()).toList(),
-      }, SetOptions(merge: true));
-    } catch (e) {
-      _logger.e('Failed to update user stats: $e');
-    }
-  }
 
   String _getFavoritMode(List<GameRecord> games) {
     final modeCount = <String, int>{};

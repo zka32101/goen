@@ -414,8 +414,11 @@ service cloud.firestore {
       match /uploads/{uploadId} {
         allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        // onlyChanged(['status']) alone would reject
+        // YouTubeShareService.deleteYouTubeVideo's update, which also sets
+        // deletedAt alongside status.
         allow update: if isSignedIn() && resource.data.userId == request.auth.uid &&
-          onlyChanged(['status']);
+          onlyChanged(['status', 'deletedAt']);
         allow delete: if false;
       }
     }

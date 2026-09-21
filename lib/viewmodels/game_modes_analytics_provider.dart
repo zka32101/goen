@@ -210,18 +210,6 @@ final checkAchievementsProvider = FutureProvider.family<List<Achievement>, Strin
   },
 );
 
-/// Record game result
-final recordGameResultProvider = FutureProvider.family<bool,
-    ({String userId, GameRecord gameRecord})>(
-  (ref, params) async {
-    final service = ref.watch(analyticsServiceProvider);
-    return service.recordGameResult(
-      userId: params.userId,
-      gameRecord: params.gameRecord,
-    );
-  },
-);
-
 // ==================== Computed/Combined Providers ====================
 
 /// Get all achievement definitions

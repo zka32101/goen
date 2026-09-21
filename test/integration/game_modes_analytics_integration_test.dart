@@ -1,10 +1,12 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/models/extended_game_models.dart';
+import 'package:goen/models/game_record.dart' as real_game;
 import 'package:goen/services/game_preset_service.dart';
 import 'package:goen/services/analytics_service.dart';
 
 void main() {
+  late FakeFirebaseFirestore firestore;
   late GamePresetService presetService;
   late AnalyticsService analyticsService;
 
@@ -13,10 +15,43 @@ void main() {
   setUpAll(() {
     // Real FirebaseFirestore.instance has no backend to talk to under
     // flutter_test; inject a shared in-memory fake instead.
-    final firestore = FakeFirebaseFirestore();
+    firestore = FakeFirebaseFirestore();
     presetService = GamePresetService(firestore: firestore);
     analyticsService = AnalyticsService(firestore: firestore);
   });
+
+  // AnalyticsService reads from the top-level `gameRecords` collection that
+  // saveGameRecordProvider (game_provider.dart) actually writes real AI
+  // games to -- it no longer has its own recordGameResult write path (that
+  // wrote to a `users/{uid}/gameRecords` subcollection nothing else ever
+  // read). Seed test data the same way the real app does.
+  Future<void> seedGameRecord({
+    required String gameId,
+    required real_game.GameResult result,
+    required int boardSize,
+    required int aiLevel,
+    required DateTime playedAt,
+    required int durationSeconds,
+    double? blackScore,
+    double? whiteScore,
+  }) async {
+    final record = real_game.GameRecord(
+      id: gameId,
+      uid: testUserId,
+      boardSize: boardSize,
+      sgfData: '',
+      result: result,
+      aiLevel: aiLevel,
+      playedAt: playedAt,
+      gameDuration: Duration(seconds: durationSeconds),
+      blackScore: blackScore,
+      whiteScore: whiteScore,
+    );
+    await firestore
+        .collection('gameRecords')
+        .doc(gameId)
+        .set(record.toFirestore());
+  }
 
   group('Game Preset Service Integration Tests', () {
     test('Create default presets for new user', () async {
@@ -118,25 +153,19 @@ void main() {
 
   group('Analytics Service Integration Tests', () {
     test('Record game result', () async {
-      final gameRecord = GameRecord(
+      await seedGameRecord(
         gameId: 'game-1',
-        result: 'win',
+        result: real_game.GameResult.playerWin,
         blackScore: 25.5,
         whiteScore: 18.3,
         boardSize: 19,
         aiLevel: 5,
-        gameMode: 'blitz',
         playedAt: DateTime.now(),
         durationSeconds: 600,
-        moveCount: 120,
       );
 
-      final recorded = await analyticsService.recordGameResult(
-        userId: testUserId,
-        gameRecord: gameRecord,
-      );
-
-      expect(recorded, isTrue);
+      final games = await analyticsService.getRecentGames(userId: testUserId);
+      expect(games.any((g) => g.gameId == 'game-1'), isTrue);
     });
 
     test('Get user statistics', () async {
@@ -234,75 +263,54 @@ void main() {
         );
 
         // Record game result
-        final gameRecord = GameRecord(
+        await seedGameRecord(
           gameId: 'game-preset-test',
-          result: 'win',
+          result: real_game.GameResult.playerWin,
           blackScore: 28.5,
           whiteScore: 15.3,
           boardSize: 19,
           aiLevel: 8,
-          gameMode: 'blitz',
           playedAt: DateTime.now(),
           durationSeconds: 720,
-          moveCount: 140,
         );
 
-        final recorded = await analyticsService.recordGameResult(
-          userId: testUserId,
-          gameRecord: gameRecord,
-        );
-        expect(recorded, isTrue);
+        final games = await analyticsService.getRecentGames(userId: testUserId);
+        expect(games.any((g) => g.gameId == 'game-preset-test'), isTrue);
       }
     });
 
     test('Complete analytics workflow with multiple games', () async {
       // Record multiple game results
-      final gameResults = [
-        GameRecord(
-          gameId: 'game-a1',
-          result: 'win',
-          blackScore: 25.5,
-          whiteScore: 18.3,
-          boardSize: 19,
-          aiLevel: 5,
-          gameMode: 'blitz',
-          playedAt: DateTime.now().subtract(const Duration(days: 2)),
-          durationSeconds: 600,
-          moveCount: 120,
-        ),
-        GameRecord(
-          gameId: 'game-a2',
-          result: 'loss',
-          blackScore: 18.5,
-          whiteScore: 22.3,
-          boardSize: 19,
-          aiLevel: 6,
-          gameMode: 'correspondence',
-          playedAt: DateTime.now().subtract(const Duration(days: 1)),
-          durationSeconds: 1800,
-          moveCount: 180,
-        ),
-        GameRecord(
-          gameId: 'game-a3',
-          result: 'win',
-          blackScore: 30.5,
-          whiteScore: 12.3,
-          boardSize: 13,
-          aiLevel: 4,
-          gameMode: 'blitz',
-          playedAt: DateTime.now(),
-          durationSeconds: 400,
-          moveCount: 100,
-        ),
-      ];
-
-      for (final game in gameResults) {
-        final recorded = await analyticsService.recordGameResult(
-          userId: testUserId,
-          gameRecord: game,
-        );
-        expect(recorded, isTrue);
-      }
+      await seedGameRecord(
+        gameId: 'game-a1',
+        result: real_game.GameResult.playerWin,
+        blackScore: 25.5,
+        whiteScore: 18.3,
+        boardSize: 19,
+        aiLevel: 5,
+        playedAt: DateTime.now().subtract(const Duration(days: 2)),
+        durationSeconds: 600,
+      );
+      await seedGameRecord(
+        gameId: 'game-a2',
+        result: real_game.GameResult.aiWin,
+        blackScore: 18.5,
+        whiteScore: 22.3,
+        boardSize: 19,
+        aiLevel: 6,
+        playedAt: DateTime.now().subtract(const Duration(days: 1)),
+        durationSeconds: 1800,
+      );
+      await seedGameRecord(
+        gameId: 'game-a3',
+        result: real_game.GameResult.playerWin,
+        blackScore: 30.5,
+        whiteScore: 12.3,
+        boardSize: 13,
+        aiLevel: 4,
+        playedAt: DateTime.now(),
+        durationSeconds: 400,
+      );
 
       // Get statistics
       final stats = await analyticsService.getUserStatistics(
@@ -336,22 +344,15 @@ void main() {
 
     test('Achievement unlock workflow', () async {
       // Record first win
-      final firstGame = GameRecord(
+      await seedGameRecord(
         gameId: 'first-win-game',
-        result: 'win',
+        result: real_game.GameResult.playerWin,
         blackScore: 25.5,
         whiteScore: 18.3,
         boardSize: 9,
         aiLevel: 1,
-        gameMode: 'blitz',
         playedAt: DateTime.now(),
         durationSeconds: 300,
-        moveCount: 80,
-      );
-
-      await analyticsService.recordGameResult(
-        userId: testUserId,
-        gameRecord: firstGame,
       );
 
       // Check achievements
