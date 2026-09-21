@@ -9,6 +9,13 @@ plugins {
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
     apply(plugin = "com.google.firebase.crashlytics")
+    // The mapping-file upload needs Groovy XML classes (groovy.util.XmlSlurper)
+    // that this Gradle version no longer ships, so it fails the release build.
+    tasks.whenTaskAdded {
+        if (name.startsWith("uploadCrashlyticsMappingFile")) {
+            enabled = false
+        }
+    }
 }
 
 android {
@@ -60,6 +67,11 @@ android {
         release {
             // Sign with release keystore (from env vars or gradle.properties)
             signingConfig = signingConfigs.getByName("release")
+            proguardFiles("proguard-rules.pro")
+            // Older Crashlytics SDKs look up their build-id string resource by name,
+            // which the resource shrinker removes.
+            isMinifyEnabled = true
+            isShrinkResources = false
         }
     }
 }
