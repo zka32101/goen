@@ -56,14 +56,12 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'ANDROID_API_KEY_TO_BE_CONFIGURED',
-    appId: '1:000000000000:android:0000000000000000000000',
-    messagingSenderId: '000000000000',
-    projectId: 'goen-project',
-    databaseURL: 'https://goen-project.firebaseio.com',
-    storageBucket: 'goen-project.appspot.com',
+    apiKey: 'AIzaSyDQNfhdvz4sqHRNkmitoECu2KcbLay7gHI',
+    appId: '1:716171738715:android:f9b543a273c59a3b25097e',
+    messagingSenderId: '716171738715',
+    projectId: 'goen-29686',
+    storageBucket: 'goen-29686.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'IOS_API_KEY_TO_BE_CONFIGURED',
     appId: '1:000000000000:ios:0000000000000000000000',
