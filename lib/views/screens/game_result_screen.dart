@@ -231,7 +231,9 @@ class GameResultScreen extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              // Leave room so the floating share button never covers the
+              // last action button once scrolled to the end.
+              const SizedBox(height: 104),
             ],
           ),
         ),

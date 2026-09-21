@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'package:logger/logger.dart';
 import 'package:goen/native/fuego_bindings.dart';
+import 'package:goen/services/dart_go_engine.dart';
 import 'package:goen/services/go_rules.dart';
 import 'dart:math' as math;
 
@@ -78,7 +79,9 @@ class GameEndResult {
 /// - 9x9 最適化
 /// - オフライン対応
 class FuegoEngineService {
-  late FuegoNative _fuego;
+  /// Null when the native Fuego library is not bundled; the built-in Dart
+  /// engine (DartGoEngine) is used for move generation in that case.
+  FuegoNative? _fuego;
   final Logger _logger = Logger();
 
   FuegoEngineService() {
@@ -87,12 +90,13 @@ class FuegoEngineService {
 
   void _initialize() {
     try {
-      _fuego = FuegoNative();
-      final result = _fuego.initialize();
+      final native = FuegoNative();
+      final result = native.initialize();
+      _fuego = native;
       _logger.i('✅ Fuego エンジン初期化成功 (code: $result)');
     } catch (e) {
-      _logger.e('❌ Fuego 初期化失敗: $e');
-      rethrow;
+      _fuego = null;
+      _logger.w('⚠️ Fuego ネイティブ未搭載のため内蔵 Dart エンジンを使用します: $e');
     }
   }
 
@@ -110,38 +114,61 @@ class FuegoEngineService {
     required bool isPlayerBlack,
     required int aiLevel,
     int movesCount = 0,
+    int? koRow,
+    int? koCol,
   }) async {
     assert(aiLevel >= 1 && aiLevel <= 10, 'aiLevel must be 1-10');
 
-    _logger.i('🎯 Fuego: AI の手を要求 (level=$aiLevel, size=$boardSize)');
+    _logger.i('🎯 AI の手を要求 (level=$aiLevel, size=$boardSize, native=${_fuego != null})');
 
-    try {
-      // ボード状態を 1D 配列に変換
-      final boardFlat = <int>[];
-      for (int row = 0; row < boardSize; row++) {
-        for (int col = 0; col < boardSize; col++) {
-          boardFlat.add(stones[row][col]);
+    final fuego = _fuego;
+    if (fuego != null) {
+      try {
+        // ボード状態を 1D 配列に変換
+        final boardFlat = <int>[];
+        for (int row = 0; row < boardSize; row++) {
+          for (int col = 0; col < boardSize; col++) {
+            boardFlat.add(stones[row][col]);
+          }
         }
+
+        final moveId = fuego.getMove(boardFlat, boardSize, aiLevel);
+        final (row, col) = fuego.getMoveCoords(moveId);
+
+        _logger.i('✅ Fuego 応答: row=$row, col=$col');
+
+        return AIMove(
+          row: row,
+          col: col,
+          confidence: 0.85,
+          reasoning: 'Fuego evaluation',
+        );
+      } catch (e) {
+        _logger.w('⚠️ Fuego エラー、内蔵 Dart エンジンにフォールバック: $e');
       }
-
-      _logger.d('📦 ボード状態を Fuego に送信 (${boardFlat.length} セル)');
-
-      // Fuego から手を取得
-      final moveId = _fuego.getMove(boardFlat, boardSize, aiLevel);
-      final (row, col) = _fuego.getMoveCoords(moveId);
-
-      _logger.i('✅ Fuego 応答: row=$row, col=$col');
-
-      return AIMove(
-        row: row,
-        col: col,
-        confidence: 0.85,
-        reasoning: 'Fuego evaluation',
-      );
-    } catch (e) {
-      _logger.e('🔥 Fuego エラー: $e');
-      rethrow;
     }
+
+    final move = await DartGoEngine.chooseMove(
+      stones: stones,
+      boardSize: boardSize,
+      player: isPlayerBlack ? 2 : 1,
+      aiLevel: aiLevel,
+      koRow: koRow,
+      koCol: koCol,
+    );
+
+    if (move == null) {
+      _logger.i('✅ Dart エンジン: パス');
+      return AIMove(row: -1, col: -1, confidence: 0.5, reasoning: 'Dart engine pass');
+    }
+
+    _logger.i('✅ Dart エンジン応答: row=${move.$1}, col=${move.$2}');
+    return AIMove(
+      row: move.$1,
+      col: move.$2,
+      confidence: 0.6,
+      reasoning: 'Dart Monte Carlo engine (level $aiLevel)',
+    );
   }
 
   /// ゲーム終局を判定（中国ルール: 石数 + 地）
@@ -199,7 +226,8 @@ class FuegoEngineService {
   /// ネイティブ側が fuego_get_dead_stones を実装していない場合は
   /// 空リストを返す（＝全石生存扱いにフォールバック）。
   List<(int, int)> _detectDeadStones(List<List<int>> stones, int boardSize) {
-    if (!_fuego.supportsDeadStoneDetection) {
+    final fuego = _fuego;
+    if (fuego == null || !fuego.supportsDeadStoneDetection) {
       return const [];
     }
 
@@ -211,7 +239,7 @@ class FuegoEngineService {
         }
       }
 
-      final deadFlags = _fuego.getDeadStones(boardFlat, boardSize);
+      final deadFlags = fuego.getDeadStones(boardFlat, boardSize);
       final deadPoints = <(int, int)>[];
       for (int row = 0; row < boardSize; row++) {
         for (int col = 0; col < boardSize; col++) {
@@ -410,7 +438,7 @@ class FuegoEngineService {
   /// エンジンをクリーンアップ
   void dispose() {
     try {
-      _fuego.dispose();
+      _fuego?.dispose();
       _logger.i('✅ Fuego エンジン クリーンアップ完了');
     } catch (e) {
       _logger.e('❌ クリーンアップエラー: $e');

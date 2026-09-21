@@ -73,6 +73,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     // React to the AI's move once Fuego resolves it: apply it to the board
     // (captures included) the same way a human move is applied.
     ref.listen<AsyncValue<AIMove?>>(aiMoveProvider, (previous, next) {
+      // While the provider recomputes it keeps the previous move as its
+      // value; re-applying that stale move would be illegal (occupied
+      // point) or, for a pass, would pass twice.
+      if (next.isLoading) return;
       final aiMove = next.valueOrNull;
       if (aiMove == null) return;
 
