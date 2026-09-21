@@ -144,6 +144,14 @@ final tsumeProblemesByDifficultyProvider =
 
 /// Check if puzzle solution is correct
 /// Returns true if user's solution matches expected solution
+///
+/// Both sides are this app's own SGF dialect (see [BoardState.toSgf]): a
+/// full board snapshot (every stone, not just the moves played), not a
+/// move sequence. `userSolutionSgf` comes from the live puzzle board's
+/// toSgf(), and [TsumeGoProblem.solutionSgf] is expected to be a snapshot
+/// of the same final position. Comparing stone grids rather than raw
+/// strings avoids depending on toSgf()'s row-major write order matching
+/// byte-for-byte.
 final checkPuzzleSolutionProvider = Provider.family<bool, String>(
   (ref, userSolutionSgf) {
     final problem = ref.watch(currentTsumeProblemProvider);
@@ -151,10 +159,18 @@ final checkPuzzleSolutionProvider = Provider.family<bool, String>(
       return false;
     }
 
-    // TBD: Implement SGF comparison logic
-    // For now, placeholder comparison
     _logger.i('Checking puzzle solution...');
-    return userSolutionSgf == problem.solutionSgf;
+    final userBoard = BoardState.fromSgf(userSolutionSgf);
+    final solutionBoard = BoardState.fromSgf(problem.solutionSgf);
+    if (userBoard.boardSize != solutionBoard.boardSize) return false;
+    for (var row = 0; row < userBoard.boardSize; row++) {
+      for (var col = 0; col < userBoard.boardSize; col++) {
+        if (userBoard.stones[row][col] != solutionBoard.stones[row][col]) {
+          return false;
+        }
+      }
+    }
+    return true;
   },
 );
 

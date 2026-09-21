@@ -5,7 +5,12 @@ class TsumeGoProblem {
   final String id;
   final int difficulty; // 1-5: 1=easy, 5=very hard
   final String sgfData; // Initial board setup in SGF format
-  final String solutionSgf; // Correct solution sequence
+  // Correct solution: a full board-snapshot in the app's own SGF dialect
+  // (see BoardState.toSgf()/fromSgf()), i.e. the final position after the
+  // solution is played out — not a move-by-move sequence. This is what
+  // checkPuzzleSolutionProvider (tsume_go_provider.dart) compares the
+  // live puzzle board against.
+  final String solutionSgf;
   final String explanation; // Japanese explanation
   final String source; // Copyright-free source attribution
   final int version; // Problem set version

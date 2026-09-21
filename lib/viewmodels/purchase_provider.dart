@@ -22,6 +22,7 @@ Future<void> _grantEntitlement({
   required AuthService authService,
   required FirestoreService firestoreService,
   required SubscriptionPlan plan,
+  bool skipIfAlreadyActive = false,
 }) async {
   final uid = authService.currentUser?.uid;
   if (uid == null) return;
@@ -34,6 +35,26 @@ Future<void> _grantEntitlement({
   // those real fields with the fallback's zeroed-out ones.
   final now = DateTime.now();
   final freshUser = await firestoreService.getUser(uid) ?? authService.currentUser!;
+
+  // purchaseRecoveryProvider re-plays *every* unacknowledged/redelivered
+  // transaction on every app launch (see its own doc comment), with no
+  // server-side receipt verification to tell a genuine renewal apart from
+  // the store simply re-delivering an old purchase. Without this guard, a
+  // still-active subscriber's expiry would get pushed out from "now" on
+  // every such replay instead of just once at actual purchase/renewal
+  // time. This only protects an already-active entitlement; it can't
+  // detect a stale purchase being replayed against an *expired* one
+  // (that needs real receipt verification, which this app doesn't have).
+  if (skipIfAlreadyActive &&
+      freshUser.subscriptionActive &&
+      freshUser.subscriptionEndDate != null &&
+      freshUser.subscriptionEndDate!.isAfter(now)) {
+    _logger.i(
+      'Skipping entitlement re-grant for $uid: already active until ${freshUser.subscriptionEndDate}',
+    );
+    return;
+  }
+
   final updated = freshUser.copyWith(
     subscriptionActive: true,
     subscriptionStartDate: now,
@@ -84,6 +105,7 @@ final purchaseRecoveryProvider = Provider<void>((ref) {
               authService: authService,
               firestoreService: firestoreService,
               plan: plan,
+              skipIfAlreadyActive: true,
             );
             await purchaseService.completePurchase(purchase);
             _logger.i('✅ Purchase recovered/synced: ${purchase.productID}');
