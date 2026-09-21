@@ -117,6 +117,11 @@ class YouTubeShareService {
   }
 
   /// ユーザーのアップロード一覧を取得
+  ///
+  /// 論理削除（status == 'deleted'）はクエリの `.limit()` を通過した後に
+  /// 除外するため、単純に1回だけクエリすると削除済みが多いユーザーでは
+  /// 要求件数より少ない結果しか返らない。十分な件数が集まるか取得しきる
+  /// まで、`startAfterDocument` でページングする。
   Future<List<YouTubeUploadResult>> getUserUploads(
     String userId, {
     int limit = 20,
@@ -124,28 +129,43 @@ class YouTubeShareService {
     try {
       _logger.d('Fetching YouTube uploads for user: $userId');
 
-      final querySnapshot = await _firestore
-          .collectionGroup('uploads')
-          .where('userId', isEqualTo: userId)
-          .where('type', isEqualTo: 'youtube')
-          .orderBy('createdAt', descending: true)
-          .limit(limit)
-          .get();
+      const batchSize = 50;
+      final results = <YouTubeUploadResult>[];
+      DocumentSnapshot<Map<String, dynamic>>? lastDoc;
 
-      // 削除は 'deleted' への論理削除なので、一覧からは除外する。
-      return querySnapshot.docs
-          .where((doc) => doc.data()['status'] != 'deleted')
-          .map((doc) {
-        final data = doc.data();
-        return YouTubeUploadResult(
-          videoId: doc.id,
-          title: data['title'] ?? '',
-          url: data['url'] ?? 'https://www.youtube.com/watch?v=${doc.id}',
-          uploadedAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          channelId: data['channelId'],
-          status: data['status'] ?? 'processing',
-        );
-      }).toList();
+      while (results.length < limit) {
+        Query<Map<String, dynamic>> query = _firestore
+            .collectionGroup('uploads')
+            .where('userId', isEqualTo: userId)
+            .where('type', isEqualTo: 'youtube')
+            .orderBy('createdAt', descending: true)
+            .limit(batchSize);
+        if (lastDoc != null) {
+          query = query.startAfterDocument(lastDoc);
+        }
+
+        final querySnapshot = await query.get();
+        if (querySnapshot.docs.isEmpty) break;
+
+        for (final doc in querySnapshot.docs) {
+          final data = doc.data();
+          if (data['status'] == 'deleted') continue;
+          results.add(YouTubeUploadResult(
+            videoId: doc.id,
+            title: data['title'] ?? '',
+            url: data['url'] ?? 'https://www.youtube.com/watch?v=${doc.id}',
+            uploadedAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+            channelId: data['channelId'],
+            status: data['status'] ?? 'processing',
+          ));
+          if (results.length >= limit) break;
+        }
+
+        lastDoc = querySnapshot.docs.last;
+        if (querySnapshot.docs.length < batchSize) break;
+      }
+
+      return results;
     } catch (e) {
       _logger.e('Error fetching user uploads: $e');
       rethrow;

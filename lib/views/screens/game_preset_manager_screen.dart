@@ -370,7 +370,7 @@ class _GamePresetManagerScreenState
           ],
         ),
       ),
-    );
+    ).then((_) => nameController.dispose());
   }
 
   void _createPreset(

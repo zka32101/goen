@@ -472,6 +472,7 @@ class TwitchStreamScreen extends ConsumerWidget {
         ],
       ),
     );
+    titleController.dispose();
     if (title == null || title.isEmpty) return;
 
     try {

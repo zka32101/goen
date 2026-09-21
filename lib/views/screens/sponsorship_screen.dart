@@ -502,6 +502,10 @@ class SponsorshipScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ).then((_) {
+      nameController.dispose();
+      priceController.dispose();
+      descriptionController.dispose();
+    });
   }
 }
