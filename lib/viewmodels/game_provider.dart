@@ -11,6 +11,7 @@ import 'package:goen/viewmodels/position_echo_provider.dart';
 import 'package:goen/viewmodels/spectator_provider.dart';
 import 'package:goen/viewmodels/friend_activity_provider.dart';
 import 'package:goen/utils/sgf_parser.dart';
+import 'package:goen/utils/handicap_points.dart';
 
 final _logger = Logger();
 
@@ -85,9 +86,27 @@ final currentSpectatorSessionIdProvider = StateProvider<String?>((ref) {
 /// AIGameScreen instance does **not** reset them — the previous game's
 /// finished board, move count and pass counters would otherwise leak into
 /// the next game (this is what "Play Again" used to do wrong).
-final startNewGameProvider = Provider<void Function()>((ref) {
-  return () {
-    ref.invalidate(gameBoardStateProvider);
+///
+/// `handicapStones` pre-places that many black stones on the standard star
+/// points (see handicap_points.dart) and starts the game with white to
+/// move, per the usual handicap-game convention. Note: the AI opponent's
+/// scoring (judgeGameEndProvider, via FuegoEngineService) does not yet
+/// support adjusting komi for a handicap game — this only implements the
+/// stone placement/turn-order half of a handicap game.
+final startNewGameProvider =
+    Provider<void Function({int boardSize, int handicapStones})>((ref) {
+  return ({int boardSize = 9, int handicapStones = 0}) {
+    final stones = List.generate(boardSize, (_) => List.filled(boardSize, 0));
+    for (final point in handicapPoints(boardSize, handicapStones)) {
+      stones[point.row][point.col] = 1; // black
+    }
+    ref.read(gameBoardStateProvider.notifier).state = BoardState(
+      boardSize: boardSize,
+      stones: stones,
+      capturedBlack: 0,
+      capturedWhite: 0,
+      isBlackTurn: handicapStones < 2,
+    );
     ref.invalidate(movesCountProvider);
     ref.invalidate(moveHistoryProvider);
     ref.invalidate(gameResultProvider);

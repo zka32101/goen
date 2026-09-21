@@ -65,6 +65,7 @@ class GoEnApp extends ConsumerWidget {
             const CorrespondenceGameSettingsScreen(),
         '/team-settings': (_) => const TeamGameSettingsScreen(),
         '/puzzle-rush-settings': (_) => const PuzzleRushSettingsScreen(),
+        '/handicap-settings': (_) => const HandicapGameSettingsScreen(),
         // Phase 61 Game Modes
         '/blitz-game': (_) => BlitzGameScreenRouter(),
         '/correspondence-game': (_) => CorrespondenceGameScreenRouter(),

@@ -158,9 +158,9 @@ void main() {
       );
       await tester.pump();
 
-      // Tap on the mode card. Only GameModeType.handicap shows a
-      // SnackBar; blitz (used here) instead navigates to
-      // '/blitz-settings' 300ms later.
+      // Tap on the mode card. blitz navigates to '/blitz-settings'
+      // 300ms later (other mode types navigate to their own settings
+      // screens, e.g. handicap goes to '/handicap-settings').
       await tester.tap(find.text('ブリッツ'));
 
       expect(container.read(selectedGameModeProvider)?.id, 'blitz_1');

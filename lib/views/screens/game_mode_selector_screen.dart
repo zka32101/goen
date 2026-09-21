@@ -270,9 +270,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
         case GameModeType.puzzleRush:
           _navigateToPuzzleRush(context, mode);
         case GameModeType.handicap:
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('ハンディキャップ戦はまだ利用できません')),
-          );
+          Navigator.of(context).pushNamed('/handicap-settings');
         case GameModeType.traditional:
           Navigator.of(context).pushNamed('/ai-game');
       }
