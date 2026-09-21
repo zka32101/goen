@@ -293,7 +293,6 @@ service cloud.firestore {
       }
     }
 
-    // ---------------- notifications, two shapes (see CLAUDE.md) --------
     match /spectator_notifications/{uid}/messages/{msgId} {
       allow read, delete: if isOwner(uid);
       allow update: if isOwner(uid) && onlyChanged(['isRead', 'readAt']);
@@ -313,15 +312,6 @@ service cloud.firestore {
 
     match /notifications/{uid}/notificationPreferences/{docId} {
       allow read, write: if isOwner(uid);
-    }
-
-    // Flat top-level notifications/{autoId} docs written by
-    // correspondence_game_service/team_game_service — a different shape
-    // from notifications/{uid}/messages above; nothing reads these today.
-    match /notifications/{autoId} {
-      allow read: if isSignedIn() && resource.data.recipientUid == request.auth.uid;
-      allow create: if isSignedIn();
-      allow update, delete: if false;
     }
 
     // ---------------- leaderboards (three parallel systems) ----------------

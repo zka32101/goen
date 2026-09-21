@@ -279,25 +279,38 @@ class TeamGameService {
   }
 
   /// Team ゲーム通知を送信
+  ///
+  /// Writes to `notifications/{uid}/messages/{id}` (the shape
+  /// NotificationService/notification_provider.dart actually read for the
+  /// notification bell) rather than a flat `notifications/{autoId}` doc
+  /// with a `recipientUid` field — that shape was never read by anything,
+  /// so these notifications silently never reached the UI.
   Future<void> _sendTeamGameNotification({
     required String recipientUid,
     required String gameId,
     required String message,
   }) async {
     try {
-      final notificationId =
-          _firestore.collection('notifications').doc().id;
+      final docRef = _firestore
+          .collection('notifications')
+          .doc(recipientUid)
+          .collection('messages')
+          .doc();
 
-      await _firestore.collection('notifications').doc(notificationId).set({
-        'recipientUid': recipientUid,
-        'gameId': gameId,
-        'gameType': 'team',
-        'message': message,
-        'read': false,
-        'createdAt': DateTime.now(),
-      });
+      final notification = AppNotification(
+        id: docRef.id,
+        uid: recipientUid,
+        title: 'チーム対局',
+        body: message,
+        data: {'gameId': gameId, 'gameType': 'team'},
+        type: 'team_game',
+        isRead: false,
+        createdAt: DateTime.now(),
+      );
 
-      _logger.i('Team game notification sent: $notificationId');
+      await docRef.set(notification.toFirestore());
+
+      _logger.i('Team game notification sent: ${docRef.id}');
     } catch (e) {
       _logger.e('Error sending Team game notification: $e');
     }
