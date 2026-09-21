@@ -295,25 +295,6 @@ class FirestoreService {
   }
 
   /// Get user's own game kifus
-  Future<List<KifuLibrary>> getUserOwnKifus(String uid, {int limit = 10}) async {
-    try {
-      _logger.i('Fetching user\'s own kifus: $uid');
-      // Note: In production, add uid to KifuLibrary model to query efficiently
-      final query = await _firestore
-          .collection(kifuLibraryCollection)
-          .where('category', isEqualTo: 'own_games')
-          .limit(limit)
-          .get();
-
-      return query.docs
-          .map((doc) => KifuLibrary.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>))
-          .toList();
-    } catch (e) {
-      _logger.e('Error fetching user\'s kifus: $e');
-      rethrow;
-    }
-  }
-
   // ================== OBSERVATION LOG OPERATIONS ==================
 
   /// Save game observation log

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:riverpod/riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
@@ -7,6 +9,8 @@ import 'package:goen/services/go_rules.dart';
 import 'package:goen/viewmodels/auth_provider.dart';
 import 'package:goen/viewmodels/fateful_move_provider.dart';
 import 'package:goen/viewmodels/concurrent_session_provider.dart';
+import 'package:goen/viewmodels/game_modes_analytics_provider.dart';
+import 'package:goen/viewmodels/leaderboard_provider.dart';
 import 'package:goen/viewmodels/position_echo_provider.dart';
 import 'package:goen/viewmodels/spectator_provider.dart';
 import 'package:goen/viewmodels/friend_activity_provider.dart';
@@ -481,6 +485,8 @@ final saveGameRecordProvider = Provider<
       _logger.i('✅ Game record saved: $gameId');
 
       _finalizeEnSession(ref, uid, boardState, movesCount);
+      _updateAiGameRating(ref, uid, gameRecord.result, aiLevel);
+      _checkAndRecordAchievements(ref, uid);
 
       return gameId;
     } catch (e) {
@@ -524,6 +530,95 @@ void _finalizeEnSession(Ref ref, String uid, BoardState boardState, int movesCou
     }();
     ref.read(currentSpectatorSessionIdProvider.notifier).state = null;
   }
+}
+
+/// AI対局の結果をリーダーボード(ratingタイプ)に反映する。
+///
+/// LeaderboardType.rating の宣言コメント「ELO Rating (AI games)」が示す
+/// 本来の意図(PvP実装時にはAI対局側の反映は未着手だった)。AIレベル
+/// (1-10)を仮想レーティング(1000+level*100)とみなし、標準Elo式で
+/// プレイヤーのレーティングを更新する — pvp_game_provider.dart の
+/// _updateEloRatings と同じ考え方だが、AI相手は対人戦ほど変動の重みを
+/// 持たせるべきではないためK factorを24に抑えている(PvPはK=32)。
+/// Best-effort: never blocks the (already successful) game-record save.
+void _updateAiGameRating(Ref ref, String uid, GameResult result, int aiLevel) {
+  final double playerScore;
+  switch (result) {
+    case GameResult.playerWin:
+      playerScore = 1.0;
+      break;
+    case GameResult.aiWin:
+    case GameResult.resignation:
+      playerScore = 0.0;
+      break;
+    case GameResult.draw:
+    case GameResult.unknown:
+      playerScore = 0.5;
+      break;
+  }
+
+  () async {
+    try {
+      final user = ref.read(currentUserProvider);
+      final displayName = user?.displayName ?? 'Player';
+      final leaderboardService = ref.read(leaderboardServiceProvider);
+      final entry = await leaderboardService.getUserRank(
+        uid: uid,
+        period: LeaderboardPeriod.allTime,
+        type: LeaderboardType.rating,
+      );
+      final currentRating = entry?.rating ?? 1200;
+      final aiVirtualRating = 1000 + aiLevel * 100;
+
+      const kFactor = 24;
+      final expected =
+          1.0 / (1.0 + pow(10, (aiVirtualRating - currentRating) / 400));
+      final newRating = (currentRating + kFactor * (playerScore - expected)).round();
+
+      await ref.read(incrementUserStatsProvider)(
+        uid: uid,
+        displayName: displayName,
+        period: LeaderboardPeriod.allTime,
+        type: LeaderboardType.rating,
+        newRating: newRating,
+        gamesPlayedDelta: 1,
+        winsDelta: playerScore == 1.0 ? 1 : 0,
+      );
+    } catch (e) {
+      _logger.w('AI対局のレーティング反映失敗 (non-fatal): $e');
+    }
+  }();
+}
+
+/// AnalyticsService.checkAchievements（新規解除された実績の判定・
+/// users/{uid}/achievements への保存）は、AnalyticsDashboardScreen の
+/// 表示側（unlockedAchievementsProvider＝解除済みを読むだけ）からは
+/// 一度も呼ばれておらず、対局終了時のフックも存在しなかったため、実績が
+/// 実際に解除される経路がアプリのどこにも無かった。ここで対局終了の
+/// たびに判定を走らせ、新規解除分をリーダーボード(achievementsタイプ)
+/// にも反映する。Best-effort: never blocks the (already successful)
+/// game-record save.
+void _checkAndRecordAchievements(Ref ref, String uid) {
+  () async {
+    try {
+      final newlyUnlocked =
+          await ref.read(checkAchievementsProvider(uid).future);
+      if (newlyUnlocked.isEmpty) return;
+
+      final user = ref.read(currentUserProvider);
+      final displayName = user?.displayName ?? 'Player';
+      await ref.read(incrementUserStatsProvider)(
+        uid: uid,
+        displayName: displayName,
+        period: LeaderboardPeriod.allTime,
+        type: LeaderboardType.achievements,
+        achievementsUnlockedDelta: newlyUnlocked.length,
+      );
+      _logger.i('✅ ${newlyUnlocked.length} achievement(s) unlocked for $uid');
+    } catch (e) {
+      _logger.w('実績判定/リーダーボード反映失敗 (non-fatal): $e');
+    }
+  }();
 }
 
 /// Helper: parse result string to GameResult enum

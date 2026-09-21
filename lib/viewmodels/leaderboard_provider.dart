@@ -170,6 +170,8 @@ final incrementUserStatsProvider = Provider<
       int gamesPlayedDelta,
       int winsDelta,
       int puzzlesSolvedDelta,
+      int achievementsUnlockedDelta,
+      int tournamentWinsDelta,
     })>((ref) {
   final service = ref.read(leaderboardServiceProvider);
 
@@ -182,6 +184,8 @@ final incrementUserStatsProvider = Provider<
     int gamesPlayedDelta = 0,
     int winsDelta = 0,
     int puzzlesSolvedDelta = 0,
+    int achievementsUnlockedDelta = 0,
+    int tournamentWinsDelta = 0,
   }) async {
     _logger.i('Incrementing user stats');
     try {
@@ -194,6 +198,8 @@ final incrementUserStatsProvider = Provider<
         gamesPlayedDelta: gamesPlayedDelta,
         winsDelta: winsDelta,
         puzzlesSolvedDelta: puzzlesSolvedDelta,
+        achievementsUnlockedDelta: achievementsUnlockedDelta,
+        tournamentWinsDelta: tournamentWinsDelta,
       );
       _logger.i('✅ User stats incremented');
     } catch (e) {

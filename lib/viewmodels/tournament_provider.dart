@@ -1,7 +1,9 @@
 import 'package:riverpod/riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:goen/models/leaderboard.dart';
 import 'package:goen/models/tournament.dart';
 import 'package:goen/services/tournament_service.dart';
+import 'leaderboard_provider.dart';
 
 final _logger = Logger();
 
@@ -174,9 +176,37 @@ final recordMatchResultProvider = Provider<
         winnerUid: winnerUid,
       );
       _logger.i('✅ Match result recorded');
+      await _reflectTournamentWinIfCompleted(ref, service, tournamentId);
     } catch (e) {
       _logger.e('❌ Failed to record match result: $e');
       rethrow;
     }
   };
 });
+
+/// このトーナメントがこの試合結果でちょうど完結したなら（優勝者が確定
+/// したなら）、リーダーボード(tournamentタイプ)に反映する。LeaderboardType.
+/// tournament は宣言以来一度も配線されておらず、常に空だった。
+/// Best-effort: never blocks the (already successful) match-result save.
+Future<void> _reflectTournamentWinIfCompleted(
+  Ref ref,
+  TournamentService service,
+  String tournamentId,
+) async {
+  try {
+    final tournament = await service.getTournament(tournamentId);
+    if (tournament == null || tournament.status != 'completed' || tournament.winnerId == null) {
+      return;
+    }
+    await ref.read(incrementUserStatsProvider)(
+      uid: tournament.winnerId!,
+      displayName: 'Player',
+      period: LeaderboardPeriod.allTime,
+      type: LeaderboardType.tournament,
+      tournamentWinsDelta: 1,
+    );
+    _logger.i('🏆 Tournament win reflected on leaderboard: ${tournament.winnerId}');
+  } catch (e) {
+    _logger.w('Failed to reflect tournament win on leaderboard (non-fatal): $e');
+  }
+}

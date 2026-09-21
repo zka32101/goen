@@ -2,6 +2,17 @@ import 'dart:async';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:logger/logger.dart';
 
+// LEGACY / UNUSED: this file is the original Cloud Functions (GNU Go)
+// engine wrapper, kept only for reference (see services/index.dart's own
+// comment: AIMove/GameEndResult are hidden from the barrel export so the
+// on-device Fuego versions in fuego_engine_service.dart are the ones
+// actually resolved app-wide). GoEngineService has zero callers anywhere
+// in lib/. If this is ever wired back up, note that its stone encoding
+// below (-1=empty, 0=black, 1=white) is INCOMPATIBLE with the rest of the
+// app's convention (BoardState/FuegoEngineService/GoRules all use
+// 0=empty, 1=black, 2=white) — reusing it as-is would silently
+// misinterpret every board passed through it.
+
 /// Go board state representation for engine communication
 class _EngineBoardState {
   final int boardSize; // 9, 13, or 19

@@ -8,14 +8,27 @@ import 'package:goen/config/theme.dart';
 final _logger = Logger();
 
 /// ライブ観戦画面 - フレンドの対局盤面をリアルタイムに表示する
-class SpectatorViewScreen extends ConsumerWidget {
+class SpectatorViewScreen extends ConsumerStatefulWidget {
   final String sessionId;
 
   const SpectatorViewScreen({Key? key, required this.sessionId}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sessionAsync = ref.watch(spectatorSessionStreamProvider(sessionId));
+  ConsumerState<SpectatorViewScreen> createState() => _SpectatorViewScreenState();
+}
+
+class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
+  final _commentController = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sessionAsync = ref.watch(spectatorSessionStreamProvider(widget.sessionId));
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
@@ -79,9 +92,145 @@ class SpectatorViewScreen extends ConsumerWidget {
           Center(child: _buildBoard(session)),
           const SizedBox(height: 24),
           _buildLegend(),
+          const SizedBox(height: 24),
+          const Divider(color: AppColors.washiDim),
+          _buildComments(context, session),
         ],
       ),
     );
+  }
+
+  Widget _buildComments(BuildContext context, SpectatorSession session) {
+    final currentUser = ref.watch(currentUserProvider);
+    final commentsAsync = ref.watch(spectatorCommentsProvider(widget.sessionId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'コメント',
+          style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        commentsAsync.when(
+          data: (comments) {
+            if (comments.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text('まだコメントはありません', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+              );
+            }
+            return Column(
+              children: comments
+                  .map((c) => _buildCommentTile(c, currentUser?.uid))
+                  .toList(),
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (err, _) => Text('コメントの取得に失敗しました: $err', style: const TextStyle(color: Colors.redAccent)),
+        ),
+        if (currentUser != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _commentController,
+                  style: const TextStyle(color: AppColors.washi),
+                  decoration: InputDecoration(
+                    hintText: 'コメントを入力...',
+                    hintStyle: TextStyle(color: AppColors.washiDim),
+                    isDense: true,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.send, color: AppColors.kin),
+                onPressed: () => _sendComment(
+                  currentUser.uid,
+                  currentUser.displayName ?? 'Player',
+                  session.moveIndex,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCommentTile(SpectatorComment comment, String? currentUid) {
+    final liked = currentUid != null && comment.likes.contains(currentUid);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${comment.displayName}  ',
+                    style: const TextStyle(color: AppColors.kin, fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  TextSpan(
+                    text: comment.comment,
+                    style: const TextStyle(color: AppColors.washi, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (currentUid != null)
+            GestureDetector(
+              onTap: () => _toggleLike(comment, currentUid, liked),
+              child: Row(
+                children: [
+                  Icon(
+                    liked ? Icons.favorite : Icons.favorite_border,
+                    size: 14,
+                    color: liked ? Colors.redAccent : AppColors.washiDim,
+                  ),
+                  if (comment.likes.isNotEmpty) ...[
+                    const SizedBox(width: 2),
+                    Text('${comment.likes.length}', style: TextStyle(color: AppColors.washiDim, fontSize: 11)),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendComment(String uid, String displayName, int moveIndex) async {
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+    _commentController.clear();
+    try {
+      await ref.read(addSpectatorCommentProvider)(widget.sessionId, uid, displayName, text, moveIndex);
+      ref.invalidate(spectatorCommentsProvider(widget.sessionId));
+    } catch (e) {
+      _logger.e('Failed to send spectator comment: $e');
+    }
+  }
+
+  Future<void> _toggleLike(SpectatorComment comment, String uid, bool liked) async {
+    try {
+      if (liked) {
+        await ref.read(unlikeSpectatorCommentProvider)(widget.sessionId, comment.id, uid);
+      } else {
+        await ref.read(likeSpectatorCommentProvider)(widget.sessionId, comment.id, uid);
+      }
+      ref.invalidate(spectatorCommentsProvider(widget.sessionId));
+    } catch (e) {
+      _logger.e('Failed to toggle spectator comment like: $e');
+    }
   }
 
   Widget _buildBoard(SpectatorSession session) {

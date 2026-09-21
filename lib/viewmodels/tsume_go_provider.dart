@@ -35,6 +35,16 @@ final todaysTsumeProblemProvider = FutureProvider<TsumeGoProblem?>((ref) async {
 // ================== TSUME-GO PUZZLE STATE ==================
 
 /// Current puzzle being solved (can override today's default)
+///
+/// NOTE: this `ref.watch`s todaysTsumeProblemProvider so its state
+/// rebuilds (silently discarding any explicit selection made via
+/// loadPuzzleProvider) whenever that FutureProvider is re-evaluated —
+/// currently harmless since nothing in the app ever invalidates
+/// todaysTsumeProblemProvider (loadPuzzleProvider/
+/// tsumeProblemesByDifficultyProvider, the only other-difficulty pickers,
+/// have no UI caller either). If either of those is ever wired up, this
+/// will need a one-time-sync-then-independent pattern instead of a plain
+/// watch.
 final currentTsumeProblemProvider = StateProvider<TsumeGoProblem?>((ref) {
   // Initialize with today's problem
   final todaysProblem = ref.watch(todaysTsumeProblemProvider);

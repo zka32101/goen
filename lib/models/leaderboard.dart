@@ -10,6 +10,8 @@ class LeaderboardEntry {
   final int wins;
   final double winRate;
   final int puzzlesSolved;
+  final int achievementsUnlocked;
+  final int tournamentWins;
   final DateTime lastUpdated;
 
   LeaderboardEntry({
@@ -21,6 +23,8 @@ class LeaderboardEntry {
     required this.wins,
     required this.winRate,
     required this.puzzlesSolved,
+    this.achievementsUnlocked = 0,
+    this.tournamentWins = 0,
     required this.lastUpdated,
   });
 
@@ -35,6 +39,8 @@ class LeaderboardEntry {
       wins: data['wins'] ?? 0,
       winRate: (data['winRate'] ?? 0.0).toDouble(),
       puzzlesSolved: data['puzzlesSolved'] ?? 0,
+      achievementsUnlocked: data['achievementsUnlocked'] ?? 0,
+      tournamentWins: data['tournamentWins'] ?? 0,
       lastUpdated: data['lastUpdated'] is Timestamp
           ? (data['lastUpdated'] as Timestamp).toDate()
           : DateTime.now(),
@@ -50,6 +56,8 @@ class LeaderboardEntry {
       'wins': wins,
       'winRate': winRate,
       'puzzlesSolved': puzzlesSolved,
+      'achievementsUnlocked': achievementsUnlocked,
+      'tournamentWins': tournamentWins,
       'lastUpdated': Timestamp.fromDate(lastUpdated),
     };
   }
@@ -63,6 +71,8 @@ class LeaderboardEntry {
     int? wins,
     double? winRate,
     int? puzzlesSolved,
+    int? achievementsUnlocked,
+    int? tournamentWins,
     DateTime? lastUpdated,
   }) {
     return LeaderboardEntry(
@@ -74,6 +84,8 @@ class LeaderboardEntry {
       wins: wins ?? this.wins,
       winRate: winRate ?? this.winRate,
       puzzlesSolved: puzzlesSolved ?? this.puzzlesSolved,
+      achievementsUnlocked: achievementsUnlocked ?? this.achievementsUnlocked,
+      tournamentWins: tournamentWins ?? this.tournamentWins,
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }

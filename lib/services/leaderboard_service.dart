@@ -19,9 +19,11 @@ class LeaderboardService {
     switch (type) {
       case LeaderboardType.puzzles:
         return 'puzzlesSolved';
-      case LeaderboardType.rating:
       case LeaderboardType.achievements:
+        return 'achievementsUnlocked';
       case LeaderboardType.tournament:
+        return 'tournamentWins';
+      case LeaderboardType.rating:
         return 'rating';
     }
   }
@@ -179,6 +181,8 @@ class LeaderboardService {
     int gamesPlayedDelta = 0,
     int winsDelta = 0,
     int puzzlesSolvedDelta = 0,
+    int achievementsUnlockedDelta = 0,
+    int tournamentWinsDelta = 0,
   }) async {
     try {
       _logger.i('Incrementing user stats: uid=$uid, period=$period, type=$type');
@@ -215,6 +219,9 @@ class LeaderboardService {
           wins: wins,
           winRate: gamesPlayed > 0 ? wins / gamesPlayed : 0.0,
           puzzlesSolved: current.puzzlesSolved + puzzlesSolvedDelta,
+          achievementsUnlocked:
+              current.achievementsUnlocked + achievementsUnlockedDelta,
+          tournamentWins: current.tournamentWins + tournamentWinsDelta,
           lastUpdated: DateTime.now(),
         );
 

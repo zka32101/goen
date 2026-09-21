@@ -12,6 +12,18 @@ class TournamentService {
   static const String participantsCollection = 'participants';
   static const String matchesCollection = 'matches';
 
+  /// 単一のトーナメントを取得する
+  Future<Tournament?> getTournament(String tournamentId) async {
+    try {
+      final doc = await _firestore.collection(tournamentsCollection).doc(tournamentId).get();
+      if (!doc.exists) return null;
+      return Tournament.fromFirestore(doc);
+    } catch (e) {
+      _logger.e('Error fetching tournament: $e');
+      rethrow;
+    }
+  }
+
   /// トーナメント作成
   Future<Tournament?> createTournament({
     required String name,
