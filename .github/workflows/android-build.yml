@@ -153,7 +153,7 @@ jobs:
             if [ -f "$DEBUG_KEYSTORE" ]; then
               mkdir -p android/app
               cp "$DEBUG_KEYSTORE" android/app/goen-release.keystore
-              export ANDROID_KEYSTORE_PATH="app/goen-release.keystore"
+              export ANDROID_KEYSTORE_PATH="goen-release.keystore"
               export ANDROID_KEYSTORE_PASSWORD="android"
               export ANDROID_KEY_ALIAS="androiddebugkey"
               export ANDROID_KEY_PASSWORD="android"
@@ -165,7 +165,7 @@ jobs:
             echo "📝 Decoding release keystore from GitHub Secrets..."
             echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/goen-release.keystore
             chmod 600 android/app/goen-release.keystore
-            export ANDROID_KEYSTORE_PATH="app/goen-release.keystore"
+            export ANDROID_KEYSTORE_PATH="goen-release.keystore"
             export ANDROID_KEYSTORE_PASSWORD="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
             export ANDROID_KEY_ALIAS="${{ secrets.ANDROID_KEY_ALIAS }}"
             export ANDROID_KEY_PASSWORD="${{ secrets.ANDROID_KEY_PASSWORD }}"
@@ -174,7 +174,7 @@ jobs:
 
       - name: Build APK (release)
         env:
-          ANDROID_KEYSTORE_PATH: app/goen-release.keystore
+          ANDROID_KEYSTORE_PATH: goen-release.keystore
           ANDROID_KEYSTORE_PASSWORD: android
           ANDROID_KEY_ALIAS: androiddebugkey
           ANDROID_KEY_PASSWORD: android
@@ -219,7 +219,7 @@ jobs:
 
       - name: Build AAB (release)
         env:
-          ANDROID_KEYSTORE_PATH: app/goen-release.keystore
+          ANDROID_KEYSTORE_PATH: goen-release.keystore
           ANDROID_KEYSTORE_PASSWORD: android
           ANDROID_KEY_ALIAS: androiddebugkey
           ANDROID_KEY_PASSWORD: android

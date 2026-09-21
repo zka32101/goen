@@ -46,10 +46,14 @@ android {
     signingConfigs {
         // Release signing config - loads from environment or gradle.properties
         create("release") {
+            // Resolved relative to this file's own directory (android/app/),
+            // not the android/ project root -- so the path here must be
+            // "goen-release.keystore", not "app/goen-release.keystore" (that
+            // would double up to android/app/app/goen-release.keystore).
             storeFile = file(
                 System.getenv("ANDROID_KEYSTORE_PATH")
                     ?: project.findProperty("ANDROID_KEYSTORE_PATH") as String?
-                    ?: "app/goen-release.keystore"
+                    ?: "goen-release.keystore"
             )
             storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 ?: project.findProperty("ANDROID_KEYSTORE_PASSWORD") as String?
