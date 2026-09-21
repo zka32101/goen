@@ -427,8 +427,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _navigateToHome();
   }
 
-  void _navigateToHome() {
+  Future<void> _navigateToHome() async {
+    await _ensureSignedIn();
+    if (!mounted) return;
     Navigator.of(context).pushReplacementNamed('/home');
+  }
+
+  Future<void> _ensureSignedIn() async {
+    try {
+      final authService = ref.read(authServiceProvider);
+      if (authService.currentUser != null) return;
+      await authService.signInAnonymously().timeout(const Duration(seconds: 8));
+    } catch (e) {
+      _logger.w('Anonymous sign-in failed, continuing as guest: $e');
+    }
   }
 }
 

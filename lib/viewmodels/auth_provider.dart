@@ -26,6 +26,7 @@ final authStateProvider = StreamProvider<User?>((ref) {
 /// Current user (one-time read, synchronous)
 /// Use authStateProvider for reactive updates
 final currentUserProvider = Provider<User?>((ref) {
+  ref.watch(authStateProvider);
   final authService = ref.watch(authServiceProvider);
   return authService.currentUser;
 });
