@@ -3,6 +3,11 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/services/firestore_service.dart';
 
+/// Firebase reports an empty string (not null) for users without a display
+/// name, e.g. anonymous ones. Treat it as missing so UI fallbacks apply.
+String? _nameOrNull(String? name) =>
+    (name == null || name.trim().isEmpty) ? null : name;
+
 /// Service for Firebase Authentication
 /// Handles user signup, signin, signout, and session management
 class AuthService {
@@ -42,7 +47,7 @@ class AuthService {
       final fallback = User(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
-        displayName: firebaseUser.displayName,
+        displayName: _nameOrNull(firebaseUser.displayName),
         subscriptionActive: false,
         subscriptionStartDate: DateTime.now(),
         tutorialCompleted: false,
@@ -72,7 +77,7 @@ class AuthService {
     return User(
       uid: firebaseUser.uid,
       email: firebaseUser.email ?? '',
-      displayName: firebaseUser.displayName,
+      displayName: _nameOrNull(firebaseUser.displayName),
       subscriptionActive: false,
       subscriptionStartDate: DateTime.now(),
       tutorialCompleted: false,
@@ -183,7 +188,7 @@ class AuthService {
       return User(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
-        displayName: firebaseUser.displayName,
+        displayName: _nameOrNull(firebaseUser.displayName),
         subscriptionActive: false,
         subscriptionStartDate: DateTime.now(),
         tutorialCompleted: false,
