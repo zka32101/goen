@@ -113,12 +113,23 @@ class AuthService {
     try {
       _logger.i('Signing up user: $email');
 
-      final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final firebaseUser = userCredential.user!;
+      firebase_auth.User firebaseUser;
+      try {
+        firebaseUser = (await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        )).user!;
+        // ignore: avoid_catching_errors
+      } on TypeError catch (e) {
+        // Same Pigeon cast bug as signInAnonymously below ("List<Object?> is
+        // not a subtype of PigeonUserDetails?") — it can fire after account
+        // creation already succeeded on any firebase_auth 4.x Android call
+        // that returns a UserCredential, not just signInAnonymously.
+        final current = _auth.currentUser;
+        if (current == null) rethrow;
+        _logger.w('createUserWithEmailAndPassword threw a cast error but signed up: $e');
+        firebaseUser = current;
+      }
 
       final newUser = User(
         uid: firebaseUser.uid,
@@ -167,12 +178,20 @@ class AuthService {
     try {
       _logger.i('Signing in user: $email');
 
-      final userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final firebaseUser = userCredential.user!;
+      firebase_auth.User firebaseUser;
+      try {
+        firebaseUser = (await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        )).user!;
+        // ignore: avoid_catching_errors
+      } on TypeError catch (e) {
+        // Same Pigeon cast bug as signInAnonymously below.
+        final current = _auth.currentUser;
+        if (current == null) rethrow;
+        _logger.w('signInWithEmailAndPassword threw a cast error but signed in: $e');
+        firebaseUser = current;
+      }
 
       try {
         final firestoreUser = await _firestore.getUser(firebaseUser.uid);
