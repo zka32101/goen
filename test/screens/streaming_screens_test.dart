@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/screens/index.dart';
+import 'package:goen/config/theme.dart';
 import '../fixtures/test_data.dart';
 import '../test_utils.dart';
 
@@ -206,7 +207,7 @@ void main() {
       // Verify dark background
       expect(
         tester.widget<Scaffold>(scaffold.first).backgroundColor,
-        Colors.black87,
+        AppColors.sumi,
       );
     });
 
@@ -224,7 +225,7 @@ void main() {
       expect(appBar, findsOneWidget);
 
       final appBarWidget = tester.widget<AppBar>(appBar);
-      expect(appBarWidget.backgroundColor, Colors.black);
+      expect(appBarWidget.backgroundColor, AppColors.sumi);
       expect(appBarWidget.centerTitle, isTrue);
       expect(appBarWidget.elevation, 0);
     });
@@ -243,7 +244,7 @@ void main() {
       expect(appBar, findsOneWidget);
 
       final appBarWidget = tester.widget<AppBar>(appBar);
-      expect(appBarWidget.backgroundColor, Colors.black);
+      expect(appBarWidget.backgroundColor, AppColors.sumi);
       expect(appBarWidget.centerTitle, isTrue);
     });
 
@@ -261,7 +262,7 @@ void main() {
       expect(appBar, findsOneWidget);
 
       final appBarWidget = tester.widget<AppBar>(appBar);
-      expect(appBarWidget.backgroundColor, Colors.black);
+      expect(appBarWidget.backgroundColor, AppColors.sumi);
       expect(appBarWidget.centerTitle, isTrue);
     });
   });

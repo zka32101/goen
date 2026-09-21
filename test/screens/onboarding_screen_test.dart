@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/views/screens/onboarding_screen.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 import '../fixtures/test_data.dart';
 import '../test_utils.dart';
@@ -285,7 +286,7 @@ void main() {
       final scaffold = find.byType(Scaffold).first;
       final scaffoldWidget = tester.widget<Scaffold>(scaffold);
 
-      expect(scaffoldWidget.backgroundColor, Colors.black87);
+      expect(scaffoldWidget.backgroundColor, AppColors.sumi);
     });
 
     testWidgets('card containers have borders', (WidgetTester tester) async {

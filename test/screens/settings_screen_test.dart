@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/views/screens/settings_screen.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 import '../fixtures/test_data.dart';
 import '../test_utils.dart';
@@ -376,7 +377,7 @@ void main() {
       final scaffold = find.byType(Scaffold).first;
       final scaffoldWidget = tester.widget<Scaffold>(scaffold);
 
-      expect(scaffoldWidget.backgroundColor, Colors.black87);
+      expect(scaffoldWidget.backgroundColor, AppColors.sumi);
     });
 
     testWidgets('app bar has correct styling', (WidgetTester tester) async {
@@ -391,7 +392,7 @@ void main() {
       final appBarWidget = tester.widget<AppBar>(appBar);
 
       expect(appBarWidget.centerTitle, true);
-      expect(appBarWidget.backgroundColor, Colors.black);
+      expect(appBarWidget.backgroundColor, AppColors.sumi);
       expect(appBarWidget.elevation, 0);
     });
 

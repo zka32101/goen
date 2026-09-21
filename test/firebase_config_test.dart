@@ -35,7 +35,7 @@ void main() {
     test('Android Firebase options should have valid project ID', () {
       final options = DefaultFirebaseOptions.android;
 
-      expect(options.projectId, equals('goen-project'));
+      expect(options.projectId, equals('goen-29686'));
     });
 
     test('iOS Firebase options should have valid app ID', () {
@@ -60,11 +60,24 @@ void main() {
       expect(options.appId, matches(RegExp(r'1:\d+:web:[a-f0-9]+')));
     });
 
-    test('All platforms should have goen-project as project ID', () {
-      expect(DefaultFirebaseOptions.android.projectId, equals('goen-project'));
-      expect(DefaultFirebaseOptions.ios.projectId, equals('goen-project'));
-      expect(DefaultFirebaseOptions.web.projectId, equals('goen-project'));
-      expect(DefaultFirebaseOptions.macos.projectId, equals('goen-project'));
-    });
+    test(
+      'Android points at the real Firebase project; other platforms are '
+      'not configured yet',
+      () {
+        // Android was switched to the real goen-29686 project; iOS/web/macOS
+        // still carry the goen-project placeholder from before
+        // `flutterfire configure` was run for those platforms.
+        expect(
+          DefaultFirebaseOptions.android.projectId,
+          equals('goen-29686'),
+        );
+        expect(DefaultFirebaseOptions.ios.projectId, equals('goen-project'));
+        expect(DefaultFirebaseOptions.web.projectId, equals('goen-project'));
+        expect(
+          DefaultFirebaseOptions.macos.projectId,
+          equals('goen-project'),
+        );
+      },
+    );
   });
 }
