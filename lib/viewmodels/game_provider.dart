@@ -202,6 +202,8 @@ final aiMoveProvider = FutureProvider.autoDispose<AIMove?>((ref) async {
       isPlayerBlack: true,
       aiLevel: aiLevel,
       movesCount: movesCount,
+      koRow: boardState.koRow,
+      koCol: boardState.koCol,
     );
     _logger.i('✅ Fuego response: $aiMove');
     return aiMove;
