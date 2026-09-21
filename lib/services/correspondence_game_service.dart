@@ -98,7 +98,7 @@ class CorrespondenceGameService {
         'moveHistory': FieldValue.arrayUnion([move]),
         'currentTurnNumber': game.currentTurnNumber + 1,
         'currentPlayerColor': nextPlayerColor,
-        'lastMoveAt': DateTime.now(),
+        'lastMoveAt': DateTime.now().toIso8601String(),
       });
 
       _logger.i('Move added successfully');
@@ -175,7 +175,7 @@ class CorrespondenceGameService {
       await _firestore.collection('correspondenceGames').doc(gameId).update({
         'status': 'abandoned',
         'result': 'abandoned',
-        'endDate': DateTime.now(),
+        'endDate': DateTime.now().toIso8601String(),
       });
 
       // 相手に通知

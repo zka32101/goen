@@ -44,6 +44,12 @@ class GoEnApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Keeps listening for purchase events for the app's whole lifetime, so
+    // a transaction the store redelivers on launch (because a previous
+    // session's Firestore write failed before it could be acknowledged)
+    // gets recovered instead of leaving the user paid-but-not-entitled.
+    ref.watch(purchaseRecoveryProvider);
+
     return MaterialApp(
       title: 'GoEn - 碁縁',
       theme: AppTheme.lightTheme,

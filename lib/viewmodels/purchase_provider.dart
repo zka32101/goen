@@ -13,6 +13,97 @@ final purchaseServiceProvider = Provider<PurchaseService>((ref) {
   return PurchaseService();
 });
 
+/// Persists a successful purchase's entitlement to Firestore and refreshes
+/// the cached/watched current user. Shared between the interactive purchase
+/// flow below and [purchaseRecoveryProvider], since a purchase can also
+/// need to be applied outside of any interactive flow (see there).
+Future<void> _grantEntitlement({
+  required Ref ref,
+  required AuthService authService,
+  required FirestoreService firestoreService,
+  required SubscriptionPlan plan,
+}) async {
+  final uid = authService.currentUser?.uid;
+  if (uid == null) return;
+
+  // Re-fetch the authoritative Firestore record rather than trusting
+  // authService.currentUser here: that getter can still return a
+  // fabricated fallback (tutorialCompleted/gamesPlayedCount reset to
+  // false/0) in the brief window before the auth stream's first
+  // event lands, and saveUser's merge-set would otherwise overwrite
+  // those real fields with the fallback's zeroed-out ones.
+  final now = DateTime.now();
+  final freshUser = await firestoreService.getUser(uid) ?? authService.currentUser!;
+  final updated = freshUser.copyWith(
+    subscriptionActive: true,
+    subscriptionStartDate: now,
+    subscriptionEndDate: now.add(plan.entitlementLength),
+    updatedAt: now,
+  );
+  await firestoreService.saveUser(updated);
+  authService.refreshCachedUser(updated);
+  ref.invalidate(currentUserProvider);
+}
+
+/// Listens for purchases for as long as the app is running, independent of
+/// any interactive purchase flow. `InAppPurchase.purchaseStream` redelivers
+/// any transaction that was never acknowledged via `completePurchase` on
+/// every future app launch — without a listener that is always active, a
+/// purchase whose Firestore write failed (e.g. a network hiccup right
+/// after the store charged the user) would show "purchase failed" to the
+/// user while the store still considers it completed, and since nothing
+/// would ever call completePurchase, the user could never recover the
+/// entitlement they paid for without contacting support.
+///
+/// Watch this once near the app root (see GoEnApp) so it starts as soon as
+/// the app launches, not only while PaywallScreen happens to be open.
+final purchaseRecoveryProvider = Provider<void>((ref) {
+  final purchaseService = ref.watch(purchaseServiceProvider);
+  final authService = ref.watch(authServiceProvider);
+  final firestoreService = FirestoreService();
+
+  final subscription = purchaseService.purchaseStream.listen((purchases) async {
+    for (final purchase in purchases) {
+      switch (purchase.status) {
+        case PurchaseStatus.purchased:
+        case PurchaseStatus.restored:
+          SubscriptionPlan? plan;
+          try {
+            plan = SubscriptionPlan.values
+                .firstWhere((p) => p.productId == purchase.productID);
+          } catch (_) {
+            plan = null;
+          }
+          if (plan == null) {
+            _logger.w('Unknown product in purchaseStream: ${purchase.productID}');
+            break;
+          }
+          try {
+            await _grantEntitlement(
+              ref: ref,
+              authService: authService,
+              firestoreService: firestoreService,
+              plan: plan,
+            );
+            await purchaseService.completePurchase(purchase);
+            _logger.i('✅ Purchase recovered/synced: ${purchase.productID}');
+          } catch (e) {
+            // Don't complete the purchase — leave it unacknowledged so the
+            // store redelivers it and this listener gets another chance.
+            _logger.e('Failed to sync purchase ${purchase.productID}: $e');
+          }
+        case PurchaseStatus.error:
+        case PurchaseStatus.canceled:
+          await purchaseService.completePurchase(purchase);
+        case PurchaseStatus.pending:
+          break;
+      }
+    }
+  });
+
+  ref.onDispose(subscription.cancel);
+});
+
 /// Buys the given subscription plan through the platform store, persists
 /// the resulting subscription status to Firestore on success, and
 /// refreshes AuthService's cache + currentUserProvider so the paywall gate
@@ -82,26 +173,12 @@ final purchaseSubscriptionProvider = Provider<Future<void> Function(Subscription
         onTimeout: () => throw Exception('Purchase timed out'),
       );
 
-      final uid = authService.currentUser?.uid;
-      if (uid != null) {
-        // Re-fetch the authoritative Firestore record rather than trusting
-        // authService.currentUser here: that getter can still return a
-        // fabricated fallback (tutorialCompleted/gamesPlayedCount reset to
-        // false/0) in the brief window before the auth stream's first
-        // event lands, and saveUser's merge-set would otherwise overwrite
-        // those real fields with the fallback's zeroed-out ones.
-        final now = DateTime.now();
-        final freshUser = await firestoreService.getUser(uid) ?? authService.currentUser!;
-        final updated = freshUser.copyWith(
-          subscriptionActive: true,
-          subscriptionStartDate: now,
-          subscriptionEndDate: now.add(plan.entitlementLength),
-          updatedAt: now,
-        );
-        await firestoreService.saveUser(updated);
-        authService.refreshCachedUser(updated);
-        ref.invalidate(currentUserProvider);
-      }
+      await _grantEntitlement(
+        ref: ref,
+        authService: authService,
+        firestoreService: firestoreService,
+        plan: plan,
+      );
 
       await purchaseService.completePurchase(purchase);
       _logger.i('✅ Purchase completed: ${product.id}');
