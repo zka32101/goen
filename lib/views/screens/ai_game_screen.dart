@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -43,11 +44,11 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     final movesCount = ref.watch(movesCountProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: Text('AI Game - Level $aiLevel'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
       ),
       body: Column(
@@ -64,13 +65,13 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     Text(
                       'Board Size',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                     Text(
                       '${boardState.boardSize}×${boardState.boardSize}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -82,13 +83,13 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     Text(
                       'Moves',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                     Text(
                       '$movesCount',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -126,7 +127,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation(
-                              Colors.amber[600]!,
+                              AppColors.kin,
                             ),
                           ),
                         ),
@@ -135,7 +136,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                           'AI is thinking...',
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         ),
                       ],
@@ -205,10 +206,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         height: 300,
         decoration: BoxDecoration(
           border: Border.all(
-            color: Colors.amber[600]!,
+            color: AppColors.kin,
             width: 2,
           ),
-          color: Colors.amber[100]?.withOpacity(0.1),
+          color: AppColors.kinLight.withOpacity(0.1),
         ),
         child: Stack(
           children: [
@@ -231,9 +232,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                   height: 16,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.amber[600]?.withOpacity(0.5),
+                    color: AppColors.kin.withOpacity(0.5),
                     border: Border.all(
-                      color: Colors.amber[600]!,
+                      color: AppColors.kin,
                       width: 2,
                     ),
                   ),
@@ -258,9 +259,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         final stone = stones[row][col];
         if (stone != 0) {
           // 0 = empty, 1 = black, 2 = white
-          final color = stone == 1 ? Colors.black : Colors.white;
+          final color = stone == 1 ? AppColors.sumi : AppColors.washi;
           final border = stone == 1 ? null : Border.all(
-            color: Colors.black,
+            color: AppColors.sumi,
             width: 1,
           );
 
@@ -379,7 +380,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('Resign Game?'),
         content: const Text('Are you sure you want to resign?'),
         actions: [
@@ -424,7 +425,7 @@ class _GoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white30
+      ..color = AppColors.grey500
       ..strokeWidth = 1;
 
     final step = size.width / boardSize;

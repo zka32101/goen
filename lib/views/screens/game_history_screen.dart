@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -43,11 +44,11 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     final gameRecords = ref.watch(userGameRecordsProvider(currentUser.uid));
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('My Games'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         actions: [
           IconButton(
@@ -119,13 +120,13 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           Icon(
             Icons.lock,
             size: 64,
-            color: Colors.amber[600],
+            color: AppColors.kin,
           ),
           const SizedBox(height: 16),
           Text(
             'Log in to view your games',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 24),
@@ -148,14 +149,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
             height: 40,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation(Colors.amber[600]!),
+              valueColor: AlwaysStoppedAnimation(AppColors.kin),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             'Loading your games...',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -171,13 +172,13 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: Colors.red[400],
+            color: AppColors.shuLight,
           ),
           const SizedBox(height: 16),
           Text(
             'Could not load games',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 24),
@@ -198,20 +199,20 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           Icon(
             Icons.sports_esports,
             size: 64,
-            color: Colors.amber[600],
+            color: AppColors.kin,
           ),
           const SizedBox(height: 16),
           Text(
             'No games yet',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Play your first AI game to see it here',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
           const SizedBox(height: 24),
@@ -237,14 +238,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                 Text(
                   'Game History',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   '${games.length} game${games.length != 1 ? 's' : ''} played',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
+                    color: AppColors.washiDim,
                   ),
                 ),
               ],
@@ -291,7 +292,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Colors.amber[600],
+            color: AppColors.kin,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -299,7 +300,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
       ],
@@ -310,10 +311,10 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     final isWin = game.result == 'win';
     final isDraw = game.result == 'draw';
     final borderColor = isWin
-        ? Colors.green[400]
+        ? AppColors.wakatake
         : isDraw
-        ? Colors.amber[600]
-        : Colors.red[400];
+        ? AppColors.kin
+        : AppColors.shuLight;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -321,7 +322,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: borderColor ?? Colors.white10, width: 2),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: InkWell(
         onTap: () => _handleSelectGame(context, game.id),
@@ -346,7 +347,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                 Text(
                   _formatDate(game.playedAt),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.white70,
+                    color: AppColors.washiDim,
                   ),
                 ),
               ],
@@ -364,14 +365,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                     Text(
                       'Score',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '${game.blackScore?.toStringAsFixed(1) ?? "?"} - ${game.whiteScore?.toStringAsFixed(1) ?? "?"}',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -383,14 +384,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                     Text(
                       'Level',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Lv ${game.aiLevel}',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Colors.amber[600],
+                        color: AppColors.kin,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -427,7 +428,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                               ? 'Draw'
                               : 'Defeat',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.washi,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -435,7 +436,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                         Text(
                           _formatDate(game.playedAt),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         ),
                       ],
@@ -460,10 +461,10 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                 height: 300,
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Colors.purple[600]!,
+                    color: AppColors.fuji,
                     width: 2,
                   ),
-                  color: Colors.amber[100]?.withOpacity(0.1),
+                  color: AppColors.kinLight.withOpacity(0.1),
                 ),
                 child: Stack(
                   children: [
@@ -477,7 +478,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                         'Final Board State\n(SGF Replay - Phase 5.3)',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
+                          color: AppColors.washiDim,
                         ),
                       ),
                     ),
@@ -497,7 +498,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.white10),
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.white.withOpacity(0.03),
+                color: AppColors.washi.withOpacity(0.03),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -505,7 +506,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                   Text(
                     'Game Details',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -547,13 +548,13 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         Text(
           value,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white,
+            color: AppColors.washi,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -567,7 +568,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -575,14 +576,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           Text(
             'Move Sequence',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             'Move-by-move replay will be available here. (Phase 5.3)',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -593,7 +594,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   void _showFilterMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppColors.sumiSurface,
       builder: (context) => SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -603,7 +604,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               Text(
                 'Filter by Result',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                 ),
               ),
               const SizedBox(height: 12),
@@ -615,7 +616,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               Text(
                 'Sort by',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.washi,
                 ),
               ),
               const SizedBox(height: 12),
@@ -694,7 +695,7 @@ class _GoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white30
+      ..color = AppColors.grey500
       ..strokeWidth = 1;
 
     final step = size.width / boardSize;

@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -47,7 +48,7 @@ class GameResultScreen extends ConsumerWidget {
     // final gameShareData = GameShareData(...);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       // floatingActionButton: GameShareButton(...), // Phase 58 WIP - deleted
       body: SingleChildScrollView(
         child: SafeArea(
@@ -65,16 +66,16 @@ class GameResultScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: winner == 'player'
-                            ? Colors.green[700]?.withOpacity(0.2)
+                            ? AppColors.wakatake.withOpacity(0.2)
                             : winner == 'ai'
-                            ? Colors.red[700]?.withOpacity(0.2)
-                            : Colors.amber[600]?.withOpacity(0.2),
+                            ? AppColors.shuLight.withOpacity(0.2)
+                            : AppColors.kin.withOpacity(0.2),
                         border: Border.all(
                           color: winner == 'player'
-                              ? Colors.green[400]!
+                              ? AppColors.wakatake
                               : winner == 'ai'
-                              ? Colors.red[400]!
-                              : Colors.amber[600]!,
+                              ? AppColors.shuLight
+                              : AppColors.kin,
                           width: 3,
                         ),
                       ),
@@ -86,10 +87,10 @@ class GameResultScreen extends ConsumerWidget {
                             : Icons.balance,
                         size: 50,
                         color: winner == 'player'
-                            ? Colors.green[400]
+                            ? AppColors.wakatake
                             : winner == 'ai'
-                            ? Colors.red[400]
-                            : Colors.amber[600],
+                            ? AppColors.shuLight
+                            : AppColors.kin,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -98,7 +99,7 @@ class GameResultScreen extends ConsumerWidget {
                     Text(
                       _getResultTitle(winner),
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -108,7 +109,7 @@ class GameResultScreen extends ConsumerWidget {
                     Text(
                       _getResultSubtitle(result),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -134,12 +135,12 @@ class GameResultScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.white10),
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.white.withOpacity(0.03),
+                      color: AppColors.washi.withOpacity(0.03),
                     ),
                     child: Text(
                       'Game resigned. No final score calculated.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -187,12 +188,12 @@ class GameResultScreen extends ConsumerWidget {
                       child: ElevatedButton(
                         onPressed: () => _handlePlayAgain(context, ref),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber[600],
+                          backgroundColor: AppColors.kin,
                         ),
                         child: Text(
                           'Play Again',
                           style: TextStyle(
-                            color: Colors.black,
+                            color: AppColors.sumi,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -231,14 +232,14 @@ class GameResultScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         children: [
           Text(
             'Final Score (Chinese Rules)',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
           const SizedBox(height: 20),
@@ -252,9 +253,9 @@ class GameResultScreen extends ConsumerWidget {
                     height: 60,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.black,
+                      color: AppColors.sumi,
                       border: Border.all(
-                        color: blackWins ? Colors.green[400]! : Colors.white30,
+                        color: blackWins ? AppColors.wakatake : AppColors.grey500,
                         width: 3,
                       ),
                     ),
@@ -263,7 +264,7 @@ class GameResultScreen extends ConsumerWidget {
                         'Black\n(You)',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.washi,
                         ),
                       ),
                     ),
@@ -272,7 +273,7 @@ class GameResultScreen extends ConsumerWidget {
                   Text(
                     blackScore.toStringAsFixed(1),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -283,7 +284,7 @@ class GameResultScreen extends ConsumerWidget {
                   Text(
                     'vs',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                 ],
@@ -295,9 +296,9 @@ class GameResultScreen extends ConsumerWidget {
                     height: 60,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white,
+                      color: AppColors.washi,
                       border: Border.all(
-                        color: !blackWins ? Colors.red[400]! : Colors.black26,
+                        color: !blackWins ? AppColors.shuLight : Colors.black26,
                         width: 3,
                       ),
                     ),
@@ -306,7 +307,7 @@ class GameResultScreen extends ConsumerWidget {
                         'White\n(AI)',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.black,
+                          color: AppColors.sumi,
                         ),
                       ),
                     ),
@@ -315,7 +316,7 @@ class GameResultScreen extends ConsumerWidget {
                   Text(
                     whiteScore.toStringAsFixed(1),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -340,14 +341,14 @@ class GameResultScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         children: [
           Text(
             'Game Stats',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 16),
@@ -371,14 +372,14 @@ class GameResultScreen extends ConsumerWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Colors.amber[600],
+            color: AppColors.kin,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -393,7 +394,7 @@ class GameResultScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,14 +402,14 @@ class GameResultScreen extends ConsumerWidget {
           Text(
             'Move Analysis',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             'AI-powered analysis coming soon. AI will review your moves and provide detailed commentary.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.6,
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -41,7 +42,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       body: Column(
         children: [
           // Header with skip button
@@ -53,7 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 Text(
                   'Learn Go',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -62,7 +63,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   child: Text(
                     'Skip',
                     style: TextStyle(
-                      color: Colors.amber[600],
+                      color: AppColors.kin,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -102,8 +103,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
                     color: _currentPage == index
-                        ? Colors.amber[600]
-                        : Colors.white30,
+                        ? AppColors.kin
+                        : AppColors.grey500,
                   ),
                 ),
               ),
@@ -165,13 +166,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Icon(
             Icons.pets,
             size: 120,
-            color: Colors.amber[600],
+            color: AppColors.kin,
           ),
           const SizedBox(height: 32),
           Text(
             'Welcome to 碁縁',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -180,7 +181,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             'Learn Go at your own pace. No time pressure, just pure strategy.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -189,13 +190,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.amber[600]!, width: 2),
+              border: Border.all(color: AppColors.kin, width: 2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               'We\'ll teach you the basics in 3 simple steps',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.amber[600],
+                color: AppColors.kin,
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
@@ -216,7 +217,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             'Tap 1: Your Move',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -228,9 +229,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             width: 200,
             height: 200,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.amber[600]!, width: 2),
+              border: Border.all(color: AppColors.kin, width: 2),
               borderRadius: BorderRadius.circular(8),
-              color: Colors.amber[100]?.withOpacity(0.1),
+              color: AppColors.kinLight.withOpacity(0.1),
             ),
             child: Stack(
               children: [
@@ -248,7 +249,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     height: 32,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.black,
+                      color: AppColors.sumi,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black38,
@@ -265,7 +266,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   top: 80,
                   child: Icon(
                     Icons.arrow_forward,
-                    color: Colors.amber[600],
+                    color: AppColors.kin,
                     size: 32,
                   ),
                 ),
@@ -277,7 +278,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             'Place your first black stone anywhere on the board.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -297,7 +298,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             'Tap 3: Capture!',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -306,7 +307,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             'The Aha Moment',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.amber[600],
+              color: AppColors.kin,
               fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
@@ -318,9 +319,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             width: 200,
             height: 200,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.amber[600]!, width: 2),
+              border: Border.all(color: AppColors.kin, width: 2),
               borderRadius: BorderRadius.circular(8),
-              color: Colors.amber[100]?.withOpacity(0.1),
+              color: AppColors.kinLight.withOpacity(0.1),
             ),
             child: Stack(
               children: [
@@ -338,8 +339,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     height: 32,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black, width: 1),
+                      color: AppColors.washi,
+                      border: Border.all(color: AppColors.sumi, width: 1),
                       boxShadow: const [
                         BoxShadow(
                           color: Colors.black38,
@@ -359,7 +360,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     height: 32,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.black,
+                      color: AppColors.sumi,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black38,
@@ -379,7 +380,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     height: 32,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.black,
+                      color: AppColors.sumi,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black38,
@@ -398,7 +399,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             'AI plays white. Now place your second black stone to surround and capture the white stone. This is the fundamental tactic in Go!',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -442,7 +443,7 @@ class _GoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white30
+      ..color = AppColors.grey500
       ..strokeWidth = 1;
 
     final step = size.width / 4;

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -43,11 +44,11 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('Watch & Learn'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         actions: [
           IconButton(
@@ -89,14 +90,14 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
             height: 40,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation(Colors.amber[600]!),
+              valueColor: AlwaysStoppedAnimation(AppColors.kin),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             'Loading kifu library...',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -112,13 +113,13 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: Colors.red[400],
+            color: AppColors.shuLight,
           ),
           const SizedBox(height: 16),
           Text(
             'Could not load games',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 24),
@@ -139,20 +140,20 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           Icon(
             Icons.library_books,
             size: 64,
-            color: Colors.amber[600],
+            color: AppColors.kin,
           ),
           const SizedBox(height: 16),
           Text(
             'No games available',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Check back soon for historical games from\nfamous Go players like Honinbo Shusaku',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),
@@ -179,14 +180,14 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                 Text(
                   'Historical Games',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Study games from master players and understand strategic concepts',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
+                    color: AppColors.washiDim,
                   ),
                 ),
               ],
@@ -216,7 +217,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: InkWell(
         onTap: () => _handleSelectGame(context, game.id),
@@ -234,7 +235,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                       Text(
                         game.title,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -244,7 +245,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                             ? '${game.players[0]} vs ${game.players.length > 1 ? game.players[1] : "?"}'
                             : 'Unknown players',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
+                          color: AppColors.washiDim,
                         ),
                       ),
                     ],
@@ -253,7 +254,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                 Icon(
                   Icons.play_circle_outline,
                   size: 32,
-                  color: Colors.amber[600],
+                  color: AppColors.kin,
                 ),
               ],
             ),
@@ -281,14 +282,14 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           value,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white,
+            color: AppColors.washi,
           ),
         ),
       ],
@@ -315,7 +316,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                           Text(
                             game.title,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.washi,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -325,7 +326,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                                 ? game.players.join(' vs ')
                                 : 'Unknown players',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white70,
+                              color: AppColors.washiDim,
                             ),
                           ),
                         ],
@@ -342,7 +343,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                 Text(
                   '${game.source} • ${game.category}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
+                    color: AppColors.washiDim,
                   ),
                 ),
               ],
@@ -385,10 +386,10 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
       height: 300,
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.green[600]!,
+          color: AppColors.wakatake,
           width: 2,
         ),
-        color: Colors.amber[100]?.withOpacity(0.1),
+        color: AppColors.kinLight.withOpacity(0.1),
       ),
       child: Stack(
         children: [
@@ -402,7 +403,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
               'Kifu Replay Board\n(SGF Replay Parser - Phase 5.2)',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white70,
+                color: AppColors.washiDim,
               ),
             ),
           ),
@@ -417,7 +418,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +426,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           Text(
             'Move $_currentMoveIndex / 150',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
@@ -437,7 +438,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
             max: 150,
             divisions: 150,
             label: '$_currentMoveIndex',
-            activeColor: Colors.amber[600],
+            activeColor: AppColors.kin,
             onChanged: (value) {
               setState(() {
                 _currentMoveIndex = value.toInt();
@@ -466,7 +467,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                   icon: const Icon(Icons.play_arrow),
                   label: const Text('Play'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber[600],
+                    backgroundColor: AppColors.kin,
                   ),
                 ),
               ),
@@ -493,7 +494,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.washi.withOpacity(0.03),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,14 +502,14 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           Text(
             'Commentary',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             'Move-by-move AI commentary and strategic analysis will appear here as you play through the game.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
               height: 1.6,
             ),
           ),
@@ -521,7 +522,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('About Kifu Observation'),
         content: const Text(
           'Study games from master players like Honinbo Shusaku. Watch move-by-move replay and read AI commentary to understand strategic concepts and improve your game.',
@@ -577,7 +578,7 @@ class _GoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white30
+      ..color = AppColors.grey500
       ..strokeWidth = 1;
 
     final step = size.width / boardSize;

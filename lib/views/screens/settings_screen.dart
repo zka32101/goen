@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -57,11 +58,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('Settings'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -125,7 +126,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Text(
             title,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.amber[600],
+              color: AppColors.kin,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -137,7 +138,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             decoration: BoxDecoration(
               border: Border.all(color: Colors.white10),
               borderRadius: BorderRadius.circular(8),
-              color: Colors.white.withOpacity(0.03),
+              color: AppColors.washi.withOpacity(0.03),
             ),
             child: child,
           ),
@@ -153,18 +154,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Text(
           'Display Name',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _displayNameController,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Colors.white,
+            color: AppColors.washi,
           ),
           decoration: InputDecoration(
             hintText: 'Enter your name',
-            hintStyle: TextStyle(color: Colors.white30),
+            hintStyle: TextStyle(color: AppColors.grey500),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
               vertical: 8,
@@ -175,7 +176,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: BorderSide(color: Colors.amber[600]!),
+              borderSide: BorderSide(color: AppColors.kin),
             ),
           ),
           onChanged: (value) {
@@ -186,7 +187,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Text(
           'Email',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 8),
@@ -199,7 +200,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Text(
             user.email,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ),
@@ -237,7 +238,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Text(
                   'Premium Subscription',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -245,7 +246,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Text(
                   isActive ? 'Active' : 'Inactive',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isActive ? Colors.green[400] : Colors.white70,
+                    color: isActive ? AppColors.wakatake : AppColors.washiDim,
                   ),
                 ),
               ],
@@ -253,7 +254,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             if (!isActive)
               Icon(
                 Icons.lock,
-                color: Colors.amber[600],
+                color: AppColors.kin,
               ),
           ],
         ),
@@ -263,7 +264,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ? 'You have access to all premium features including unlimited games, historical kifu library, and advanced statistics.'
               : 'Upgrade to premium to unlock unlimited games, historical kifu library, and advanced statistics.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 16),
@@ -273,12 +274,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: ElevatedButton(
               onPressed: () => _handleUpgrade(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber[600],
+                backgroundColor: AppColors.kin,
               ),
               child: Text(
                 'Upgrade to Premium',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: AppColors.sumi,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -295,7 +296,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Text(
           'Preferred Board Size',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 12),
@@ -318,7 +319,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Text(
           'Default AI Difficulty',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 12),
@@ -331,7 +332,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               max: 10,
               divisions: 9,
               label: 'Level $_selectedAiLevel',
-              activeColor: Colors.amber[600],
+              activeColor: AppColors.kin,
               onChanged: (value) {
                 setState(() => _selectedAiLevel = value.toInt());
                 _logger.i('AI difficulty preference changed to $value');
@@ -345,20 +346,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     'Beginner',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                   Text(
                     'Level $_selectedAiLevel',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.amber[600],
+                      color: AppColors.kin,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     'Expert',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                 ],
@@ -393,14 +394,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Text(
           'Data & Privacy',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           'We respect your privacy. Your game data is stored securely and never sold to third parties. Read our privacy policy for more details.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
             height: 1.6,
           ),
         ),
@@ -432,14 +433,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                 ],
@@ -451,7 +452,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 setState(() {});
                 onChanged(value);
               },
-              activeColor: Colors.amber[600],
+              activeColor: AppColors.kin,
             ),
           ],
         );
@@ -476,11 +477,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: OutlinedButton(
             onPressed: () => _handleDeleteAccount(context, ref),
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.red[400]!),
+              side: BorderSide(color: AppColors.shuLight),
             ),
             child: Text(
               'Delete Account',
-              style: TextStyle(color: Colors.red[400]),
+              style: TextStyle(color: AppColors.shuLight),
             ),
           ),
         ),
@@ -488,7 +489,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Text(
           'Permanently delete your account and all associated data.',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.red[300],
+            color: AppColors.shuLight,
           ),
         ),
       ],
@@ -530,13 +531,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white70,
+            color: AppColors.washiDim,
           ),
         ),
         Text(
           value,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.white,
+            color: AppColors.washi,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -552,13 +553,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Icon(
             Icons.lock,
             size: 64,
-            color: Colors.amber[600],
+            color: AppColors.kin,
           ),
           const SizedBox(height: 16),
           Text(
             'Log in to access settings',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 24),
@@ -592,7 +593,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('Sign Out?'),
         content: const Text('Are you sure you want to sign out?'),
         actions: [
@@ -621,7 +622,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('Delete Account?'),
         content: const Text(
           'This will permanently delete your account and all associated data. This action cannot be undone.',
@@ -643,7 +644,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             child: Text(
               'Delete',
-              style: TextStyle(color: Colors.red[400]),
+              style: TextStyle(color: AppColors.shuLight),
             ),
           ),
         ],
@@ -670,7 +671,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: const Text('Credits'),
         content: const SingleChildScrollView(
           child: Text(

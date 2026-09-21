@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -34,8 +35,8 @@ class SplashScreen extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.grey[900]!,
-                  Colors.black87,
+                  AppColors.sumiSurface,
+                  AppColors.sumi,
                 ],
               ),
             ),
@@ -49,16 +50,16 @@ class SplashScreen extends ConsumerWidget {
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
+                      color: AppColors.washi.withOpacity(0.1),
                       border: Border.all(
-                        color: Colors.amber[600]!,
+                        color: AppColors.kin,
                         width: 2,
                       ),
                     ),
                     child: Icon(
                       Icons.pets,
                       size: 40,
-                      color: Colors.amber[600],
+                      color: AppColors.kin,
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -67,7 +68,7 @@ class SplashScreen extends ConsumerWidget {
                   Text(
                     '碁縁',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 4,
                     ),
@@ -77,7 +78,7 @@ class SplashScreen extends ConsumerWidget {
                   Text(
                     'GoEn - Premium Go Learning',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.amber[600],
+                      color: AppColors.kin,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -88,7 +89,7 @@ class SplashScreen extends ConsumerWidget {
                     width: 40,
                     height: 40,
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation(Colors.amber[600]!),
+                      valueColor: AlwaysStoppedAnimation(AppColors.kin),
                       strokeWidth: 3,
                     ),
                   ),
@@ -97,7 +98,7 @@ class SplashScreen extends ConsumerWidget {
                   Text(
                     'Initializing...',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                 ],
@@ -116,7 +117,7 @@ class SplashScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Colors.grey[900]!, Colors.black87],
+                colors: [AppColors.sumiSurface, AppColors.sumi],
               ),
             ),
             child: Center(
@@ -126,13 +127,13 @@ class SplashScreen extends ConsumerWidget {
                   Icon(
                     Icons.error_outline,
                     size: 64,
-                    color: Colors.red[400],
+                    color: AppColors.shuLight,
                   ),
                   const SizedBox(height: 24),
                   Text(
                     'Initialization Error',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -142,7 +143,7 @@ class SplashScreen extends ConsumerWidget {
                       error.toString(),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                   ),
@@ -187,7 +188,7 @@ class SplashScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Colors.grey[900]!, Colors.black87],
+                colors: [AppColors.sumiSurface, AppColors.sumi],
               ),
             ),
             child: Center(
@@ -199,23 +200,23 @@ class SplashScreen extends ConsumerWidget {
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
+                      color: AppColors.washi.withOpacity(0.1),
                       border: Border.all(
-                        color: Colors.amber[600]!,
+                        color: AppColors.kin,
                         width: 2,
                       ),
                     ),
                     child: Icon(
                       Icons.pets,
                       size: 40,
-                      color: Colors.amber[600],
+                      color: AppColors.kin,
                     ),
                   ),
                   const SizedBox(height: 40),
                   Text(
                     '碁縁',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 4,
                     ),

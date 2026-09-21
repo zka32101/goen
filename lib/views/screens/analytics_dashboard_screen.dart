@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 /// Analytics dashboard screen
 class AnalyticsDashboardScreen extends ConsumerWidget {
@@ -11,10 +12,10 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('ゲーム統計'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: currentUser == null
@@ -33,7 +34,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                     Center(
                       child: Text(
                         '詳細統計はまだ利用できません',
-                        style: TextStyle(color: Colors.grey[400]),
+                        style: TextStyle(color: AppColors.washiDim),
                       ),
                     ),
                   ],
@@ -47,13 +48,13 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
+        color: AppColors.sumiSurface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(color: Colors.white)),
+          Text(title, style: const TextStyle(color: AppColors.washi)),
           Text(value, style: const TextStyle(color: Colors.amber, fontSize: 18)),
         ],
       ),
