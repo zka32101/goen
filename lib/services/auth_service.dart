@@ -212,8 +212,20 @@ class AuthService {
     try {
       _logger.i('Signing in anonymously');
 
-      final userCredential = await _auth.signInAnonymously();
-      final firebaseUser = userCredential.user!;
+      firebase_auth.User firebaseUser;
+      try {
+        firebaseUser = (await _auth.signInAnonymously()).user!;
+        // ignore: avoid_catching_errors
+      } on TypeError catch (e) {
+        // firebase_auth 4.x on Android can throw a Pigeon cast error
+        // ("List<Object?> is not a subtype of PigeonUserDetails?") AFTER the
+        // sign-in already succeeded. The session exists, so carry on with it
+        // instead of skipping the Firestore user document below.
+        final current = _auth.currentUser;
+        if (current == null) rethrow;
+        _logger.w('signInAnonymously threw a cast error but signed in: $e');
+        firebaseUser = current;
+      }
 
       final anonUser = User(
         uid: firebaseUser.uid,
