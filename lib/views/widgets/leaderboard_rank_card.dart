@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/extended_game_models.dart';
+import 'package:goen/config/theme.dart';
 
 /// Widget for displaying player's current rank
 class LeaderboardRankCardWidget extends StatelessWidget {
@@ -18,7 +19,7 @@ class LeaderboardRankCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isLoading) {
       return Card(
-        color: Colors.grey[900],
+        color: AppColors.sumiSurface,
         child: const Padding(
           padding: EdgeInsets.all(16),
           child: Center(
@@ -30,13 +31,13 @@ class LeaderboardRankCardWidget extends StatelessWidget {
 
     if (playerRank == null) {
       return Card(
-        color: Colors.grey[900],
+        color: AppColors.sumiSurface,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Center(
             child: Text(
               'ランキングデータなし',
-              style: TextStyle(color: Colors.grey[400]),
+              style: TextStyle(color: AppColors.washiDim),
             ),
           ),
         ),
@@ -49,8 +50,8 @@ class LeaderboardRankCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.grey[900]!,
-              Colors.grey[850]!,
+              AppColors.sumiSurface,
+              AppColors.washiDim,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -73,7 +74,7 @@ class LeaderboardRankCardWidget extends StatelessWidget {
                   Text(
                     'あなたのランク',
                     style: TextStyle(
-                      color: Colors.grey[400],
+                      color: AppColors.washiDim,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -84,14 +85,14 @@ class LeaderboardRankCardWidget extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.amber[700]?.withOpacity(0.3),
+                      color: AppColors.kin.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.amber[600]!),
+                      border: Border.all(color: AppColors.kin),
                     ),
                     child: Text(
                       _formatPeriod(period),
                       style: TextStyle(
-                        color: Colors.amber[300],
+                        color: AppColors.kin,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -149,12 +150,12 @@ class LeaderboardRankCardWidget extends StatelessWidget {
                         Row(
                           children: [
                             Icon(Icons.trending_up,
-                                size: 16, color: Colors.amber[600]),
+                                size: 16, color: AppColors.kin),
                             const SizedBox(width: 6),
                             Text(
                               'Rating',
                               style: TextStyle(
-                                color: Colors.grey[400],
+                                color: AppColors.washiDim,
                                 fontSize: 12,
                               ),
                             ),
@@ -162,7 +163,7 @@ class LeaderboardRankCardWidget extends StatelessWidget {
                             Text(
                               playerRank!.rating.toStringAsFixed(0),
                               style: TextStyle(
-                                color: Colors.amber[600],
+                                color: AppColors.kin,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -176,12 +177,12 @@ class LeaderboardRankCardWidget extends StatelessWidget {
                         Row(
                           children: [
                             Icon(Icons.sports_score,
-                                size: 16, color: Colors.green[600]),
+                                size: 16, color: AppColors.wakatake),
                             const SizedBox(width: 6),
                             Text(
                               '勝敗',
                               style: TextStyle(
-                                color: Colors.grey[400],
+                                color: AppColors.washiDim,
                                 fontSize: 12,
                               ),
                             ),
@@ -189,7 +190,7 @@ class LeaderboardRankCardWidget extends StatelessWidget {
                             Text(
                               '${playerRank!.wins}W - ${playerRank!.losses}L',
                               style: TextStyle(
-                                color: Colors.green[600],
+                                color: AppColors.wakatake,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -203,12 +204,12 @@ class LeaderboardRankCardWidget extends StatelessWidget {
                         Row(
                           children: [
                             Icon(Icons.percent,
-                                size: 16, color: Colors.blue[600]),
+                                size: 16, color: AppColors.aiLight),
                             const SizedBox(width: 6),
                             Text(
                               '勝率',
                               style: TextStyle(
-                                color: Colors.grey[400],
+                                color: AppColors.washiDim,
                                 fontSize: 12,
                               ),
                             ),
@@ -216,7 +217,7 @@ class LeaderboardRankCardWidget extends StatelessWidget {
                             Text(
                               '${playerRank!.winRate.toStringAsFixed(1)}%',
                               style: TextStyle(
-                                color: Colors.blue[600],
+                                color: AppColors.aiLight,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
@@ -246,7 +247,7 @@ class LeaderboardRankCardWidget extends StatelessWidget {
         child: Text(
           '🏆 最上位ランク',
           style: TextStyle(
-            color: Colors.amber[600],
+            color: AppColors.kin,
             fontWeight: FontWeight.bold,
             fontSize: 12,
           ),
@@ -263,14 +264,14 @@ class LeaderboardRankCardWidget extends StatelessWidget {
             Text(
               'ランク #${currentRank - 1} へ',
               style: TextStyle(
-                color: Colors.grey[400],
+                color: AppColors.washiDim,
                 fontSize: 11,
               ),
             ),
             Text(
               '次のランクまで',
               style: TextStyle(
-                color: Colors.grey[500],
+                color: AppColors.washiDim,
                 fontSize: 11,
               ),
             ),
@@ -282,9 +283,9 @@ class LeaderboardRankCardWidget extends StatelessWidget {
           child: LinearProgressIndicator(
             value: 0.6,
             minHeight: 6,
-            backgroundColor: Colors.grey[800],
+            backgroundColor: AppColors.sumiCard,
             valueColor: AlwaysStoppedAnimation<Color>(
-              Colors.amber[600]!,
+              AppColors.kin,
             ),
           ),
         ),
@@ -297,11 +298,11 @@ class LeaderboardRankCardWidget extends StatelessWidget {
       case 1:
         return Colors.yellow[700]!;
       case 2:
-        return Colors.grey[400]!;
+        return AppColors.washiDim;
       case 3:
         return Colors.orange[700]!;
       default:
-        return Colors.blue[600]!;
+        return AppColors.aiLight;
     }
   }
 
@@ -352,9 +353,9 @@ class CompactRankCardWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.grey[900],
+          color: AppColors.sumiSurface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[800]!),
+          border: Border.all(color: AppColors.sumiCard),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -365,14 +366,14 @@ class CompactRankCardWidget extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.amber[700]?.withOpacity(0.2),
-                border: Border.all(color: Colors.amber[600]!),
+                color: AppColors.kin.withOpacity(0.2),
+                border: Border.all(color: AppColors.kin),
               ),
               child: Center(
                 child: Text(
                   '#${entry.rank}',
                   style: TextStyle(
-                    color: Colors.amber[600],
+                    color: AppColors.kin,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -390,7 +391,7 @@ class CompactRankCardWidget extends StatelessWidget {
                 Text(
                   entry.displayName,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.washi,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -398,7 +399,7 @@ class CompactRankCardWidget extends StatelessWidget {
                 Text(
                   '${entry.rating.toStringAsFixed(0)} • ${entry.winRate.toStringAsFixed(1)}%',
                   style: TextStyle(
-                    color: Colors.grey[400],
+                    color: AppColors.washiDim,
                     fontSize: 10,
                   ),
                 ),

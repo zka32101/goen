@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -16,10 +17,10 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
     final playersAsync = ref.watch(concurrentPlayersProvider(uid));
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('同時刻の碁盤'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: [
           IconButton(
@@ -38,18 +39,18 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(16),
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.green[400]!),
+                    border: Border.all(color: AppColors.wakatake),
                     borderRadius: BorderRadius.circular(12),
-                    color: Colors.green[400]?.withOpacity(0.08),
+                    color: AppColors.wakatake.withOpacity(0.08),
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.groups, color: Colors.green[400], size: 32),
+                      Icon(Icons.groups, color: AppColors.wakatake, size: 32),
                       const SizedBox(height: 8),
                       Text(
                         'いま ${players.length} 人が対局中',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -57,7 +58,7 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         'あなたは一人ではありません',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                        style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                       ),
                     ],
                   ),
@@ -68,21 +69,21 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
                     ? Center(
                         child: Text(
                           'いま対局中の人はいません',
-                          style: TextStyle(color: Colors.grey[500]),
+                          style: TextStyle(color: AppColors.washiDim),
                         ),
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: players.length,
-                        separatorBuilder: (_, __) => Divider(color: Colors.grey[850]),
+                        separatorBuilder: (_, __) => Divider(color: AppColors.washiDim),
                         itemBuilder: (context, index) {
                           final player = players[index];
                           return ListTile(
                             leading: const Icon(Icons.circle, color: Colors.greenAccent, size: 12),
-                            title: Text(player.displayName, style: const TextStyle(color: Colors.white)),
+                            title: Text(player.displayName, style: const TextStyle(color: AppColors.washi)),
                             subtitle: Text(
                               '${player.gameType} / ${player.boardSize}路盤',
-                              style: TextStyle(color: Colors.grey[400]),
+                              style: TextStyle(color: AppColors.washiDim),
                             ),
                           );
                         },

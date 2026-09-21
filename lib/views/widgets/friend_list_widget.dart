@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/extended_game_models.dart';
+import 'package:goen/config/theme.dart';
 
 /// Widget for displaying a list of friends
 class FriendListWidget extends StatelessWidget {
@@ -36,12 +37,12 @@ class FriendListWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.people_outline,
-                size: 48, color: Colors.grey[600]),
+                size: 48, color: AppColors.washiDim),
             const SizedBox(height: 16),
             Text(
               'フレンドがいません',
               style: TextStyle(
-                color: Colors.grey[400],
+                color: AppColors.washiDim,
                 fontSize: 16,
               ),
             ),
@@ -54,12 +55,12 @@ class FriendListWidget extends StatelessWidget {
       onRefresh: () async {
         onRefresh?.call();
       },
-      backgroundColor: Colors.grey[900],
-      color: Colors.amber[600],
+      backgroundColor: AppColors.sumiSurface,
+      color: AppColors.kin,
       child: ListView.separated(
         itemCount: friends.length,
         separatorBuilder: (context, index) =>
-            Divider(color: Colors.grey[800], height: 1),
+            Divider(color: AppColors.sumiCard, height: 1),
         itemBuilder: (context, index) {
           final friend = friends[index];
           return _FriendListItem(
@@ -97,7 +98,7 @@ class _FriendListItem extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap?.call(friend),
       child: Container(
-        color: Colors.grey[900],
+        color: AppColors.sumiSurface,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -108,14 +109,14 @@ class _FriendListItem extends StatelessWidget {
                 height: 56,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.amber[700]?.withOpacity(0.2),
-                  border: Border.all(color: Colors.amber[600]!, width: 2),
+                  color: AppColors.kin.withOpacity(0.2),
+                  border: Border.all(color: AppColors.kin, width: 2),
                 ),
                 child: Center(
                   child: Text(
                     _getInitials(friend.displayName),
                     style: TextStyle(
-                      color: Colors.amber[600],
+                      color: AppColors.kin,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -133,7 +134,7 @@ class _FriendListItem extends StatelessWidget {
                     Text(
                       friend.displayName,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -144,7 +145,7 @@ class _FriendListItem extends StatelessWidget {
                         child: Text(
                           friend.notes!,
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: AppColors.washiDim,
                             fontSize: 11,
                           ),
                           maxLines: 1,
@@ -178,7 +179,7 @@ class _FriendListItem extends StatelessWidget {
                     child: Row(
                       children: [
                         Icon(Icons.mail_outline,
-                            size: 18, color: Colors.grey[400]),
+                            size: 18, color: AppColors.washiDim),
                         const SizedBox(width: 12),
                         const Text('メッセージ'),
                       ],
@@ -189,7 +190,7 @@ class _FriendListItem extends StatelessWidget {
                     child: Row(
                       children: [
                         Icon(Icons.sports_esports,
-                            size: 18, color: Colors.amber[600]),
+                            size: 18, color: AppColors.kin),
                         const SizedBox(width: 12),
                         const Text('対局招待'),
                       ],
@@ -200,15 +201,15 @@ class _FriendListItem extends StatelessWidget {
                     value: 'block',
                     child: Row(
                       children: [
-                        Icon(Icons.block, size: 18, color: Colors.red[600]),
+                        Icon(Icons.block, size: 18, color: AppColors.shuLight),
                         const SizedBox(width: 12),
                         Text('ブロック',
-                            style: TextStyle(color: Colors.red[600])),
+                            style: TextStyle(color: AppColors.shuLight)),
                       ],
                     ),
                   ),
                 ],
-                color: Colors.grey[850],
+                color: AppColors.washiDim,
               ),
             ],
           ),
@@ -245,9 +246,9 @@ class FriendChipWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.grey[850],
+          color: AppColors.washiDim,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey[700]!),
+          border: Border.all(color: AppColors.washiDim),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -258,13 +259,13 @@ class FriendChipWidget extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.amber[700]?.withOpacity(0.3),
+                color: AppColors.kin.withOpacity(0.3),
               ),
               child: Center(
                 child: Text(
                   _getInitials(friend.displayName),
                   style: TextStyle(
-                    color: Colors.amber[600],
+                    color: AppColors.kin,
                     fontWeight: FontWeight.bold,
                     fontSize: 10,
                   ),
@@ -278,7 +279,7 @@ class FriendChipWidget extends StatelessWidget {
             Text(
               friend.displayName,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.washi,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -319,7 +320,7 @@ class FriendHorizontalListWidget extends StatelessWidget {
         child: Center(
           child: Text(
             'フレンドなし',
-            style: TextStyle(color: Colors.grey[500]),
+            style: TextStyle(color: AppColors.washiDim),
           ),
         ),
       );
@@ -341,9 +342,9 @@ class FriendHorizontalListWidget extends StatelessWidget {
                     height: 60,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.amber[700]?.withOpacity(0.2),
+                      color: AppColors.kin.withOpacity(0.2),
                       border: Border.all(
-                        color: Colors.amber[600]!,
+                        color: AppColors.kin,
                         width: 2,
                       ),
                     ),
@@ -351,7 +352,7 @@ class FriendHorizontalListWidget extends StatelessWidget {
                       child: Text(
                         _getInitials(friend.displayName),
                         style: TextStyle(
-                          color: Colors.amber[600],
+                          color: AppColors.kin,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
@@ -365,7 +366,7 @@ class FriendHorizontalListWidget extends StatelessWidget {
                       friend.displayName,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/extended_game_models.dart';
+import 'package:goen/config/theme.dart';
 
 /// Widget for displaying a single achievement badge
 class AchievementBadgeWidget extends StatelessWidget {
@@ -30,12 +31,12 @@ class AchievementBadgeWidget extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: achievement.isUnlocked
-                  ? Colors.amber[700]?.withOpacity(0.2)
-                  : Colors.grey[800]?.withOpacity(0.5),
+                  ? AppColors.kin.withOpacity(0.2)
+                  : AppColors.sumiCard.withOpacity(0.5),
               border: Border.all(
                 color: achievement.isUnlocked
-                    ? Colors.amber[600]!
-                    : Colors.grey[700]!,
+                    ? AppColors.kin
+                    : AppColors.washiDim,
                 width: 2,
               ),
             ),
@@ -49,8 +50,8 @@ class AchievementBadgeWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: size * 0.5,
                       color: achievement.isUnlocked
-                          ? Colors.white
-                          : Colors.grey[600],
+                          ? AppColors.washi
+                          : AppColors.washiDim,
                     ),
                   ),
 
@@ -64,12 +65,12 @@ class AchievementBadgeWidget extends StatelessWidget {
                         height: size * 0.25,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.grey[900],
+                          color: AppColors.sumiSurface,
                         ),
                         child: Icon(
                           Icons.lock,
                           size: size * 0.15,
-                          color: Colors.grey[600],
+                          color: AppColors.washiDim,
                         ),
                       ),
                     ),
@@ -84,12 +85,12 @@ class AchievementBadgeWidget extends StatelessWidget {
                         height: size * 0.25,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.amber[700],
+                          color: AppColors.kin,
                         ),
                         child: Icon(
                           Icons.star,
                           size: size * 0.15,
-                          color: Colors.white,
+                          color: AppColors.washi,
                         ),
                       ),
                     ),
@@ -107,8 +108,8 @@ class AchievementBadgeWidget extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: achievement.isUnlocked
-                      ? Colors.white
-                      : Colors.grey[600],
+                      ? AppColors.washi
+                      : AppColors.washiDim,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -137,7 +138,7 @@ class AchievementProgressWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.grey[900],
+      color: AppColors.sumiSurface,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -149,12 +150,12 @@ class AchievementProgressWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: achievement.isUnlocked
-                    ? Colors.amber[700]?.withOpacity(0.2)
-                    : Colors.grey[800]?.withOpacity(0.5),
+                    ? AppColors.kin.withOpacity(0.2)
+                    : AppColors.sumiCard.withOpacity(0.5),
                 border: Border.all(
                   color: achievement.isUnlocked
-                      ? Colors.amber[600]!
-                      : Colors.grey[700]!,
+                      ? AppColors.kin
+                      : AppColors.washiDim,
                   width: 2,
                 ),
               ),
@@ -176,7 +177,7 @@ class AchievementProgressWidget extends StatelessWidget {
                   Text(
                     achievement.name,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.washi,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -185,7 +186,7 @@ class AchievementProgressWidget extends StatelessWidget {
                   Text(
                     achievement.description,
                     style: TextStyle(
-                      color: Colors.grey[400],
+                      color: AppColors.washiDim,
                       fontSize: 12,
                     ),
                     maxLines: 2,
@@ -199,13 +200,13 @@ class AchievementProgressWidget extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: progress / 100,
                       minHeight: 6,
-                      backgroundColor: Colors.grey[800],
+                      backgroundColor: AppColors.sumiCard,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         progress >= 100
-                            ? Colors.green[600]!
+                            ? AppColors.wakatake
                             : progress >= 50
-                                ? Colors.amber[600]!
-                                : Colors.red[600]!,
+                                ? AppColors.kin
+                                : AppColors.shuLight,
                       ),
                     ),
                   ),
@@ -213,7 +214,7 @@ class AchievementProgressWidget extends StatelessWidget {
                   Text(
                     '${progress.toStringAsFixed(1)}%',
                     style: TextStyle(
-                      color: Colors.grey[500],
+                      color: AppColors.washiDim,
                       fontSize: 11,
                     ),
                   ),

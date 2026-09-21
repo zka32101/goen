@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:goen/config/theme.dart';
 
 /// Widget for displaying bar chart (win rate by level/board size)
 class WinRateBarChartWidget extends StatelessWidget {
@@ -20,14 +21,14 @@ class WinRateBarChartWidget extends StatelessWidget {
     if (data.isEmpty) {
       return Center(
         child: Text('データなし',
-            style: TextStyle(color: Colors.grey[400])),
+            style: TextStyle(color: AppColors.washiDim)),
       );
     }
 
     final maxValue = data.values.isEmpty ? 100.0 : 100.0;
 
     return Card(
-      color: Colors.grey[900],
+      color: AppColors.sumiSurface,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -36,7 +37,7 @@ class WinRateBarChartWidget extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.washi,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -76,10 +77,10 @@ class WinRateBarChartWidget extends StatelessWidget {
   }) {
     final percentage = (value / maxValue).clamp(0.0, 1.0);
     final barColor = value >= 60
-        ? Colors.green[600]!
+        ? AppColors.wakatake
         : value >= 40
-            ? Colors.amber[600]!
-            : Colors.red[600]!;
+            ? AppColors.kin
+            : AppColors.shuLight;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -100,7 +101,7 @@ class WinRateBarChartWidget extends StatelessWidget {
               child: Text(
                 '${value.toStringAsFixed(0)}%',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.washi,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -115,7 +116,7 @@ class WinRateBarChartWidget extends StatelessWidget {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            style: TextStyle(color: AppColors.washiDim, fontSize: 12),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -143,12 +144,12 @@ class WinRateLineChartWidget extends StatelessWidget {
     if (values.isEmpty) {
       return Center(
         child: Text('データなし',
-            style: TextStyle(color: Colors.grey[400])),
+            style: TextStyle(color: AppColors.washiDim)),
       );
     }
 
     return Card(
-      color: Colors.grey[900],
+      color: AppColors.sumiSurface,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -157,7 +158,7 @@ class WinRateLineChartWidget extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.washi,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -177,7 +178,7 @@ class WinRateLineChartWidget extends StatelessWidget {
     if (values.length < 2) {
       return Center(
         child: Text('最少2つのデータポイントが必要です',
-            style: TextStyle(color: Colors.grey[400])),
+            style: TextStyle(color: AppColors.washiDim)),
       );
     }
 
@@ -216,17 +217,17 @@ class LineChartPainter extends CustomPainter {
     if (values.isEmpty) return;
 
     final linePaint = Paint()
-      ..color = Colors.amber[600]!
+      ..color = AppColors.kin
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
     final pointPaint = Paint()
-      ..color = Colors.amber[400]!
+      ..color = AppColors.kin
       ..strokeWidth = 4;
 
     final gridPaint = Paint()
-      ..color = Colors.grey[800]!.withOpacity(0.3)
+      ..color = AppColors.sumiCard.withOpacity(0.3)
       ..strokeWidth = 0.5;
 
     // Draw grid lines
@@ -274,7 +275,7 @@ class LineChartPainter extends CustomPainter {
       textPaint.text = TextSpan(
         text: label,
         style: TextStyle(
-          color: Colors.grey[400],
+          color: AppColors.washiDim,
           fontSize: 10,
         ),
       );
@@ -309,21 +310,21 @@ class GameDistributionPieChartWidget extends StatelessWidget {
     if (data.isEmpty) {
       return Center(
         child: Text('データなし',
-            style: TextStyle(color: Colors.grey[400])),
+            style: TextStyle(color: AppColors.washiDim)),
       );
     }
 
     final total = data.values.fold<int>(0, (sum, val) => sum + val);
     final colors = [
-      Colors.blue[600]!,
-      Colors.amber[600]!,
-      Colors.green[600]!,
-      Colors.purple[600]!,
+      AppColors.aiLight,
+      AppColors.kin,
+      AppColors.wakatake,
+      AppColors.fuji,
       Colors.pink[600]!,
     ];
 
     return Card(
-      color: Colors.grey[900],
+      color: AppColors.sumiSurface,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -332,7 +333,7 @@ class GameDistributionPieChartWidget extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.washi,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -386,7 +387,7 @@ class GameDistributionPieChartWidget extends StatelessWidget {
                               child: Text(
                                 '$mode: $count ($percentage%)',
                                 style: TextStyle(
-                                  color: Colors.grey[300],
+                                  color: AppColors.washiDim,
                                   fontSize: 12,
                                 ),
                                 maxLines: 1,
@@ -452,7 +453,7 @@ class PieChartPainter extends CustomPainter {
 
     // Draw center circle (donut effect)
     final centerPaint = Paint()
-      ..color = Colors.grey[900]!
+      ..color = AppColors.sumiSurface
       ..style = PaintingStyle.fill;
 
     canvas.drawCircle(center, radius * 0.5, centerPaint);

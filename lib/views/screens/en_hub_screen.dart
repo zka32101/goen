@@ -9,6 +9,7 @@ import 'live_friends_screen.dart';
 import 'fateful_moves_screen.dart';
 import 'concurrent_players_screen.dart';
 import 'en_score_screen.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -22,17 +23,17 @@ class EnHubScreen extends ConsumerWidget {
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('縁'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: uid == null
           ? const Center(
               child: Text(
                 'ログインすると縁を確認できます',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: AppColors.washiDim),
               ),
             )
           : SingleChildScrollView(
@@ -43,7 +44,7 @@ class EnHubScreen extends ConsumerWidget {
                   Text(
                     '碁を通じたつながり',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
@@ -66,7 +67,7 @@ class EnHubScreen extends ConsumerWidget {
                   _buildCard(
                     context,
                     icon: Icons.handshake,
-                    color: Colors.amber[600]!,
+                    color: AppColors.kin,
                     title: '実力マッチング',
                     subtitle: 'レートの近い相手との運命の対戦',
                     onTap: () => _push(context, const MatchingScreen()),
@@ -74,7 +75,7 @@ class EnHubScreen extends ConsumerWidget {
                   _buildCard(
                     context,
                     icon: Icons.psychology,
-                    color: Colors.cyan[400]!,
+                    color: AppColors.aiLight,
                     title: '棋風の相性',
                     subtitle: 'フレンドとの棋風の相性を診断',
                     onTap: () => _push(context, const PlaystyleScreen()),
@@ -90,7 +91,7 @@ class EnHubScreen extends ConsumerWidget {
                   _buildCard(
                     context,
                     icon: Icons.live_tv,
-                    color: Colors.red[400]!,
+                    color: AppColors.shuLight,
                     title: 'いま対局中のフレンド',
                     subtitle: 'ライブ観戦できるフレンドの対局',
                     onTap: () => _push(context, const LiveFriendsScreen()),
@@ -106,7 +107,7 @@ class EnHubScreen extends ConsumerWidget {
                   _buildCard(
                     context,
                     icon: Icons.groups,
-                    color: Colors.green[400]!,
+                    color: AppColors.wakatake,
                     title: '同時刻の碁盤',
                     subtitle: 'いま同じ時間に対局している仲間',
                     onTap: () => _push(context, const ConcurrentPlayersScreen()),
@@ -139,7 +140,7 @@ class EnHubScreen extends ConsumerWidget {
           decoration: BoxDecoration(
             border: Border.all(color: color.withOpacity(0.6)),
             borderRadius: BorderRadius.circular(12),
-            color: Colors.white.withOpacity(0.04),
+            color: AppColors.washi.withOpacity(0.04),
           ),
           child: Row(
             children: [
@@ -160,14 +161,14 @@ class EnHubScreen extends ConsumerWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.washi,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                     ),
                   ],
                 ),

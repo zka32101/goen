@@ -5,6 +5,7 @@ import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/go_rank.dart';
 import 'pvp_game_screen.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -29,15 +30,15 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('実力マッチング'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: uid == null
           ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -46,7 +47,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                 children: [
                   Text(
                     'レートが近い相手を探して、運命の対戦を始めましょう',
-                    style: TextStyle(color: Colors.grey[400]),
+                    style: TextStyle(color: AppColors.washiDim),
                   ),
                   const SizedBox(height: 8),
                   _buildMyRank(uid),
@@ -64,7 +65,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                     child: ElevatedButton(
                       onPressed: _isSearching ? null : () => _findMatch(uid, currentUser!),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber[600],
+                        backgroundColor: AppColors.kin,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: _isSearching
@@ -75,7 +76,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                             )
                           : const Text(
                               '対戦相手を探す',
-                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold),
                             ),
                     ),
                   ),
@@ -83,7 +84,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                   Text(
                     'これまでの対戦',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
@@ -102,7 +103,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     final rating = rankAsync.valueOrNull?.rating ?? 1200;
     return Text(
       'あなたの棋力: ${formatGoRank(rating)} (レート $rating)',
-      style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+      style: const TextStyle(color: AppColors.kin, fontWeight: FontWeight.bold),
     );
   }
 
@@ -116,8 +117,8 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
             label: Text('$size路盤'),
             selected: selected,
             onSelected: (_) => setState(() => _boardSize = size),
-            selectedColor: Colors.amber[600],
-            backgroundColor: Colors.grey[800],
+            selectedColor: AppColors.kin,
+            backgroundColor: AppColors.sumiCard,
           ),
         );
       }).toList(),
@@ -129,20 +130,20 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.amber[600]!, width: 2),
+        border: Border.all(color: AppColors.kin, width: 2),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.amber[600]?.withOpacity(0.1),
+        color: AppColors.kin.withOpacity(0.1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.handshake, color: Colors.amber[600]),
+              Icon(Icons.handshake, color: AppColors.kin),
               const SizedBox(width: 8),
               const Text(
                 '運命の対戦が見つかりました！',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -150,12 +151,12 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
           Text(
             '${match.player1DisplayName} (${formatGoRank(match.player1Rating)}) vs '
             '${match.player2DisplayName} (${formatGoRank(match.player2Rating)})',
-            style: const TextStyle(color: Colors.white70),
+            style: const TextStyle(color: AppColors.washiDim),
           ),
           const SizedBox(height: 4),
           Text(
             'レート差: ${match.ratingDiff} / ${match.boardSize}路盤',
-            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            style: TextStyle(color: AppColors.washiDim, fontSize: 12),
           ),
           if (match.gameId == null) ...[
             const SizedBox(height: 12),
@@ -163,14 +164,14 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isStartingGame ? null : () => _startGame(match, uid, currentUser),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green[600]),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.wakatake),
                 child: _isStartingGame
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.washi),
                       )
-                    : const Text('対局を開始する', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    : const Text('対局を開始する', style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -184,7 +185,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     return historyAsync.when(
       data: (matches) {
         if (matches.isEmpty) {
-          return Text('まだ対戦履歴がありません', style: TextStyle(color: Colors.grey[500]));
+          return Text('まだ対戦履歴がありません', style: TextStyle(color: AppColors.washiDim));
         }
         return Column(
           children: matches.map((match) {
@@ -192,14 +193,14 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
             final opponentName = isPlayer1 ? match.player2DisplayName : match.player1DisplayName;
             final opponentRating = isPlayer1 ? match.player2Rating : match.player1Rating;
             return Card(
-              color: Colors.grey[900],
+              color: AppColors.sumiSurface,
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
-                leading: const Icon(Icons.person, color: Colors.white70),
-                title: Text(opponentName, style: const TextStyle(color: Colors.white)),
+                leading: const Icon(Icons.person, color: AppColors.washiDim),
+                title: Text(opponentName, style: const TextStyle(color: AppColors.washi)),
                 subtitle: Text(
                   'レート $opponentRating / ${match.boardSize}路盤',
-                  style: TextStyle(color: Colors.grey[400]),
+                  style: TextStyle(color: AppColors.washiDim),
                 ),
                 trailing: match.gameId != null
                     ? const Icon(Icons.arrow_forward_ios, color: Colors.green, size: 16)

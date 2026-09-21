@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/pvp_game.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/stone_feedback.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -51,17 +52,17 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
     });
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('対局'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: gameAsync.when(
         data: (game) {
           if (game == null) {
             return Center(
-              child: Text('対局が見つかりません', style: TextStyle(color: Colors.grey[500])),
+              child: Text('対局が見つかりません', style: TextStyle(color: AppColors.washiDim)),
             );
           }
 
@@ -94,7 +95,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
           const SizedBox(height: 16),
           Text(
             '${game.movesCount}手目 — 黒${game.capturedWhite}目捕獲 / 白${game.capturedBlack}目捕獲',
-            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            style: TextStyle(color: AppColors.washiDim, fontSize: 12),
           ),
           const SizedBox(height: 20),
           if (game.isActive && myColor != 0) _buildControls(context, game),
@@ -108,7 +109,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildPlayerBadge(game.blackDisplayName, isBlack: true, isTurn: game.isActive && game.isBlackTurn),
-        Text('vs', style: TextStyle(color: Colors.grey[600])),
+        Text('vs', style: TextStyle(color: AppColors.washiDim)),
         _buildPlayerBadge(game.whiteDisplayName, isBlack: false, isTurn: game.isActive && !game.isBlackTurn),
       ],
     );
@@ -122,13 +123,13 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
           height: 28,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isBlack ? Colors.black : Colors.white,
-            border: isTurn ? Border.all(color: Colors.amber[600]!, width: 3) : null,
+            color: isBlack ? AppColors.sumi : AppColors.washi,
+            border: isTurn ? Border.all(color: AppColors.kin, width: 3) : null,
           ),
         ),
         const SizedBox(height: 6),
-        Text(name, style: const TextStyle(color: Colors.white, fontSize: 13)),
-        if (isTurn) Text('手番', style: TextStyle(color: Colors.amber[600], fontSize: 11)),
+        Text(name, style: const TextStyle(color: AppColors.washi, fontSize: 13)),
+        if (isTurn) Text('手番', style: TextStyle(color: AppColors.kin, fontSize: 11)),
       ],
     );
   }
@@ -152,7 +153,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
         height: boardPixelSize,
         decoration: BoxDecoration(
           border: Border.all(
-            color: isMyTurn ? Colors.amber[600]! : Colors.grey[700]!,
+            color: isMyTurn ? AppColors.kin : AppColors.washiDim,
             width: isMyTurn ? 3 : 2,
           ),
           borderRadius: BorderRadius.circular(4),
@@ -160,14 +161,14 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.amber[700]!.withOpacity(0.35),
+              AppColors.kin.withOpacity(0.35),
               Colors.brown[700]!.withOpacity(0.45),
-              Colors.amber[800]!.withOpacity(0.35),
+              AppColors.kin.withOpacity(0.35),
             ],
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
+              color: AppColors.sumi.withOpacity(0.5),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -220,7 +221,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
         final stone = stones[row][col];
         if (stone != 0) {
           final isBlack = stone == 1;
-          final border = isBlack ? null : Border.all(color: Colors.grey[400]!, width: 0.5);
+          final border = isBlack ? null : Border.all(color: AppColors.washiDim, width: 0.5);
           stoneWidgets.add(
             Positioned(
               left: col * cellSize + cellSize / 2 - stoneRadius,
@@ -235,8 +236,8 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
                     center: const Alignment(-0.35, -0.4),
                     radius: 0.9,
                     colors: isBlack
-                        ? [Colors.grey[700]!, Colors.black]
-                        : [Colors.white, Colors.grey[350]!],
+                        ? [AppColors.washiDim, AppColors.sumi]
+                        : [AppColors.washi, AppColors.washiDim],
                   ),
                   boxShadow: const [
                     BoxShadow(color: Colors.black45, blurRadius: 5, offset: Offset(1.5, 2.5)),
@@ -304,17 +305,17 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text('投了しますか？', style: TextStyle(color: Colors.white)),
-        content: const Text('この対局に負けとして記録されます。', style: TextStyle(color: Colors.white70)),
+        backgroundColor: AppColors.sumiSurface,
+        title: const Text('投了しますか？', style: TextStyle(color: AppColors.washi)),
+        content: const Text('この対局に負けとして記録されます。', style: TextStyle(color: AppColors.washiDim)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('キャンセル', style: TextStyle(color: Colors.blue[400])),
+            child: Text('キャンセル', style: TextStyle(color: AppColors.aiLight)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text('投了する', style: TextStyle(color: Colors.red[400])),
+            child: Text('投了する', style: TextStyle(color: AppColors.shuLight)),
           ),
         ],
       ),
@@ -340,14 +341,14 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         title: Text(
           isDraw ? '引き分け' : (won ? 'あなたの勝ちです！' : 'あなたの負けです'),
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: AppColors.washi),
         ),
         content: Text(
           game.result == 'resignation' ? '投了による決着' : '目算による決着',
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(color: AppColors.washiDim),
         ),
         actions: [
           TextButton(
@@ -355,7 +356,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
               Navigator.pop(dialogContext);
               Navigator.pop(context);
             },
-            child: Text('閉じる', style: TextStyle(color: Colors.amber[600])),
+            child: Text('閉じる', style: TextStyle(color: AppColors.kin)),
           ),
         ],
       ),
@@ -371,7 +372,7 @@ class _PvpGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black87
+      ..color = AppColors.sumi
       ..strokeWidth = 1;
 
     final cellSize = size.width / boardSize;
@@ -450,14 +451,14 @@ class _CaptureFlashState extends State<_CaptureFlash> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.85),
+              color: AppColors.sumi.withOpacity(0.85),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.amber[400]!, width: 2),
+              border: Border.all(color: AppColors.kin, width: 2),
             ),
             child: Text(
               widget.count > 1 ? '${widget.count}石 捕獲！' : '捕獲！',
               style: TextStyle(
-                color: Colors.amber[300],
+                color: AppColors.kin,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),

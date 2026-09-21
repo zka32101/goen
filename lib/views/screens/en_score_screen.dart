@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -23,10 +24,10 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('縁スコア'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: uid == null
             ? null
@@ -45,7 +46,7 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
       ),
       body: uid == null
           ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
             )
           : _buildConnectionsList(uid),
     );
@@ -62,7 +63,7 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
               child: Text(
                 '右上の更新ボタンで、フレンドとの縁スコアを計算できます',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[500]),
+                style: TextStyle(color: AppColors.washiDim),
               ),
             ),
           );
@@ -74,7 +75,7 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
           itemBuilder: (context, index) {
             final c = connections[index];
             return Card(
-              color: Colors.grey[900],
+              color: AppColors.sumiSurface,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -85,7 +86,7 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
                       children: [
                         Text(
                           c.friendDisplayName,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -106,20 +107,20 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
                       child: LinearProgressIndicator(
                         value: c.score / 100,
                         minHeight: 8,
-                        backgroundColor: Colors.grey[800],
+                        backgroundColor: AppColors.sumiCard,
                         valueColor: const AlwaysStoppedAnimation(Colors.pinkAccent),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '縁スコア ${c.score} / 100',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${c.friendshipDays}日の友情 / 対戦${c.matchesPlayed}回 / '
                       '共同観戦${c.sharedSpectateSessions}回 / 局面共有${c.sharedPositionEchoes}回',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                      style: TextStyle(color: AppColors.washiDim, fontSize: 11),
                     ),
                   ],
                 ),

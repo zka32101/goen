@@ -5,6 +5,7 @@ import 'package:goen/models/tournament.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'tournament_bracket_screen.dart';
 import 'tournament_create_screen.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -38,16 +39,16 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
     final uid = currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('トーナメント'),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.amber[600],
-          labelColor: Colors.amber[600],
-          unselectedLabelColor: Colors.grey[400],
+          indicatorColor: AppColors.kin,
+          labelColor: AppColors.kin,
+          unselectedLabelColor: AppColors.washiDim,
           tabs: const [
             Tab(text: '開催中'),
             Tab(text: '参加中'),
@@ -57,9 +58,9 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
       floatingActionButton: uid == null
           ? null
           : FloatingActionButton.extended(
-              backgroundColor: Colors.amber[600],
-              icon: const Icon(Icons.add, color: Colors.black),
-              label: const Text('大会を作成', style: TextStyle(color: Colors.black)),
+              backgroundColor: AppColors.kin,
+              icon: const Icon(Icons.add, color: AppColors.sumi),
+              label: const Text('大会を作成', style: TextStyle(color: AppColors.sumi)),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const TournamentCreateScreen()),
               ),
@@ -70,7 +71,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
           _buildActiveTournaments(uid),
           uid == null
               ? const Center(
-                  child: Text('ログインが必要です', style: TextStyle(color: Colors.white70)),
+                  child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
                 )
               : _buildUserTournaments(uid),
         ],
@@ -84,7 +85,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
       data: (tournaments) {
         if (tournaments.isEmpty) {
           return Center(
-            child: Text('開催中のトーナメントはありません', style: TextStyle(color: Colors.grey[500])),
+            child: Text('開催中のトーナメントはありません', style: TextStyle(color: AppColors.washiDim)),
           );
         }
         return ListView.separated(
@@ -108,7 +109,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
       data: (tournaments) {
         if (tournaments.isEmpty) {
           return Center(
-            child: Text('参加中のトーナメントはありません', style: TextStyle(color: Colors.grey[500])),
+            child: Text('参加中のトーナメントはありません', style: TextStyle(color: AppColors.washiDim)),
           );
         }
         return ListView.separated(
@@ -130,7 +131,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
     final alreadyJoined = uid != null && tournament.participantUids.contains(uid);
 
     return Card(
-      color: Colors.grey[900],
+      color: AppColors.sumiSurface,
       child: InkWell(
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => TournamentBracketScreen(tournament: tournament)),
@@ -146,46 +147,46 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
                   Expanded(
                     child: Text(
                       tournament.name,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                   _buildStatusChip(tournament),
                 ],
               ),
               const SizedBox(height: 6),
-              Text(tournament.description, style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+              Text(tournament.description, style: TextStyle(color: AppColors.washiDim, fontSize: 13)),
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Icon(Icons.group, size: 16, color: Colors.grey[500]),
+                  Icon(Icons.group, size: 16, color: AppColors.washiDim),
                   const SizedBox(width: 4),
                   Text(
                     '${tournament.participantUids.length}/${tournament.maxParticipants}人',
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                   ),
                   const SizedBox(width: 16),
-                  Icon(Icons.format_list_bulleted, size: 16, color: Colors.grey[500]),
+                  Icon(Icons.format_list_bulleted, size: 16, color: AppColors.washiDim),
                   const SizedBox(width: 4),
-                  Text(_formatFormat(tournament.format), style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                  Text(_formatFormat(tournament.format), style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
                   const SizedBox(width: 16),
-                  Icon(Icons.grid_on, size: 16, color: Colors.grey[500]),
+                  Icon(Icons.grid_on, size: 16, color: AppColors.washiDim),
                   const SizedBox(width: 4),
-                  Text('${tournament.boardSize}路盤', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                  Text('${tournament.boardSize}路盤', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
                 ],
               ),
               const SizedBox(height: 4),
               Text(
                 '${_formatDate(tournament.startDate)} 〜 ${_formatDate(tournament.endDate)}',
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                style: TextStyle(color: AppColors.washiDim, fontSize: 12),
               ),
               if (tournament.isUpcoming && uid != null && !alreadyJoined && !tournament.isFull) ...[
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[600]),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
                     onPressed: () => _joinTournament(context, tournament),
-                    child: const Text('参加する', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                    child: const Text('参加する', style: TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -217,7 +218,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
       color = Colors.grey;
       label = '終了';
     } else {
-      color = Colors.amber;
+      color = AppColors.kin;
       label = '開催予定';
     }
     return Container(

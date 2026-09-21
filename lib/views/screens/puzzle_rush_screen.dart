@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart' show PuzzleRushLeaderboardEntry;
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -95,11 +96,11 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('Puzzle Rush'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -125,7 +126,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
         children: [
           // Session info header
           Container(
-            color: Colors.black,
+            color: AppColors.sumi,
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,13 +140,13 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                         Text(
                           '難易度',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         ),
                         Text(
                           widget.difficulty.toUpperCase(),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.washi,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -157,7 +158,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                         Text(
                           '残り時間',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         ),
                         Text(
@@ -168,7 +169,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                               ?.copyWith(
                             color: _timeRemainingSeconds < 30
                                 ? Colors.red
-                                : Colors.white,
+                                : AppColors.washi,
                             fontFamily: 'monospace',
                           ),
                         ),
@@ -187,8 +188,8 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.black,
-                border: Border.all(color: Colors.amber.shade600, width: 2),
+                color: AppColors.sumi,
+                border: Border.all(color: AppColors.kin, width: 2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -201,13 +202,13 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                           Text(
                             'スコア',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white70,
+                              color: AppColors.washiDim,
                             ),
                           ),
                           Text(
                             '${session.score}',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: Colors.amber.shade400,
+                              color: AppColors.kin,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -218,7 +219,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                           Text(
                             'コンボ',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white70,
+                              color: AppColors.washiDim,
                             ),
                           ),
                           Text(
@@ -235,7 +236,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                           Text(
                             '解答数',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white70,
+                              color: AppColors.washiDim,
                             ),
                           ),
                           Text(
@@ -263,7 +264,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                   Text(
                     '正答率: ${session.solvedCount > 0 ? ((session.correctCount / session.solvedCount) * 100).toStringAsFixed(1) : '0.0'}%',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
+                      color: AppColors.washiDim,
                     ),
                   ),
                 ],
@@ -281,7 +282,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                 Text(
                   '解答したパズル',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -289,14 +290,14 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.black,
+                      color: AppColors.sumi,
                       border: Border.all(color: Colors.white24),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       'まだパズルを解答していません',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.washiDim,
                       ),
                     ),
                   )
@@ -318,7 +319,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                         label: Text(
                           '${idx + 1}: ${solveTime}s',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.washi,
                             fontSize: 12,
                           ),
                         ),
@@ -342,7 +343,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                 Text(
                   'リーダーボード',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -352,14 +353,14 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.black,
+                          color: AppColors.sumi,
                           border: Border.all(color: Colors.white24),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           'ランキングデータがありません',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.washiDim,
                           ),
                         ),
                       );
@@ -374,7 +375,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: AppColors.sumi,
                             border: Border.all(color: Colors.white24),
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -389,7 +390,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: index == 0
-                                          ? Colors.amber.shade700
+                                          ? AppColors.kin
                                           : index == 1
                                               ? Colors.grey.shade600
                                               : Colors.orange.shade700,
@@ -398,7 +399,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                                       child: Text(
                                         '${index + 1}',
                                         style: const TextStyle(
-                                          color: Colors.white,
+                                          color: AppColors.washi,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -414,7 +415,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                                             .textTheme
                                             .bodySmall
                                             ?.copyWith(
-                                          color: Colors.white,
+                                          color: AppColors.washi,
                                           fontWeight: FontWeight.bold,
                                           fontFamily: 'monospace',
                                         ),
@@ -425,7 +426,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                                             .textTheme
                                             .bodySmall
                                             ?.copyWith(
-                                          color: Colors.white70,
+                                          color: AppColors.washiDim,
                                         ),
                                       ),
                                     ],
@@ -438,7 +439,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                                     .textTheme
                                     .titleSmall
                                     ?.copyWith(
-                                  color: Colors.amber.shade400,
+                                  color: AppColors.kin,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -526,7 +527,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
           Text(
             'セッションを準備中...',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
           ),
         ],
@@ -544,14 +545,14 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
           Text(
             'エラーが発生しました',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             error,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),

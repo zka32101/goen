@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
@@ -59,10 +60,10 @@ class _BlitzGameSettingsScreenState
     final isValid = ref.watch(isBlitzSettingsValidProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('ブリッツゲーム設定'),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -97,10 +98,10 @@ class _BlitzGameSettingsScreenState
 
   Widget _buildLoadingScreen(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: const Text('ブリッツゲーム設定'),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -111,13 +112,13 @@ class _BlitzGameSettingsScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.kin),
             ),
             const SizedBox(height: 16),
             Text(
               '設定を読み込み中...',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white,
+                color: AppColors.washi,
               ),
             ),
           ],
@@ -156,7 +157,7 @@ class _BlitzGameSettingsScreenState
     return Text(
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        color: Colors.white,
+        color: AppColors.washi,
         fontWeight: FontWeight.bold,
       ),
     );
@@ -171,7 +172,7 @@ class _BlitzGameSettingsScreenState
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor:
-                    selected == size ? Colors.amber[600] : Colors.grey[800],
+                    selected == size ? AppColors.kin : AppColors.sumiCard,
               ),
               onPressed: () {
                 ref.read(blitzBoardSizeProvider.notifier).state = size;
@@ -179,7 +180,7 @@ class _BlitzGameSettingsScreenState
               child: Text(
                 '${size}×$size',
                 style: TextStyle(
-                  color: selected == size ? Colors.black : Colors.white,
+                  color: selected == size ? AppColors.sumi : AppColors.washi,
                 ),
               ),
             ),
@@ -199,7 +200,7 @@ class _BlitzGameSettingsScreenState
           min: 1,
           max: 10,
           divisions: 9,
-          activeColor: Colors.amber[600],
+          activeColor: AppColors.kin,
           onChanged: (value) {
             ref.read(blitzAiLevelProvider.notifier).state = value.toInt();
           },
@@ -218,7 +219,7 @@ class _BlitzGameSettingsScreenState
                   style: Theme.of(context)
                       .textTheme
                       .titleSmall
-                      ?.copyWith(color: Colors.white)),
+                      ?.copyWith(color: AppColors.washi)),
               Text('上級',
                   style: Theme.of(context)
                       .textTheme
@@ -236,7 +237,7 @@ class _BlitzGameSettingsScreenState
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isValid ? Colors.amber[600] : Colors.grey[600],
+          backgroundColor: isValid ? AppColors.kin : AppColors.washiDim,
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),
         onPressed: isValid

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:goen/config/theme.dart';
 
 /// Displays the privacy policy or terms of service in-app.
 ///
@@ -18,16 +19,16 @@ class LegalDocumentScreen extends StatelessWidget {
     final body = kind == LegalDocumentKind.privacyPolicy ? _privacyPolicyText : _termsOfServiceText;
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.sumi,
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: Colors.black,
+        backgroundColor: AppColors.sumi,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Text(
           body,
-          style: const TextStyle(color: Colors.white70, height: 1.6, fontSize: 14),
+          style: const TextStyle(color: AppColors.washiDim, height: 1.6, fontSize: 14),
         ),
       ),
     );
