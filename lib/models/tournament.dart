@@ -9,16 +9,20 @@ class Tournament {
   final DateTime endDate;
   final int maxParticipants;
   final String format; // 'single_elimination', 'round_robin', 'swiss'
-  final String status; // 'upcoming', 'active', 'completed'
+  final String status; // 'upcoming', 'active', 'completed', 'cancelled'
   final List<String> participantUids;
   final String? winnerId;
   // 主催者のuid。startTournament等の主催者限定操作をrulesで判定するために
-  // 作成時に一度だけ設定し、以後は不変として扱う。
+  // 作成時に一度だけ設定し、以後は不変として扱う。functions/の週刊自動開催
+  // ジョブが作った大会はnull（Admin SDK書き込みのためrulesの対象外）。
   final String? createdBy;
   final int boardSize; // 対局に使う碁盤サイズ（9/13/19）
   // 次ラウンド生成済みの最大ラウンド番号（0=未生成）。
   // _advanceRoundIfCompleteの二重生成防止に使う内部管理フィールド。
   final int lastAdvancedRound;
+  // functions/src/weeklyTournament.tsの週刊自動開催ジョブが作った大会か。
+  // trueの大会は毎週月曜(JST)に前週分の自動開始/新規作成が行われる。
+  final bool isAutoWeekly;
   final DateTime createdAt;
 
   Tournament({
@@ -35,6 +39,7 @@ class Tournament {
     this.createdBy,
     this.boardSize = 19,
     this.lastAdvancedRound = 0,
+    this.isAutoWeekly = false,
     required this.createdAt,
   });
 
@@ -58,6 +63,7 @@ class Tournament {
       createdBy: data['createdBy'],
       boardSize: data['boardSize'] as int? ?? 19,
       lastAdvancedRound: data['lastAdvancedRound'] as int? ?? 0,
+      isAutoWeekly: data['isAutoWeekly'] as bool? ?? false,
       createdAt: data['createdAt'] is Timestamp
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -78,6 +84,7 @@ class Tournament {
       'createdBy': createdBy,
       'boardSize': boardSize,
       'lastAdvancedRound': lastAdvancedRound,
+      'isAutoWeekly': isAutoWeekly,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -86,6 +93,8 @@ class Tournament {
   bool get isUpcoming => status == 'upcoming';
   bool get isActive => status == 'active';
   bool get isCompleted => status == 'completed';
+  // 週刊自動開催で参加者が2人未満のまま開始時刻を迎えた大会に付く状態。
+  bool get isCancelled => status == 'cancelled';
 
   @override
   String toString() => 'Tournament(id: $id, name: $name)';

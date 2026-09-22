@@ -1,7 +1,7 @@
 /**
  * Cloud Functions for 碁縁 (GoEn).
  *
- * Currently implements `generateGameAnalysis`, the one Cloud Function the
+ * Implements `generateGameAnalysis`, the one callable Cloud Function the
  * Flutter app actually calls today (see
  * lib/services/ai_explanation_service.dart / lib/viewmodels/ai_review_provider.dart,
  * wired into GameResultScreen's "AIで振り返る" button). The client also
@@ -9,12 +9,17 @@
  * in the same service file, but nothing in the app calls them yet — left
  * unimplemented here until a real caller exists, rather than guessing at
  * a shape nothing will ever invoke.
+ *
+ * Also re-exports `weeklyTournamentScheduler` (see ./weeklyTournament.ts),
+ * a scheduled (not callable) function that auto-runs a weekly tournament.
  */
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {defineSecret} from "firebase-functions/params";
 import * as logger from "firebase-functions/logger";
 import Anthropic from "@anthropic-ai/sdk";
 import {parseSgfBoardSize, parseSgfMoves, movesToPromptText, SgfMove} from "./sgf";
+
+export {weeklyTournamentScheduler} from "./weeklyTournament";
 
 const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 

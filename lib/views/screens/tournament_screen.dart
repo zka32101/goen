@@ -217,6 +217,9 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
     } else if (tournament.isCompleted) {
       color = Colors.grey;
       label = '終了';
+    } else if (tournament.isCancelled) {
+      color = Colors.grey;
+      label = '中止（参加者不足）';
     } else {
       color = AppColors.kin;
       label = '開催予定';
