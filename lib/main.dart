@@ -89,6 +89,7 @@ class GoEnApp extends ConsumerWidget {
         '/game-preset-manager': (_) => const GamePresetManagerScreen(),
         '/analytics-dashboard': (_) => const AnalyticsDashboardScreen(),
         '/tournament': (_) => const TournamentScreen(),
+        '/pvp-games': (_) => const PvpGamesListScreen(),
         '/notifications': (_) => const NotificationScreen(),
         '/how-to-play': (_) => const HowToPlayScreen(),
         '/joseki': (_) => const JosekiScreen(),

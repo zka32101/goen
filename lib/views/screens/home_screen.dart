@@ -180,6 +180,17 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
 
+                  // Active PvP games (マッチング/トーナメント経由で始めた対局に戻る)
+                  _buildActionCard(
+                    context,
+                    title: '対局中の対局',
+                    subtitle: '進行中のPvP対局に戻る',
+                    icon: Icons.people_alt,
+                    color: AppColors.shuLight,
+                    onTap: () => _navigateToPvpGames(context),
+                  ),
+                  const SizedBox(height: 16),
+
                   // How to Play (persistent reference, unlike onboarding)
                   _buildActionCard(
                     context,
@@ -535,6 +546,11 @@ class HomeScreen extends ConsumerWidget {
   void _navigateToTournament(BuildContext context) {
     _logger.i('Navigating to Tournament');
     Navigator.of(context).pushNamed('/tournament');
+  }
+
+  void _navigateToPvpGames(BuildContext context) {
+    _logger.i('Navigating to active PvP games');
+    Navigator.of(context).pushNamed('/pvp-games');
   }
 
   void _navigateToNotifications(BuildContext context) {
