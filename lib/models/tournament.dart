@@ -224,3 +224,21 @@ class TournamentMatch {
   String toString() =>
       'TournamentMatch(id: $id, round: $round, status: $status)';
 }
+
+/// 総当たり戦（round_robin）の順位表1行分。TournamentService.getStandings
+/// が完了済み試合から都度計算する（Firestoreには保存されない）。
+class TournamentStandingEntry {
+  final String uid;
+  final String displayName;
+  final int wins;
+  final int losses;
+
+  TournamentStandingEntry({
+    required this.uid,
+    required this.displayName,
+    required this.wins,
+    required this.losses,
+  });
+
+  int get played => wins + losses;
+}

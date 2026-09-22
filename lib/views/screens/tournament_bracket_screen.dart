@@ -101,14 +101,21 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
       byRound.putIfAbsent(match.round, () => []).add(match);
     }
     final rounds = byRound.keys.toList()..sort();
+    final isRoundRobin = widget.tournament.format == 'round_robin';
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         if (widget.tournament.isCompleted) _buildChampionBanner(matches),
+        if (isRoundRobin) ...[
+          _buildStandingsSection(),
+          const SizedBox(height: 20),
+        ],
         for (final round in rounds) ...[
           Text(
-            round == rounds.last && widget.tournament.isCompleted ? '決勝' : '第$round回戦',
+            isRoundRobin
+                ? '第$round節'
+                : (round == rounds.last && widget.tournament.isCompleted ? '決勝' : '第$round回戦'),
             style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
@@ -116,6 +123,65 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
           const SizedBox(height: 20),
         ],
       ],
+    );
+  }
+
+  Widget _buildStandingsSection() {
+    final standingsAsync = ref.watch(tournamentStandingsProvider(widget.tournament.id));
+    return standingsAsync.when(
+      data: (standings) {
+        if (standings.isEmpty) return const SizedBox.shrink();
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.sumiLine),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '順位表',
+                style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              for (var i = 0; i < standings.length; i++) _buildStandingRow(i + 1, standings[i]),
+            ],
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) {
+        _logger.e('Standings error: $err');
+        return Text('順位表の取得に失敗しました', style: TextStyle(color: AppColors.washiDim));
+      },
+    );
+  }
+
+  Widget _buildStandingRow(int rank, TournamentStandingEntry entry) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 28,
+            child: Text(
+              '$rank',
+              style: TextStyle(
+                color: rank == 1 ? AppColors.kin : AppColors.washiDim,
+                fontWeight: rank == 1 ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(entry.displayName, style: const TextStyle(color: AppColors.washi)),
+          ),
+          Text(
+            '${entry.wins}勝${entry.losses}敗',
+            style: TextStyle(color: AppColors.washiDim, fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 

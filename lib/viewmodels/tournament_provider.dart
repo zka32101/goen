@@ -63,6 +63,23 @@ final tournamentMatchesProvider = FutureProvider.family<List<TournamentMatch>,
   }
 });
 
+/// 総当たり戦（round_robin）の順位表。single_eliminationのトーナメントに
+/// 呼んでも（順位表を使わないため）害はないが、意味のある値にはならない。
+final tournamentStandingsProvider =
+    FutureProvider.family<List<TournamentStandingEntry>, String>((ref, tournamentId) async {
+  _logger.i('Loading standings for tournament: $tournamentId');
+  final service = ref.watch(tournamentServiceProvider);
+
+  try {
+    final standings = await service.getStandings(tournamentId);
+    _logger.i('✅ Standings loaded: ${standings.length} entries');
+    return standings;
+  } catch (e) {
+    _logger.e('❌ Failed to load standings: $e');
+    rethrow;
+  }
+});
+
 /// トーナメント作成
 final createTournamentProvider = Provider<
     Future<Tournament?> Function({

@@ -19,6 +19,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
   final _descriptionController = TextEditingController();
   int _maxParticipants = 8;
   int _boardSize = 19;
+  String _format = 'single_elimination';
   DateTime _startDate = DateTime.now().add(const Duration(days: 1));
   DateTime _endDate = DateTime.now().add(const Duration(days: 8));
   bool _isSubmitting = false;
@@ -76,24 +77,18 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
             ),
             const SizedBox(height: 16),
             _buildLabel('形式'),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white24),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.account_tree, color: AppColors.kin, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'シングルエリミネーション（トーナメント表形式）',
-                      style: TextStyle(color: AppColors.washiDim, fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
+            _buildFormatOption(
+              value: 'single_elimination',
+              icon: Icons.account_tree,
+              title: 'シングルエリミネーション',
+              subtitle: '負けたら終わり。勝ち上がり式のトーナメント表。',
+            ),
+            const SizedBox(height: 8),
+            _buildFormatOption(
+              value: 'round_robin',
+              icon: Icons.repeat,
+              title: '総当たり戦',
+              subtitle: '参加者全員と1回ずつ対局し、勝ち数が最も多い人が優勝。',
             ),
             const SizedBox(height: 16),
             _buildLabel('開始日'),
@@ -170,6 +165,44 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
     );
   }
 
+  Widget _buildFormatOption({
+    required String value,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final selected = _format == value;
+    return InkWell(
+      onTap: () => setState(() => _format = value),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: selected ? AppColors.kin : Colors.white24, width: selected ? 2 : 1),
+          borderRadius: BorderRadius.circular(8),
+          color: selected ? AppColors.kin.withOpacity(0.1) : null,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: selected ? AppColors.kin : AppColors.washiDim, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+                ],
+              ),
+            ),
+            if (selected) const Icon(Icons.check_circle, color: AppColors.kin, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDatePicker(DateTime date, ValueChanged<DateTime> onPicked) {
     return InkWell(
       onTap: () async {
@@ -231,7 +264,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
         startDate: _startDate,
         endDate: _endDate,
         maxParticipants: _maxParticipants,
-        format: 'single_elimination',
+        format: _format,
         createdByUid: currentUser.uid,
         boardSize: _boardSize,
       );
