@@ -563,6 +563,112 @@ class TournamentService {
     }
   }
 
+  /// 大会を中止する（主催者のみ）。開催予定/開催中のいずれからでも中止可能。
+  /// 既に完了・中止済みの大会は対象外。
+  Future<void> cancelTournament({
+    required String tournamentId,
+    required String uid,
+  }) async {
+    try {
+      final tournamentRef = _firestore.collection(tournamentsCollection).doc(tournamentId);
+      final doc = await tournamentRef.get();
+      if (!doc.exists) throw Exception('Tournament not found');
+
+      final tournament = Tournament.fromFirestore(doc);
+      if (tournament.createdBy != uid) {
+        throw Exception('Only the organizer can cancel this tournament');
+      }
+      if (tournament.isCompleted || tournament.isCancelled) {
+        throw Exception('Tournament is already ${tournament.status}');
+      }
+
+      await tournamentRef.update({'status': 'cancelled'});
+      _logger.i('✅ Tournament cancelled by organizer: $tournamentId');
+    } catch (e) {
+      _logger.e('Error cancelling tournament: $e');
+      rethrow;
+    }
+  }
+
+  /// 大会を削除する（主催者のみ）。まだ誰も対局していない「開催予定」の
+  /// 大会に限る（ブラケット/対戦カードが生成された後は履歴として残す）。
+  /// 参加者の participants サブコレクションのドキュメントは、Firestoreの
+  /// ルール上（各参加者自身のみが自分の参加ドキュメントを削除できる）
+  /// 主催者側からは削除できないため、大会ドキュメントの削除後に孤立データ
+  /// として残る（既知の制約。どの画面もparticipantsをcollectionGroupで
+  /// 横断参照しないため、実害はない）。
+  Future<void> deleteTournament({
+    required String tournamentId,
+    required String uid,
+  }) async {
+    try {
+      final tournamentRef = _firestore.collection(tournamentsCollection).doc(tournamentId);
+      final doc = await tournamentRef.get();
+      if (!doc.exists) return;
+
+      final tournament = Tournament.fromFirestore(doc);
+      if (tournament.createdBy != uid) {
+        throw Exception('Only the organizer can delete this tournament');
+      }
+      if (!tournament.isUpcoming) {
+        throw Exception('Only an upcoming tournament (before it starts) can be deleted');
+      }
+
+      await tournamentRef.delete();
+      _logger.i('✅ Tournament deleted by organizer: $tournamentId');
+    } catch (e) {
+      _logger.e('Error deleting tournament: $e');
+      rethrow;
+    }
+  }
+
+  /// 大会情報を編集する（主催者のみ、募集中の「開催予定」の間だけ）。
+  /// 形式（format）は編集不可 - 参加者がその形式を見て参加登録しているため、
+  /// 途中で変えると既存参加者の期待と食い違う。渡された引数のみ更新する。
+  Future<void> updateTournament({
+    required String tournamentId,
+    required String uid,
+    String? name,
+    String? description,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? maxParticipants,
+    int? boardSize,
+  }) async {
+    try {
+      final tournamentRef = _firestore.collection(tournamentsCollection).doc(tournamentId);
+      final doc = await tournamentRef.get();
+      if (!doc.exists) throw Exception('Tournament not found');
+
+      final tournament = Tournament.fromFirestore(doc);
+      if (tournament.createdBy != uid) {
+        throw Exception('Only the organizer can edit this tournament');
+      }
+      if (!tournament.isUpcoming) {
+        throw Exception('Only an upcoming tournament (before it starts) can be edited');
+      }
+      if (maxParticipants != null && maxParticipants < tournament.participantUids.length) {
+        throw Exception('maxParticipants cannot be lower than the current participant count');
+      }
+
+      final updates = <String, dynamic>{
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (startDate != null) 'startDate': Timestamp.fromDate(startDate),
+        if (endDate != null) 'endDate': Timestamp.fromDate(endDate),
+        if (maxParticipants != null) 'maxParticipants': maxParticipants,
+        if (boardSize != null) 'boardSize': boardSize,
+      };
+      if (updates.isEmpty) return;
+
+      await tournamentRef.update(updates);
+      _logger.i('✅ Tournament updated by organizer: $tournamentId');
+    } catch (e) {
+      _logger.e('Error updating tournament: $e');
+      rethrow;
+    }
+  }
+
   /// アクティブなトーナメント一覧
   Future<List<Tournament>> getActiveTournaments() async {
     try {

@@ -171,6 +171,84 @@ final joinTournamentProvider = Provider<
   };
 });
 
+/// 大会の中止（主催者のみ）
+final cancelTournamentProvider = Provider<
+    Future<void> Function({required String tournamentId, required String uid})>((ref) {
+  final service = ref.read(tournamentServiceProvider);
+
+  return ({required String tournamentId, required String uid}) async {
+    _logger.i('Cancelling tournament');
+    try {
+      await service.cancelTournament(tournamentId: tournamentId, uid: uid);
+      _logger.i('✅ Tournament cancelled');
+    } catch (e) {
+      _logger.e('❌ Failed to cancel tournament: $e');
+      rethrow;
+    }
+  };
+});
+
+/// 大会の削除（主催者のみ、開催予定のみ）
+final deleteTournamentProvider = Provider<
+    Future<void> Function({required String tournamentId, required String uid})>((ref) {
+  final service = ref.read(tournamentServiceProvider);
+
+  return ({required String tournamentId, required String uid}) async {
+    _logger.i('Deleting tournament');
+    try {
+      await service.deleteTournament(tournamentId: tournamentId, uid: uid);
+      _logger.i('✅ Tournament deleted');
+    } catch (e) {
+      _logger.e('❌ Failed to delete tournament: $e');
+      rethrow;
+    }
+  };
+});
+
+/// 大会情報の編集（主催者のみ、開催予定のみ）
+final updateTournamentProvider = Provider<
+    Future<void> Function({
+      required String tournamentId,
+      required String uid,
+      String? name,
+      String? description,
+      DateTime? startDate,
+      DateTime? endDate,
+      int? maxParticipants,
+      int? boardSize,
+    })>((ref) {
+  final service = ref.read(tournamentServiceProvider);
+
+  return ({
+    required String tournamentId,
+    required String uid,
+    String? name,
+    String? description,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? maxParticipants,
+    int? boardSize,
+  }) async {
+    _logger.i('Updating tournament');
+    try {
+      await service.updateTournament(
+        tournamentId: tournamentId,
+        uid: uid,
+        name: name,
+        description: description,
+        startDate: startDate,
+        endDate: endDate,
+        maxParticipants: maxParticipants,
+        boardSize: boardSize,
+      );
+      _logger.i('✅ Tournament updated');
+    } catch (e) {
+      _logger.e('❌ Failed to update tournament: $e');
+      rethrow;
+    }
+  };
+});
+
 /// 試合結果記録
 final recordMatchResultProvider = Provider<
     Future<void> Function({

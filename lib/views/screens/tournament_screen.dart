@@ -151,6 +151,8 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
                     ),
                   ),
                   _buildStatusChip(tournament),
+                  if (uid != null && uid == tournament.createdBy)
+                    _buildOrganizerMenu(tournament, uid),
                 ],
               ),
               const SizedBox(height: 6),
@@ -206,6 +208,136 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen>
         ),
       ),
     );
+  }
+
+  /// 主催者専用メニュー。開催予定なら編集/中止/削除、開催中なら中止のみ、
+  /// 終了/中止済みは何も表示しない（呼び出し元でuid==createdByのときのみ表示）。
+  Widget _buildOrganizerMenu(Tournament tournament, String uid) {
+    final items = <PopupMenuEntry<String>>[];
+    if (tournament.isUpcoming) {
+      items.add(const PopupMenuItem(value: 'edit', child: Text('編集')));
+    }
+    if (tournament.isUpcoming || tournament.isActive) {
+      items.add(const PopupMenuItem(value: 'cancel', child: Text('中止')));
+    }
+    if (tournament.isUpcoming) {
+      items.add(const PopupMenuItem(
+        value: 'delete',
+        child: Text('削除', style: TextStyle(color: Colors.redAccent)),
+      ));
+    }
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, color: AppColors.washiDim, size: 20),
+      color: AppColors.sumiSurface,
+      itemBuilder: (_) => items,
+      onSelected: (value) {
+        switch (value) {
+          case 'edit':
+            _editTournament(tournament);
+          case 'cancel':
+            _confirmCancelTournament(tournament, uid);
+          case 'delete':
+            _confirmDeleteTournament(tournament, uid);
+        }
+      },
+    );
+  }
+
+  Future<void> _editTournament(Tournament tournament) async {
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => TournamentCreateScreen(editing: tournament)),
+    );
+    if (changed == true) {
+      ref.invalidate(activeTournamentsProvider);
+    }
+  }
+
+  Future<void> _confirmCancelTournament(Tournament tournament, String uid) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.sumiSurface,
+        title: const Text('大会を中止しますか？', style: TextStyle(color: AppColors.washi)),
+        content: Text(
+          '「${tournament.name}」を中止します。参加者は対局できなくなります。',
+          style: TextStyle(color: AppColors.washiDim),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text('やめる', style: TextStyle(color: AppColors.washiDim)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('中止する', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(cancelTournamentProvider)(tournamentId: tournament.id, uid: uid);
+      ref.invalidate(activeTournamentsProvider);
+      ref.invalidate(userTournamentsProvider(uid));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('大会を中止しました')),
+        );
+      }
+    } catch (e) {
+      _logger.e('Error cancelling tournament: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('中止できませんでした: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteTournament(Tournament tournament, String uid) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.sumiSurface,
+        title: const Text('大会を削除しますか？', style: TextStyle(color: AppColors.washi)),
+        content: Text(
+          '「${tournament.name}」を削除します。この操作は取り消せません。',
+          style: TextStyle(color: AppColors.washiDim),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text('やめる', style: TextStyle(color: AppColors.washiDim)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('削除する', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(deleteTournamentProvider)(tournamentId: tournament.id, uid: uid);
+      ref.invalidate(activeTournamentsProvider);
+      ref.invalidate(userTournamentsProvider(uid));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('大会を削除しました')),
+        );
+      }
+    } catch (e) {
+      _logger.e('Error deleting tournament: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('削除できませんでした: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildStatusChip(Tournament tournament) {

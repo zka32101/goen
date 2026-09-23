@@ -1,28 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:goen/models/tournament.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
-/// トーナメント作成画面
+/// トーナメント作成/編集画面。[editing]を渡すと編集モードになり、既存の
+/// 大会情報を編集する（形式は編集不可 - 参加者がその形式を見て参加登録
+/// しているため。編集はTournamentService.updateTournamentが「開催予定」
+/// の間のみ許可する）。
 class TournamentCreateScreen extends ConsumerStatefulWidget {
-  const TournamentCreateScreen({Key? key}) : super(key: key);
+  final Tournament? editing;
+
+  const TournamentCreateScreen({Key? key, this.editing}) : super(key: key);
 
   @override
   ConsumerState<TournamentCreateScreen> createState() => _TournamentCreateScreenState();
 }
 
 class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen> {
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  int _maxParticipants = 8;
-  int _boardSize = 19;
-  String _format = 'single_elimination';
-  DateTime _startDate = DateTime.now().add(const Duration(days: 1));
-  DateTime _endDate = DateTime.now().add(const Duration(days: 8));
+  late final _nameController =
+      TextEditingController(text: widget.editing?.name);
+  late final _descriptionController =
+      TextEditingController(text: widget.editing?.description);
+  late int _maxParticipants = widget.editing?.maxParticipants ?? 8;
+  late int _boardSize = widget.editing?.boardSize ?? 19;
+  late String _format = widget.editing?.format ?? 'single_elimination';
+  late DateTime _startDate =
+      widget.editing?.startDate ?? DateTime.now().add(const Duration(days: 1));
+  late DateTime _endDate =
+      widget.editing?.endDate ?? DateTime.now().add(const Duration(days: 8));
   bool _isSubmitting = false;
+
+  bool get _isEditing => widget.editing != null;
 
   @override
   void dispose() {
@@ -36,7 +48,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('トーナメントを作成'),
+        title: Text(_isEditing ? '大会を編集' : 'トーナメントを作成'),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
@@ -77,6 +89,14 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
             ),
             const SizedBox(height: 16),
             _buildLabel('形式'),
+            if (_isEditing)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '形式は作成後に変更できません',
+                  style: TextStyle(color: AppColors.washiDim, fontSize: 12),
+                ),
+              ),
             _buildFormatOption(
               value: 'single_elimination',
               icon: Icons.account_tree,
@@ -111,9 +131,9 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        '大会を作成する',
-                        style: TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold),
+                    : Text(
+                        _isEditing ? '変更を保存する' : '大会を作成する',
+                        style: const TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold),
                       ),
               ),
             ),
@@ -173,14 +193,19 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
   }) {
     final selected = _format == value;
     return InkWell(
-      onTap: () => setState(() => _format = value),
+      onTap: _isEditing ? null : () => setState(() => _format = value),
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: selected ? AppColors.kin : Colors.white24, width: selected ? 2 : 1),
+          border: Border.all(
+            color: selected ? AppColors.kin : Colors.white24,
+            width: selected ? 2 : 1,
+          ),
           borderRadius: BorderRadius.circular(8),
-          color: selected ? AppColors.kin.withOpacity(0.1) : null,
+          color: selected
+              ? AppColors.kin.withOpacity(_isEditing ? 0.05 : 0.1)
+              : null,
         ),
         child: Row(
           children: [
@@ -258,6 +283,24 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
 
     setState(() => _isSubmitting = true);
     try {
+      if (_isEditing) {
+        await ref.read(updateTournamentProvider)(
+          tournamentId: widget.editing!.id,
+          uid: currentUser.uid,
+          name: name,
+          description: _descriptionController.text.trim(),
+          startDate: _startDate,
+          endDate: _endDate,
+          maxParticipants: _maxParticipants,
+          boardSize: _boardSize,
+        );
+        if (!mounted) return;
+        ref.invalidate(activeTournamentsProvider);
+        ref.invalidate(userTournamentsProvider(currentUser.uid));
+        Navigator.of(context).pop(true);
+        return;
+      }
+
       final tournament = await ref.read(createTournamentProvider)(
         name: name,
         description: _descriptionController.text.trim(),
@@ -279,7 +322,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
         );
       }
     } catch (e) {
-      _logger.e('Error creating tournament: $e');
+      _logger.e('Error ${_isEditing ? "updating" : "creating"} tournament: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('エラーが発生しました: $e')),

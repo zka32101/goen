@@ -214,7 +214,15 @@ service cloud.firestore {
         (request.auth.uid in resource.data.participantUids &&
          onlyChanged(['status', 'winnerId', 'lastAdvancedRound']))
       );
-      allow delete: if false;
+      // Organizer may delete only while still 'upcoming' (before any
+      // bracket/schedule is generated). participants/{uid} subdocs are
+      // NOT cascade-deleted (Firestore never cascades, and the rule below
+      // only lets each participant delete their own doc) — orphaned
+      // participant docs under a deleted tournament are inert dead data,
+      // never reachable via a collectionGroup query anywhere in the app.
+      allow delete: if isSignedIn() &&
+        resource.data.createdBy == request.auth.uid &&
+        resource.data.status == 'upcoming';
 
       match /participants/{participantUid} {
         allow read: if isSignedIn();
