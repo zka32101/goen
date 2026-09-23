@@ -263,143 +263,74 @@ class _GamePresetManagerScreenState
   }
 
   void _showCreatePresetDialog(BuildContext context, String userId) {
-    final nameController = TextEditingController();
-    int selectedBoardSize = 19;
-    int selectedAiLevel = 5;
-    int handicapStones = 0; // 0 = 互先（ハンディなし）
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.sumiSurface,
-          title: const Text('新しいプリセットを作成'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    hintText: 'プリセット名',
-                    hintStyle: TextStyle(color: AppColors.washiDim),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.kin),
-                    ),
-                  ),
-                  style: const TextStyle(color: AppColors.washi),
-                ),
-                const SizedBox(height: 20),
-                Text('盤の大きさ', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [9, 13, 19].map((size) {
-                    return ChoiceChip(
-                      label: Text('$size路盤'),
-                      selected: selectedBoardSize == size,
-                      onSelected: (_) => setDialogState(() => selectedBoardSize = size),
-                      backgroundColor: AppColors.sumiCard,
-                      selectedColor: AppColors.kin,
-                      labelStyle: TextStyle(
-                        color: selectedBoardSize == size ? AppColors.sumi : AppColors.washi,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'AIレベル: $selectedAiLevel',
-                  style: TextStyle(color: AppColors.washiDim, fontSize: 12),
-                ),
-                Slider(
-                  value: selectedAiLevel.toDouble(),
-                  min: 1,
-                  max: 10,
-                  divisions: 9,
-                  label: '$selectedAiLevel',
-                  activeColor: AppColors.kin,
-                  onChanged: (value) =>
-                      setDialogState(() => selectedAiLevel = value.toInt()),
-                ),
-                const SizedBox(height: 12),
-                Text('置き碁（ハンディキャップ）', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [0, 2, 3, 4, 5, 6, 7, 8, 9].map((stones) {
-                    final label = stones == 0 ? '互先' : '$stones子';
-                    return ChoiceChip(
-                      label: Text(label),
-                      selected: handicapStones == stones,
-                      onSelected: (_) => setDialogState(() => handicapStones = stones),
-                      backgroundColor: AppColors.sumiCard,
-                      selectedColor: Colors.orange[800],
-                      labelStyle: TextStyle(
-                        color: handicapStones == stones ? AppColors.sumi : AppColors.washi,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('キャンセル'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (nameController.text.isNotEmpty) {
-                  _createPreset(
-                    context,
-                    userId,
-                    nameController.text,
-                    selectedBoardSize,
-                    selectedAiLevel,
-                    handicapStones > 0
-                        ? HandicapSettings(handicapStones: handicapStones)
-                        : null,
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
-              child: const Text('作成'),
-            ),
-          ],
-        ),
-      ),
-    ).then((_) => nameController.dispose());
+    _showPresetDialog(context, userId);
   }
 
-  void _createPreset(
+  /// [editing]を渡すと既存プリセットの編集モードになり、モードは変更不可
+  /// （一覧がモードでフィルタされているため、変更すると一覧から消えてしまう）。
+  void _showPresetDialog(BuildContext context, String userId, {GamePreset? editing}) {
+    showDialog(
+      context: context,
+      builder: (_) => _PresetFormDialog(
+        userId: userId,
+        gameMode: editing?.gameMode ?? _selectedMode,
+        editing: editing,
+      ),
+    );
+  }
+
+  void _duplicatePreset(
     BuildContext context,
     String userId,
-    String name,
-    int boardSize,
-    int aiLevel,
-    HandicapSettings? handicap,
+    GamePreset preset,
   ) async {
     final success = await ref.read(
       createGamePresetProvider((
         userId: userId,
-        name: name,
-        gameMode: _selectedMode,
-        boardSize: boardSize,
-        aiLevel: aiLevel,
-        playerColor: 'black',
-        handicap: handicap,
+        name: '${preset.name}のコピー',
+        gameMode: preset.gameMode,
+        boardSize: preset.boardSize,
+        aiLevel: preset.aiLevel,
+        playerColor: preset.playerColor,
+        handicap: preset.handicap,
       )).future,
     );
 
+    if (success) {
+      ref.invalidate(presetsByModeProvider((userId, preset.gameMode)));
+    }
     if (!context.mounted) return;
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success ? 'プリセットを作成しました' : 'エラーが発生しました'),
-      ),
+    _showMessage(context, success ? 'プリセットを複製しました' : 'エラーが発生しました');
+  }
+
+  void _playPreset(
+    BuildContext context,
+    String userId,
+    GamePreset preset,
+  ) async {
+    // BlitzGameScreenはボード対局として汎用的にこの3項目(盤サイズ/AIレベル/
+    // 対AI)だけで開始できるが、correspondence/teamは対戦相手・チーム構成が
+    // プリセットに保存されておらず、puzzleは盤サイズ/AIレベルではなく難易度
+    // で開始するため、この一覧からの直接開始はblitzモードのみ対応する。
+    if (preset.gameMode != 'blitz') {
+      _showMessage(context, 'このモードのプリセットからの開始には対応していません');
+      return;
+    }
+
+    await ref.read(incrementPresetUsageProvider((userId, preset.id)).future);
+    ref.invalidate(presetsByModeProvider((userId, preset.gameMode)));
+    if (!context.mounted) return;
+
+    Navigator.pushNamed(
+      context,
+      '/blitz-game',
+      arguments: {
+        'settings': BlitzGameSettings(
+          boardSize: preset.boardSize.toString(),
+          aiLevel: preset.aiLevel,
+          opponentType: 'ai',
+        ),
+      },
     );
   }
 
@@ -411,21 +342,21 @@ class _GamePresetManagerScreenState
   ) {
     switch (action) {
       case 'play':
-        _showMessage(context, 'ゲーム開始機能は準備中です');
+        _playPreset(context, userId, preset);
         break;
       case 'edit':
-        _showMessage(context, '編集機能は準備中です');
+        _showPresetDialog(context, userId, editing: preset);
         break;
       case 'duplicate':
-        _showMessage(context, '複製機能は準備中です');
+        _duplicatePreset(context, userId, preset);
         break;
       case 'delete':
-        _deletePreset(context, userId, preset.id);
+        _deletePreset(context, userId, preset);
         break;
     }
   }
 
-  void _deletePreset(BuildContext context, String userId, String presetId) {
+  void _deletePreset(BuildContext context, String userId, GamePreset preset) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -440,8 +371,11 @@ class _GamePresetManagerScreenState
           ElevatedButton(
             onPressed: () async {
               final success = await ref.read(
-                deleteGamePresetProvider((userId, presetId)).future,
+                deleteGamePresetProvider((userId, preset.id)).future,
               );
+              if (success) {
+                ref.invalidate(presetsByModeProvider((userId, preset.gameMode)));
+              }
               if (!context.mounted) return;
               Navigator.pop(context);
               _showMessage(context,
@@ -458,6 +392,175 @@ class _GamePresetManagerScreenState
   void _showMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+  }
+}
+
+/// プリセット作成/編集の入力ダイアログ。[TextEditingController]をこの
+/// ウィジェット自身のStateに持たせてdispose()で破棄する — showDialogの
+/// 戻り値Futureに`.then(() => controller.dispose())`する方式だと、ダイアログを
+/// 閉じるポップ遷移のアニメーション中にTextFieldがまだツリーに残っている
+/// うちにcontrollerが先に破棄され、"used after being disposed"で落ちる。
+class _PresetFormDialog extends ConsumerStatefulWidget {
+  final String userId;
+  final String gameMode;
+  final GamePreset? editing;
+
+  const _PresetFormDialog({
+    required this.userId,
+    required this.gameMode,
+    this.editing,
+  });
+
+  @override
+  ConsumerState<_PresetFormDialog> createState() => _PresetFormDialogState();
+}
+
+class _PresetFormDialogState extends ConsumerState<_PresetFormDialog> {
+  late final TextEditingController _nameController =
+      TextEditingController(text: widget.editing?.name);
+  late int _selectedBoardSize = widget.editing?.boardSize ?? 19;
+  late int _selectedAiLevel = widget.editing?.aiLevel ?? 5;
+  // 0 = 互先（ハンディなし）
+  late int _handicapStones = widget.editing?.handicap?.handicapStones ?? 0;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final editing = widget.editing;
+    return AlertDialog(
+      backgroundColor: AppColors.sumiSurface,
+      title: Text(editing == null ? '新しいプリセットを作成' : 'プリセットを編集'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                hintText: 'プリセット名',
+                hintStyle: TextStyle(color: AppColors.washiDim),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.kin),
+                ),
+              ),
+              style: const TextStyle(color: AppColors.washi),
+            ),
+            const SizedBox(height: 20),
+            Text('盤の大きさ', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [9, 13, 19].map((size) {
+                return ChoiceChip(
+                  label: Text('$size路盤'),
+                  selected: _selectedBoardSize == size,
+                  onSelected: (_) => setState(() => _selectedBoardSize = size),
+                  backgroundColor: AppColors.sumiCard,
+                  selectedColor: AppColors.kin,
+                  labelStyle: TextStyle(
+                    color: _selectedBoardSize == size ? AppColors.sumi : AppColors.washi,
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'AIレベル: $_selectedAiLevel',
+              style: TextStyle(color: AppColors.washiDim, fontSize: 12),
+            ),
+            Slider(
+              value: _selectedAiLevel.toDouble(),
+              min: 1,
+              max: 10,
+              divisions: 9,
+              label: '$_selectedAiLevel',
+              activeColor: AppColors.kin,
+              onChanged: (value) => setState(() => _selectedAiLevel = value.toInt()),
+            ),
+            const SizedBox(height: 12),
+            Text('置き碁（ハンディキャップ）', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [0, 2, 3, 4, 5, 6, 7, 8, 9].map((stones) {
+                final label = stones == 0 ? '互先' : '$stones子';
+                return ChoiceChip(
+                  label: Text(label),
+                  selected: _handicapStones == stones,
+                  onSelected: (_) => setState(() => _handicapStones = stones),
+                  backgroundColor: AppColors.sumiCard,
+                  selectedColor: Colors.orange[800],
+                  labelStyle: TextStyle(
+                    color: _handicapStones == stones ? AppColors.sumi : AppColors.washi,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('キャンセル'),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
+          child: Text(editing == null ? '作成' : '保存'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _submit() async {
+    final name = _nameController.text;
+    if (name.isEmpty) return;
+
+    final handicap = _handicapStones > 0
+        ? HandicapSettings(handicapStones: _handicapStones)
+        : null;
+    final editing = widget.editing;
+
+    final success = editing == null
+        ? await ref.read(createGamePresetProvider((
+            userId: widget.userId,
+            name: name,
+            gameMode: widget.gameMode,
+            boardSize: _selectedBoardSize,
+            aiLevel: _selectedAiLevel,
+            playerColor: 'black',
+            handicap: handicap,
+          )).future)
+        : await ref.read(updateGamePresetProvider((
+            userId: widget.userId,
+            presetId: editing.id,
+            name: name,
+            gameMode: widget.gameMode,
+            boardSize: _selectedBoardSize,
+            aiLevel: _selectedAiLevel,
+            playerColor: 'black',
+            handicap: handicap,
+          )).future);
+
+    if (success) {
+      ref.invalidate(presetsByModeProvider((widget.userId, widget.gameMode)));
+    }
+    if (!mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success
+            ? (editing == null ? 'プリセットを作成しました' : 'プリセットを更新しました')
+            : 'エラーが発生しました'),
+      ),
     );
   }
 }
