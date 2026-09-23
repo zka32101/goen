@@ -36,6 +36,20 @@ class GameResultScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building GameResultScreen: result=$result');
 
+    // 実績解除トースト: _checkAndRecordAchievements（game_provider.dart、
+    // 「対局を保存」タップ後にbest-effortで実行される）が新規解除実績を
+    // 検出したら、ここで拾って一度だけ表示する。届いた時にはこの画面が
+    // 既にビルド済みのはずなのでpostFrameCallbackでSnackBar表示、表示後は
+    // 同じ実績を二重に見せないようプロバイダーを空に戻す。
+    ref.listen<List<Achievement>>(newlyUnlockedAchievementsProvider, (previous, next) {
+      if (next.isEmpty) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        _showAchievementUnlockedSnackBar(context, next);
+      });
+      ref.read(newlyUnlockedAchievementsProvider.notifier).state = [];
+    });
+
     final boardState = ref.watch(gameBoardStateProvider);
     final aiLevel = ref.watch(aiLevelProvider);
     final movesCount = ref.watch(movesCountProvider);
@@ -504,6 +518,39 @@ class GameResultScreen extends ConsumerWidget {
   void _handleBackToHome(BuildContext context) {
     _logger.i('Returning to home...');
     Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+  }
+
+  void _showAchievementUnlockedSnackBar(BuildContext context, List<Achievement> unlocked) {
+    for (final achievement in unlocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.sumiSurface,
+          duration: const Duration(seconds: 4),
+          content: Row(
+            children: [
+              Text(achievement.iconEmoji, style: const TextStyle(fontSize: 24)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      '実績解除！',
+                      style: TextStyle(color: AppColors.kin, fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                    Text(
+                      achievement.name,
+                      style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/models/index.dart';
 import 'package:goen/views/screens/game_result_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
@@ -346,6 +347,40 @@ void main() {
 
       expect(find.text('0.5'), findsWidgets);
       expect(find.text('0.0'), findsWidgets);
+    });
+
+    testWidgets('shows a toast when a newly unlocked achievement arrives',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const GameResultScreen(
+            result: 'win',
+            blackScore: 45.5,
+            whiteScore: 38.0,
+          ),
+          container: container,
+        ),
+      );
+      await tester.pump();
+
+      // Simulates _checkAndRecordAchievements (game_provider.dart) finding a
+      // newly unlocked achievement after the game record was saved.
+      container.read(newlyUnlockedAchievementsProvider.notifier).state = const [
+        Achievement(
+          id: 'first_win',
+          name: 'First Victory',
+          description: 'Win your first game',
+          iconEmoji: '🎉',
+        ),
+      ];
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('実績解除！'), findsOneWidget);
+      expect(find.text('First Victory'), findsOneWidget);
+
+      // The provider is reset so the same achievement isn't shown twice.
+      expect(container.read(newlyUnlockedAchievementsProvider), isEmpty);
     });
   });
 }

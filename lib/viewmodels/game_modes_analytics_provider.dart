@@ -217,6 +217,14 @@ final achievementDefsProvider = Provider<List<Achievement>>((ref) {
   return PredefinedAchievements.all;
 });
 
+/// 対局終了直後に検出された、まだ画面に見せていない新規解除実績。
+/// `game_provider.dart`の`_checkAndRecordAchievements`（対局保存後に
+/// best-effortで実行される）がここに書き込み、`GameResultScreen`が
+/// `ref.listen`で拾ってトースト表示した後に空リストへ戻す。
+final newlyUnlockedAchievementsProvider = StateProvider<List<Achievement>>((ref) {
+  return [];
+});
+
 /// Get achievement progress
 final achievementProgressProvider = FutureProvider.family<
     List<({Achievement achievement, double progress})>,

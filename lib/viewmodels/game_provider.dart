@@ -598,14 +598,19 @@ void _updateAiGameRating(Ref ref, String uid, GameResult result, int aiLevel) {
 /// 一度も呼ばれておらず、対局終了時のフックも存在しなかったため、実績が
 /// 実際に解除される経路がアプリのどこにも無かった。ここで対局終了の
 /// たびに判定を走らせ、新規解除分をリーダーボード(achievementsタイプ)
-/// にも反映する。Best-effort: never blocks the (already successful)
-/// game-record save.
+/// にも反映する。newlyUnlockedAchievementsProviderにも書き込み、
+/// GameResultScreenが対局結果画面上でトースト表示できるようにする
+/// （それまでは実績が解除されてもAnalyticsDashboardScreenを自分から
+/// 開かない限り気づけなかった）。Best-effort: never blocks the
+/// (already successful) game-record save.
 void _checkAndRecordAchievements(Ref ref, String uid) {
   () async {
     try {
       final newlyUnlocked =
           await ref.read(checkAchievementsProvider(uid).future);
       if (newlyUnlocked.isEmpty) return;
+
+      ref.read(newlyUnlockedAchievementsProvider.notifier).state = newlyUnlocked;
 
       final user = ref.read(currentUserProvider);
       final displayName = user?.displayName ?? 'Player';
