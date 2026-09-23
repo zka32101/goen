@@ -26,6 +26,9 @@ class PvpGame {
   final String? matchId; // matching engineのMatchResult.idとの紐付け（あれば）
   final String? tournamentId; // トーナメント試合の場合の大会ID
   final String? tournamentMatchId; // トーナメント試合の場合のTournamentMatch ID
+  // ライブ観戦フレンド機能用の観戦セッションID（作成時にbest-effortで
+  // 紐付けられる。作成に失敗していればnullのまま — 対局自体はブロックしない）。
+  final String? spectatorSessionId;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -54,6 +57,7 @@ class PvpGame {
     this.matchId,
     this.tournamentId,
     this.tournamentMatchId,
+    this.spectatorSessionId,
     required this.createdAt,
     this.updatedAt,
   });
@@ -109,6 +113,7 @@ class PvpGame {
       matchId: data['matchId'] as String?,
       tournamentId: data['tournamentId'] as String?,
       tournamentMatchId: data['tournamentMatchId'] as String?,
+      spectatorSessionId: data['spectatorSessionId'] as String?,
       createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -141,6 +146,7 @@ class PvpGame {
       'matchId': matchId,
       'tournamentId': tournamentId,
       'tournamentMatchId': tournamentMatchId,
+      'spectatorSessionId': spectatorSessionId,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
     };

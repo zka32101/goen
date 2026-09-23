@@ -98,6 +98,22 @@ void main() {
       expect(finished.whiteScore, null);
     });
 
+    test('attachSpectatorSession persists the spectator session id on the game', () async {
+      final game = await service.createGame(
+        boardSize: 9,
+        blackUid: 'black',
+        blackDisplayName: 'Black',
+        whiteUid: 'white',
+        whiteDisplayName: 'White',
+      );
+      expect(game.spectatorSessionId, null);
+
+      await service.attachSpectatorSession(game.id, 'session-123');
+
+      final updated = await service.getGame(game.id);
+      expect(updated!.spectatorSessionId, 'session-123');
+    });
+
     test('createGameForTournamentMatch only creates one game when called twice for the same match', () async {
       // In production the match doc always exists before a player can tap
       // "対局を開始する" for it — TournamentService's bracket/schedule

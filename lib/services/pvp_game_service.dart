@@ -111,6 +111,13 @@ class PvpGameService {
     }
   }
 
+  /// ライブ観戦フレンド機能用に、生成済みの観戦セッションIDを対局に紐付ける。
+  /// Best-effort呼び出し専用（対局作成自体をブロックしないよう、失敗しても
+  /// 対局は成立したままにする — 呼び出し元のcreatePvpGameProviderが処理する）。
+  Future<void> attachSpectatorSession(String gameId, String sessionId) async {
+    await _games.doc(gameId).update({'spectatorSessionId': sessionId});
+  }
+
   Future<PvpGame?> getGame(String gameId) async {
     try {
       final doc = await _games.doc(gameId).get();

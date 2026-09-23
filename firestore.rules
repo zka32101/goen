@@ -275,7 +275,12 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.hostUid == request.auth.uid;
       allow update: if isSignedIn() && (
-        (resource.data.hostUid == request.auth.uid &&
+        // hostUid, or (for pvp_game sessions only) coHostUid — a PvpGame has
+        // two players who can each move, so board-sync writes must be
+        // allowed from either, not just whoever's client created the
+        // session. coHostUid is always present (possibly null) on every
+        // session doc since SpectatorSession.toFirestore() always writes it.
+        (request.auth.uid in [resource.data.hostUid, resource.data.coHostUid] &&
          onlyChanged(['stones', 'isBlackTurn', 'lastMoveRow', 'lastMoveCol', 'moveIndex',
                       'endedAt', 'isLive', 'updatedAt'])) ||
         // Any signed-in user may join/leave: add/remove only their own uid,

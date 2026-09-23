@@ -6,6 +6,12 @@ class SpectatorSession {
   final String gameType; // 'ai_game', 'pvp_game', 'kifu_replay'
   final String hostUid;
   final String? hostDisplayName;
+  // pvp_game セッションのみ設定される、もう一方の対局者のuid。ai_game/
+  // kifu_replay セッションは常にnull。両対局者どちらの一手でも観戦者が
+  // 盤面同期を受け取れるよう、Firestoreルールがhostだけでなくこちらの
+  // uidにも盤面更新の書き込みを許可する（PvpGameは対局者が2人いるため、
+  // 単一hostUidだけでは片方の手が観戦側に反映されない）。
+  final String? coHostUid;
   final List<String> spectatorUids;
   final int spectatorCount;
   final int moveIndex;
@@ -26,6 +32,7 @@ class SpectatorSession {
     required this.gameType,
     required this.hostUid,
     this.hostDisplayName,
+    this.coHostUid,
     required this.spectatorUids,
     required this.spectatorCount,
     required this.moveIndex,
@@ -58,6 +65,7 @@ class SpectatorSession {
       gameType: data['gameType'] as String? ?? 'ai_game',
       hostUid: data['hostUid'] as String? ?? '',
       hostDisplayName: data['hostDisplayName'] as String?,
+      coHostUid: data['coHostUid'] as String?,
       spectatorUids: List<String>.from(data['spectatorUids'] as List<dynamic>? ?? []),
       spectatorCount: data['spectatorCount'] as int? ?? 0,
       moveIndex: data['moveIndex'] as int? ?? 0,
@@ -85,6 +93,7 @@ class SpectatorSession {
       'gameType': gameType,
       'hostUid': hostUid,
       'hostDisplayName': hostDisplayName,
+      'coHostUid': coHostUid,
       'spectatorUids': spectatorUids,
       'spectatorCount': spectatorCount,
       'moveIndex': moveIndex,

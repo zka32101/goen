@@ -6,7 +6,9 @@ import 'package:logger/logger.dart';
 import '../models/leaderboard.dart';
 import '../models/pvp_game.dart';
 import '../services/pvp_game_service.dart';
+import 'friend_activity_provider.dart';
 import 'leaderboard_provider.dart';
+import 'spectator_provider.dart';
 import 'tournament_provider.dart';
 
 final _logger = Logger();
@@ -56,6 +58,7 @@ final createPvpGameProvider = Provider((ref) {
         matchId: matchId,
       );
       _logger.i('Created PvP game: ${game.id}');
+      _startPvpSpectatorSession(ref, service, game, blackUid, blackDisplayName, whiteUid);
       return game;
     } catch (e) {
       _logger.e('Error creating PvP game: $e');
@@ -63,6 +66,50 @@ final createPvpGameProvider = Provider((ref) {
     }
   };
 });
+
+/// 縁機能: PvP対局もライブ観戦フレンドの対象にする（既存はAI対局のみ対応
+/// だった）。Firestoreの spectator_sessions ルールは
+/// `hostUid == request.auth.uid` を作成条件にしているため、hostUidには
+/// このコードを実行している呼び出し元自身のuidを使う必要がある —
+/// 現状の唯一の呼び出し元（matching_screen.dart）は常に自分自身を黒番
+/// として渡すため、blackUidをhostUidに使えば一致する。Best-effort:
+/// fire-and-forget（呼び出し元のawaitをブロックしない）。
+void _startPvpSpectatorSession(
+  Ref ref,
+  PvpGameService service,
+  PvpGame game,
+  String hostUid,
+  String hostDisplayName,
+  String coHostUid,
+) {
+  () async {
+    try {
+      final session = await ref.read(createSpectatorSessionProvider)(
+        game.id,
+        'pvp_game',
+        hostUid,
+        hostDisplayName,
+        true,
+        boardSize: game.boardSize,
+        coHostUid: coHostUid,
+      );
+      await service.attachSpectatorSession(game.id, session.id);
+
+      try {
+        await ref.read(notifyFriendsOfLiveSessionProvider)(
+          hostUid,
+          hostDisplayName,
+          session.id,
+          'pvp_game',
+        );
+      } catch (e) {
+        _logger.w('縁: PvP friend live-session notification failed (non-fatal): $e');
+      }
+    } catch (e) {
+      _logger.w('縁: PvP spectator session creation failed (non-fatal): $e');
+    }
+  }();
+}
 
 /// トーナメント試合用の対局作成。両対局者がほぼ同時に開始しても
 /// 対局が2つ作られないよう、Firestoreトランザクションで排他制御される
@@ -101,13 +148,49 @@ final applyPvpMoveProvider = Provider((ref) {
   return (String gameId, String uid, int row, int col) async {
     final service = ref.watch(pvpGameServiceProvider);
     try {
-      return await service.applyMove(gameId: gameId, uid: uid, row: row, col: col);
+      final applied = await service.applyMove(gameId: gameId, uid: uid, row: row, col: col);
+      if (applied) {
+        _syncPvpSpectatorBoard(ref, service, gameId, row, col);
+      }
+      return applied;
     } catch (e) {
       _logger.e('Error applying PvP move: $e');
       rethrow;
     }
   };
 });
+
+/// 縁機能: 開いている観戦セッションがあれば毎手盤面を同期する
+/// （ai_game版のgame_provider.dart _syncSpectatorBoardと同じ考え方）。
+/// applyMoveはbool しか返さないため、同期に必要な最新盤面を得るために
+/// 対局を読み直す — best-effort、対局のUI応答をブロックしないよう
+/// fire-and-forgetにする。
+void _syncPvpSpectatorBoard(
+  Ref ref,
+  PvpGameService service,
+  String gameId,
+  int lastMoveRow,
+  int lastMoveCol,
+) {
+  () async {
+    try {
+      final game = await service.getGame(gameId);
+      final sessionId = game?.spectatorSessionId;
+      if (game == null || sessionId == null) return;
+
+      await ref.read(updateSpectatorBoardStateProvider)(
+        sessionId,
+        game.movesCount,
+        game.stones,
+        game.isBlackTurn,
+        lastMoveRow,
+        lastMoveCol,
+      );
+    } catch (e) {
+      _logger.w('縁: PvP spectator board sync failed (non-fatal): $e');
+    }
+  }();
+}
 
 final passPvpGameProvider = Provider((ref) {
   return (String gameId, String uid) async {
@@ -163,6 +246,14 @@ Future<void> _onGameFinished(
     await _updateEloRatings(ref, game);
   } catch (e) {
     _logger.w('Failed to update Elo ratings (non-fatal): $e');
+  }
+
+  if (game.spectatorSessionId != null) {
+    try {
+      await ref.read(endSpectatorSessionProvider)(game.spectatorSessionId!);
+    } catch (e) {
+      _logger.w('縁: PvP spectator session end failed (non-fatal): $e');
+    }
   }
 
   if (game.tournamentId == null || game.tournamentMatchId == null || game.winnerUid == null) {

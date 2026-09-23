@@ -16,6 +16,7 @@ class SpectatorService {
     required String hostDisplayName,
     required bool isLive,
     int boardSize = 19,
+    String? coHostUid,
   }) async {
     try {
       final docRef = _firestore.collection('spectator_sessions').doc();
@@ -25,6 +26,7 @@ class SpectatorService {
         gameType: gameType,
         hostUid: hostUid,
         hostDisplayName: hostDisplayName,
+        coHostUid: coHostUid,
         spectatorUids: [],
         spectatorCount: 0,
         moveIndex: 0,
