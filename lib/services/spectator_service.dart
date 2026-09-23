@@ -9,6 +9,14 @@ class SpectatorService {
 
   SpectatorService(this._firestore);
 
+  /// spectator_sessionsコレクションの新規ドキュメントIDを、何も書き込まずに
+  /// 予約する。トーナメント戦PvP対局向け（PvpGameService.
+  /// attachSpectatorSessionIfAbsentとの組み合わせで使う） — 実際に観戦
+  /// セッションとして採用されるかどうかがそのトランザクションの結果次第
+  /// なので、先にドキュメントを作ってしまうと負けた側の呼び出しが孤立した
+  /// ドキュメントを残してしまう。IDだけなら未使用でも害はない。
+  String reserveSessionId() => _firestore.collection('spectator_sessions').doc().id;
+
   Future<SpectatorSession> createSpectatorSession({
     required String gameId,
     required String gameType,
@@ -17,9 +25,12 @@ class SpectatorService {
     required bool isLive,
     int boardSize = 19,
     String? coHostUid,
+    String? id,
   }) async {
     try {
-      final docRef = _firestore.collection('spectator_sessions').doc();
+      final docRef = id != null
+          ? _firestore.collection('spectator_sessions').doc(id)
+          : _firestore.collection('spectator_sessions').doc();
       final session = SpectatorSession(
         id: docRef.id,
         gameId: gameId,

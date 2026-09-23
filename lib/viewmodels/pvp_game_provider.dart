@@ -161,14 +161,18 @@ final createTournamentGameProvider = Provider((ref) {
 
 /// 縁機能: トーナメント戦のPvP対局もライブ観戦フレンドの対象にする。
 /// createGameForTournamentMatchは「まだ無ければ作成」をトランザクションで
-/// 保証するため対局自体は1つしか作られないが、観戦セッションはそこに
-/// 便乗する形になるため、まだ紐付いていない場合にのみ作成する（既に
-/// 紐付いていれば何もしない — 二重に作ると片方が孤立し、以後の盤面同期を
-/// 受け取れなくなる）。hostUidはFirestoreルール上request.auth.uidと一致
-/// させる必要があるため、常に「このコードを実行している呼び出し元自身」
-/// のuid（callerUid）を使う — トーナメント戦では黒番が必ずしも呼び出し元
-/// 自身とは限らない（UIDの辞書順で固定されるため、対局を開始する操作を
-/// したのがどちらのプレイヤーでも黒番になり得る）。
+/// 保証するため対局自体は1つしか作られないが、両対局者がほぼ同時に
+/// 「対局を開始する」を押すと、このメソッド自体は両方の呼び出しで走る
+/// ため、観戦セッションの紐付けだけは別途アトミックにする必要がある —
+/// セッションIDを先に確保し、attachSpectatorSessionIfAbsentのトランザク
+/// ションで「まだ紐付いていなければ紐付ける」を行い、実際に紐付けに
+/// 成功した呼び出しだけがセッションドキュメントを作成・フレンド通知する
+/// （負けた側はFirestoreへの書き込みを一切行わずに抜ける）。hostUidは
+/// Firestoreルール上request.auth.uidと一致させる必要があるため、常に
+/// 「このコードを実行している呼び出し元自身」のuid（callerUid）を使う —
+/// トーナメント戦では黒番が必ずしも呼び出し元自身とは限らない（UIDの
+/// 辞書順で固定されるため、対局を開始する操作をしたのがどちらの
+/// プレイヤーでも黒番になり得る）。
 void _startTournamentSpectatorSessionIfNeeded(
   Ref ref,
   PvpGameService service,
@@ -182,16 +186,32 @@ void _startTournamentSpectatorSessionIfNeeded(
 ) {
   () async {
     try {
-      final game = await service.getGame(gameId);
-      if (game == null || game.spectatorSessionId != null) return;
+      final sessionId = ref.read(spectatorServiceProvider).reserveSessionId();
+      final attached = await service.attachSpectatorSessionIfAbsent(gameId, sessionId);
+      if (!attached) return; // 対局には既に他方の呼び出しが紐付け済み
 
       final callerIsBlack = callerUid == blackUid;
       final hostDisplayName = callerIsBlack ? blackDisplayName : whiteDisplayName;
       final coHostUid = callerIsBlack ? whiteUid : blackUid;
 
-      _startPvpSpectatorSession(
-        ref, service, gameId, boardSize, callerUid, hostDisplayName, coHostUid,
+      await ref.read(createSpectatorSessionProvider)(
+        gameId,
+        'pvp_game',
+        callerUid,
+        hostDisplayName,
+        true,
+        boardSize: boardSize,
+        coHostUid: coHostUid,
+        id: sessionId,
       );
+
+      try {
+        await ref.read(notifyFriendsOfLiveSessionProvider)(
+          callerUid, hostDisplayName, sessionId, 'pvp_game',
+        );
+      } catch (e) {
+        _logger.w('縁: tournament PvP friend live-session notification failed (non-fatal): $e');
+      }
     } catch (e) {
       _logger.w('縁: tournament PvP spectator session check failed (non-fatal): $e');
     }

@@ -118,6 +118,32 @@ class PvpGameService {
     await _games.doc(gameId).update({'spectatorSessionId': sessionId});
   }
 
+  /// トーナメント戦PvP対局向け: まだ観戦セッションが紐付いていない場合に
+  /// のみ、事前に確保済みのsessionIdをトランザクションでアトミックに
+  /// 紐付ける。両対局者がほぼ同時に対局を開始しても、片方だけが本当に
+  /// 紐付けに成功する（もう一方はfalseを受け取り、その先の観戦セッション
+  /// 作成・フレンド通知処理を丸ごとスキップする — sessionIdは未使用の
+  /// まま捨てられ、Firestoreへの書き込みは一切発生していないので後片付け
+  /// は不要）。attachSpectatorSessionの非トランザクション版（マッチング
+  /// 経由の対局は常に新規作成された対局に対して1回しか呼ばれないため
+  /// 競合の余地が無い）とは別に用意している。
+  Future<bool> attachSpectatorSessionIfAbsent(String gameId, String sessionId) async {
+    try {
+      return await _firestore.runTransaction<bool>((transaction) async {
+        final gameRef = _games.doc(gameId);
+        final gameDoc = await transaction.get(gameRef);
+        if (!gameDoc.exists) return false;
+        if (gameDoc.data()?['spectatorSessionId'] != null) return false;
+
+        transaction.update(gameRef, {'spectatorSessionId': sessionId});
+        return true;
+      });
+    } catch (e) {
+      _logger.e('Error attaching spectator session if absent: $e');
+      rethrow;
+    }
+  }
+
   Future<PvpGame?> getGame(String gameId) async {
     try {
       final doc = await _games.doc(gameId).get();

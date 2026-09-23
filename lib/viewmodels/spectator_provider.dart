@@ -115,6 +115,7 @@ final createSpectatorSessionProvider = Provider((ref) {
     bool isLive, {
     int boardSize = 19,
     String? coHostUid,
+    String? id,
   }) async {
     final service = ref.watch(spectatorServiceProvider);
     try {
@@ -126,6 +127,7 @@ final createSpectatorSessionProvider = Provider((ref) {
         isLive: isLive,
         boardSize: boardSize,
         coHostUid: coHostUid,
+        id: id,
       );
       _logger.i('Created spectator session: ${session.id}');
       return session;
