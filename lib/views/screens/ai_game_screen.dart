@@ -1023,18 +1023,16 @@ class _GoGridPainter extends CustomPainter {
 
     final step = size.width / boardSize;
 
-    // Horizontal lines
+    // Lines run through the center of each cell (i*step + step/2), the same
+    // convention _buildStones/star points below already use for placing a
+    // stone at row/col — drawing them from the raw cell boundary (i*step)
+    // instead put every grid intersection half a cell above-left of where
+    // its stone actually renders. _PvpGridPainter (pvp_game_screen.dart)
+    // already gets this right; mirrored here.
     for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(Offset(0, i * step), Offset(size.width, i * step), paint);
-    }
-
-    // Vertical lines
-    for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(
-        Offset(i * step, 0),
-        Offset(i * step, size.height),
-        paint,
-      );
+      final offset = i * step + step / 2;
+      canvas.drawLine(Offset(offset, step / 2), Offset(offset, size.height - step / 2), paint);
+      canvas.drawLine(Offset(step / 2, offset), Offset(size.width - step / 2, offset), paint);
     }
 
     // Star points (hoshi) - standard positions per board size, matching
