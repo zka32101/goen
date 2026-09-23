@@ -34,6 +34,21 @@ final acceptedFriendsProvider = FutureProvider.family<List<Friend>, String>(
   },
 );
 
+/// Get current user's blocked users list.
+///
+/// FriendsScreen used to build this inline (a fresh anonymous
+/// FutureProvider constructed on every build()), which never converges:
+/// each instance resolves, triggers a rebuild, which constructs yet
+/// another fresh instance, forever - an actual busy-rebuild loop, not
+/// just a style nit. A stable family provider fixes that, same pattern
+/// as pendingFriendRequestsProvider below.
+final blockedFriendsProvider = FutureProvider.family<List<Friend>, String>(
+  (ref, uid) async {
+    final service = ref.watch(friendServiceProvider);
+    return service.getBlockedUsers(uid: uid);
+  },
+);
+
 /// Get current user's pending friend requests
 final pendingFriendRequestsProvider =
     FutureProvider.family<List<Friend>, String>(
@@ -183,6 +198,19 @@ final isFriendProvider = FutureProvider.family<bool, (String, String)>(
     final (currentUid, targetUid) = params;
     final service = ref.watch(friendServiceProvider);
     return service.isFriend(currentUid: currentUid, friendUid: targetUid);
+  },
+);
+
+/// Raw relationship status ('pending'/'accepted'/'blocked'), or null if no
+/// relationship exists yet - used to decide what a "add friend" search
+/// result should actually show/allow instead of always offering "追加"
+/// (which would otherwise let re-tapping it reset an accepted friendship
+/// back to pending, see FriendService.addFriend's guard).
+final friendStatusProvider = FutureProvider.family<String?, (String, String)>(
+  (ref, params) async {
+    final (currentUid, targetUid) = params;
+    final service = ref.watch(friendServiceProvider);
+    return service.getFriendStatus(currentUid: currentUid, friendUid: targetUid);
   },
 );
 

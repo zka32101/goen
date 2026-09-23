@@ -12,6 +12,7 @@ void main() {
   const testUserId1 = 'test-user-1';
   const testUserId2 = 'test-user-2';
   const testUserId3 = 'test-user-3';
+  const testUserId4 = 'test-user-4';
 
   setUpAll(() async {
     // Real FirebaseFirestore.instance has no backend to talk to under
@@ -19,7 +20,7 @@ void main() {
     // user docs so FriendService can denormalize displayName onto its
     // friend-relationship records.
     final firestore = FakeFirebaseFirestore();
-    for (final uid in [testUserId1, testUserId2, testUserId3]) {
+    for (final uid in [testUserId1, testUserId2, testUserId3, testUserId4]) {
       await firestore.collection('users').doc(uid).set({
         'displayName': 'User $uid',
       });
@@ -62,9 +63,14 @@ void main() {
     });
 
     test('Get friends list', () async {
+      // Uses a dedicated pair (not testUserId1/testUserId2) since those
+      // are already 'accepted' by this point in the suite (from "Accept
+      // friend request" above) - addFriend refuses to reset an existing
+      // accepted/blocked relationship back to 'pending', so reusing that
+      // pair here would never actually produce a pending entry to find.
       await friendService.addFriend(
         currentUid: testUserId1,
-        friendUid: testUserId2,
+        friendUid: testUserId4,
       );
 
       final friends = await friendService.getFriends(

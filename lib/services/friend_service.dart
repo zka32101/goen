@@ -36,12 +36,25 @@ class FriendService {
   /// subcollections so each user's queries (getFriends/getPendingRequests/
   /// isFriend) only ever need to read their own data - so both sides get a
   /// 'pending' entry here, not just the sender's.
+  ///
+  /// Refuses (returns false, writes nothing) if a relationship already
+  /// exists as 'accepted' or 'blocked' - without this guard, re-running
+  /// this against an existing accepted friend (e.g. a stale search result
+  /// still showing "追加") would silently reset both sides back to
+  /// 'pending', breaking an accepted friendship. Re-sending while already
+  /// 'pending' is harmless and still allowed (just refreshes addedAt).
   Future<bool> addFriend({
     required String currentUid,
     required String friendUid,
     String? notes,
   }) async {
     try {
+      final existingStatus = await getFriendStatus(currentUid: currentUid, friendUid: friendUid);
+      if (existingStatus == 'accepted' || existingStatus == 'blocked') {
+        _logger.i('addFriend no-op: $friendUid is already $existingStatus for $currentUid');
+        return false;
+      }
+
       _logger.i('Adding friend: $friendUid to user: $currentUid');
 
       // Friend.fromJson parses addedAt via DateTime.parse(json['addedAt']
@@ -240,21 +253,23 @@ class FriendService {
     required String currentUid,
     required String friendUid,
   }) async {
+    final status = await getFriendStatus(currentUid: currentUid, friendUid: friendUid);
+    return status == 'accepted';
+  }
+
+  /// Raw relationship status on currentUid's own side ('pending',
+  /// 'accepted', 'blocked'), or null if no relationship doc exists at all.
+  Future<String?> getFriendStatus({
+    required String currentUid,
+    required String friendUid,
+  }) async {
     try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(currentUid)
-          .collection('friends')
-          .doc(friendUid)
-          .get();
-
-      if (!doc.exists) return false;
-
-      final friend = Friend.fromJson({...doc.data()!, 'uid': doc.id});
-      return friend.status == 'accepted';
+      final doc = await _friendDoc(currentUid, friendUid).get();
+      if (!doc.exists) return null;
+      return doc.data()?['status'] as String?;
     } catch (e) {
       _logger.e('Failed to check friend status: $e');
-      return false;
+      return null;
     }
   }
 

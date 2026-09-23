@@ -196,12 +196,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
   }
 
   Widget _buildBlockedUsers(String uid) {
-    final blockedFuture = ref.watch(
-      FutureProvider((ref) async {
-        final service = ref.watch(friendServiceProvider);
-        return service.getBlockedUsers(uid: uid);
-      }),
-    );
+    final blockedFuture = ref.watch(blockedFriendsProvider(uid));
 
     return blockedFuture.when(
       data: (blocked) {
@@ -261,9 +256,14 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
   void _showSearchDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => _FriendSearchDialog(
+      builder: (dialogContext) => _FriendSearchDialog(
         onSearch: (query) {
-          Navigator.pop(context);
+          // dialogContextはこのダイアログ自身のルートに属しており、
+          // Navigator.popで閉じ始めた直後にそれを使ってshowModalBottomSheet
+          // を呼ぶと（popされつつあるルートのcontextなので）シートが実際には
+          // 表示されない。結果ボトムシートはFriendsScreen自身の（長生きする）
+          // contextに紐付ける。
+          Navigator.pop(dialogContext);
           _searchFriends(context, query);
         },
       ),
@@ -271,43 +271,96 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
   }
 
   void _searchFriends(BuildContext context, String query) {
+    final currentUser = ref.read(currentUserProvider);
+    if (currentUser == null) return;
+    final uid = currentUser.uid;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.sumiSurface,
-      builder: (context) {
-        final resultsAsync = ref.watch(searchUsersProvider(query));
+      builder: (sheetContext) {
+        // Consumerでラップしないと、ref.watch()の購読先がこのシート自身
+        // ではなくFriendsScreen自身のElementに紐付いてしまう
+        // （showModalBottomSheetのbuilderはFriendsScreenのbuild()とは
+        // 別のツリーで、しかも一度しか呼ばれない）。その結果、
+        // searchUsersProvider/friendStatusProviderが後から解決しても
+        // このシートは再ビルドされず、ローディング表示のまま固まって
+        // 検索結果が永遠に表示されない。
+        return Consumer(
+          builder: (context, ref, child) {
+            final resultsAsync = ref.watch(searchUsersProvider(query));
 
-        return resultsAsync.when(
-          data: (results) {
-            if (results.isEmpty) {
-              return Center(
-                child: Text('ユーザーが見つかりません',
-                    style: TextStyle(color: AppColors.washiDim)),
-              );
-            }
+            return resultsAsync.when(
+              data: (results) {
+                if (results.isEmpty) {
+                  return Center(
+                    child: Text('ユーザーが見つかりません',
+                        style: TextStyle(color: AppColors.washiDim)),
+                  );
+                }
 
-            return ListView.builder(
-              itemCount: results.length,
-              itemBuilder: (context, index) {
-                final user = results[index];
-                return ListTile(
-                  title: Text(user.displayName,
-                      style: const TextStyle(color: AppColors.washi)),
-                  subtitle: Text('${user.totalGamesPlayed} games',
-                      style: TextStyle(color: AppColors.washiDim)),
-                  trailing: ElevatedButton(
-                    onPressed: () => _addFriend(context, user.uid),
-                    child: const Text('追加'),
-                  ),
+                return ListView.builder(
+                  itemCount: results.length,
+                  itemBuilder: (context, index) {
+                    final user = results[index];
+                    return ListTile(
+                      title: Text(user.displayName,
+                          style: const TextStyle(color: AppColors.washi)),
+                      subtitle: Text('${user.totalGamesPlayed} games',
+                          style: TextStyle(color: AppColors.washiDim)),
+                      trailing: _buildAddFriendAction(context, ref, uid, user.uid),
+                    );
+                  },
                 );
               },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) =>
+                  Center(child: Text('エラー: $err')),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) =>
-              Center(child: Text('エラー: $err')),
         );
       },
+    );
+  }
+
+  /// フレンド候補の既存関係の状態に応じて表示を変える。すでにaccepted/
+  /// blockedの相手に「追加」を出すと、再タップでFriendService.addFriendの
+  /// ガードに引っかかり無反応に見えるだけで終わってしまうため、状態を
+  /// 見て事前にラベルを変えておく（ガード自体はサービス層にもあるので
+  /// 二重の安全策）。
+  Widget _buildAddFriendAction(
+    BuildContext context,
+    WidgetRef ref,
+    String uid,
+    String targetUid,
+  ) {
+    final statusAsync = ref.watch(friendStatusProvider((uid, targetUid)));
+
+    return statusAsync.when(
+      data: (status) {
+        switch (status) {
+          case 'accepted':
+            return Text('フレンド', style: TextStyle(color: AppColors.washiDim));
+          case 'pending':
+            return Text('申請中', style: TextStyle(color: AppColors.washiDim));
+          case 'blocked':
+            return Text('ブロック中', style: TextStyle(color: AppColors.washiDim));
+          default:
+            return ElevatedButton(
+              onPressed: () => _addFriend(context, targetUid),
+              child: const Text('追加'),
+            );
+        }
+      },
+      loading: () => const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+      error: (err, stack) => ElevatedButton(
+        onPressed: () => _addFriend(context, targetUid),
+        child: const Text('追加'),
+      ),
     );
   }
 
@@ -342,6 +395,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
       addFriendProvider((currentUser.uid, friendUid, null)).future,
     );
 
+    if (success) {
+      ref.invalidate(friendStatusProvider((currentUser.uid, friendUid)));
+    }
     if (!mounted) return;
     _showMessage(context, success ? 'リクエストを送信しました' : 'エラーが発生しました');
     if (success) Navigator.pop(context);
@@ -365,6 +421,13 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
       blockFriendProvider((uid, friendUid)).future,
     );
 
+    if (success) {
+      ref.invalidate(blockedFriendsProvider(uid));
+      // Also refreshes the "招待待ち" tab when 拒否 (decline) calls this -
+      // the pending request just got blocked and should disappear from
+      // that list without waiting for a manual refresh.
+      ref.invalidate(pendingFriendRequestsProvider(uid));
+    }
     if (!mounted) return;
     _showMessage(context, success ? 'ブロックしました' : 'エラーが発生しました');
   }
@@ -374,6 +437,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
       unblockFriendProvider((uid, friendUid)).future,
     );
 
+    if (success) {
+      ref.invalidate(blockedFriendsProvider(uid));
+    }
     if (!mounted) return;
     _showMessage(context, success ? 'ブロックを解除しました' : 'エラーが発生しました');
   }
