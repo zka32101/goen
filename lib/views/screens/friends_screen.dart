@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import '../widgets/index.dart';
+import 'friend_profile_screen.dart';
 import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
@@ -87,7 +88,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
             ref.refresh(friendsStreamProvider(uid));
           },
           onTap: (friend) {
-            _showMessage(context, 'プロフィール表示は準備中です');
+            _openFriendProfile(context, uid, friend);
           },
           onMessage: (friend) {
             _showMessage(context, 'メッセージ機能は準備中です');
@@ -324,7 +325,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
         _showGameInviteDialog(context, uid, friend.uid, friend.displayName);
         break;
       case 'profile':
-        _showMessage(context, 'プロフィール表示は準備中です');
+        _openFriendProfile(context, uid, friend);
         break;
       case 'block':
         _blockFriend(context, uid, friend.uid);
@@ -395,6 +396,19 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
             child: const Text('キャンセル'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openFriendProfile(BuildContext context, String uid, Friend friend) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FriendProfileScreen(
+          currentUid: uid,
+          friend: friend,
+          onInvite: () => _showGameInviteDialog(context, uid, friend.uid, friend.displayName),
+        ),
       ),
     );
   }
