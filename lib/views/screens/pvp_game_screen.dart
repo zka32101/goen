@@ -347,7 +347,11 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
           style: const TextStyle(color: AppColors.washi),
         ),
         content: Text(
-          game.result == 'resignation' ? '投了による決着' : '目算による決着',
+          game.result == 'resignation'
+              ? '投了による決着'
+              : (game.blackScore != null && game.whiteScore != null
+                  ? '黒 ${game.blackScore!.toStringAsFixed(1)}目 - 白 ${game.whiteScore!.toStringAsFixed(2)}目'
+                  : '目算による決着'),
           style: const TextStyle(color: AppColors.washiDim),
         ),
         actions: [

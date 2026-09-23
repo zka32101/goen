@@ -1,8 +1,8 @@
-import 'dart:collection';
 import 'package:logger/logger.dart';
 import 'package:goen/native/fuego_bindings.dart';
 import 'package:goen/services/dart_go_engine.dart';
 import 'package:goen/services/go_rules.dart';
+import 'package:goen/services/go_scoring.dart';
 import 'dart:math' as math;
 
 /// AI move response (Fuego version)
@@ -196,7 +196,7 @@ class FuegoEngineService {
         _logger.i('☠️ 死石 ${deadPoints.length} 個を除外して採点');
       }
 
-      final score = _computeAreaScore(scoringStones, boardSize);
+      final score = GoScoring.computeAreaScore(scoringStones, boardSize);
 
       _logger.i(
         '📊 終局スコア: 黒=${score.blackScore} 白=${score.whiteScore}',
@@ -287,7 +287,7 @@ class FuegoEngineService {
     _logger.i('📊 形勢評価開始 (boardSize=$boardSize)');
 
     try {
-      final score = _computeAreaScore(stones, boardSize);
+      final score = GoScoring.computeAreaScore(stones, boardSize);
       final blackScore = score.blackScore;
       final whiteScore = score.whiteScore;
       final scoreDiff = blackScore - whiteScore;
@@ -328,111 +328,6 @@ class FuegoEngineService {
       _logger.e('🔥 形勢評価エラー: $e');
       rethrow;
     }
-  }
-
-  /// 中国ルールでの地合計算（石数 + 領地 + コミ）。
-  /// 渡された盤面に残る石をすべて生きているものとして数える。
-  /// 死石を除外したい場合は呼び出し側で盤面から取り除いてから渡すこと
-  /// （judgeGameEnd は _detectDeadStones の結果を使ってこれを行う）。
-  ({double blackScore, double whiteScore}) _computeAreaScore(
-    List<List<int>> stones,
-    int boardSize,
-  ) {
-    int blackStones = 0;
-    int whiteStones = 0;
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
-        if (stones[row][col] == 1) {
-          blackStones++;
-        } else if (stones[row][col] == 2) {
-          whiteStones++;
-        }
-      }
-    }
-
-    final visited = List.generate(boardSize, (_) => List.filled(boardSize, false));
-    int blackTerritory = 0;
-    int whiteTerritory = 0;
-
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
-        if (stones[row][col] == 0 && !visited[row][col]) {
-          final territory = _evaluateTerritory(stones, visited, row, col, boardSize);
-          if (territory['owner'] == 'black') {
-            blackTerritory += territory['count'] as int;
-          } else if (territory['owner'] == 'white') {
-            whiteTerritory += territory['count'] as int;
-          }
-        }
-      }
-    }
-
-    _logger.i(
-      '📈 石: 黒=$blackStones, 白=$whiteStones | 領地: 黒=$blackTerritory, 白=$whiteTerritory',
-    );
-
-    return (
-      blackScore: blackStones.toDouble() + blackTerritory.toDouble(),
-      whiteScore: whiteStones.toDouble() + whiteTerritory.toDouble() + 3.75, // コミ
-    );
-  }
-
-  /// 連結された領地を判定
-  Map<String, dynamic> _evaluateTerritory(
-    List<List<int>> stones,
-    List<List<bool>> visited,
-    int startRow,
-    int startCol,
-    int boardSize,
-  ) {
-    final queue = Queue<(int, int)>();
-    queue.add((startRow, startCol));
-    visited[startRow][startCol] = true;
-
-    int emptyCount = 0;
-    final adjacentOwners = <int>{};
-
-    while (queue.isNotEmpty) {
-      final (row, col) = queue.removeFirst();
-      emptyCount++;
-
-      // 隣接セルを調査
-      final neighbors = [
-        (row - 1, col),
-        (row + 1, col),
-        (row, col - 1),
-        (row, col + 1),
-      ];
-
-      for (final (nextRow, nextCol) in neighbors) {
-        if (nextRow < 0 || nextRow >= boardSize || nextCol < 0 || nextCol >= boardSize) {
-          continue;
-        }
-
-        final cell = stones[nextRow][nextCol];
-        if (cell == 0) {
-          // 空点
-          if (!visited[nextRow][nextCol]) {
-            visited[nextRow][nextCol] = true;
-            queue.add((nextRow, nextCol));
-          }
-        } else {
-          // 石
-          adjacentOwners.add(cell);
-        }
-      }
-    }
-
-    // 単独の所有者のみ領地と認定
-    if (adjacentOwners.length == 1) {
-      final owner = adjacentOwners.first;
-      return {
-        'owner': owner == 1 ? 'black' : 'white',
-        'count': emptyCount,
-      };
-    }
-
-    return {'owner': 'neutral', 'count': 0};
   }
 
   /// エンジンをクリーンアップ

@@ -1,0 +1,126 @@
+import 'dart:collection';
+
+/// Chinese-rules area score for one color: stones on the board this color
+/// owns plus the empty territory it fully surrounds.
+class AreaScore {
+  final double blackScore;
+  final double whiteScore;
+
+  const AreaScore({required this.blackScore, required this.whiteScore});
+
+  /// null on an exact tie. With [komi] applied this is only possible if a
+  /// caller passes a non-default komi of 0.
+  String? winnerUid({required String blackUid, required String whiteUid}) {
+    if (blackScore == whiteScore) return null;
+    return blackScore > whiteScore ? blackUid : whiteUid;
+  }
+}
+
+/// Chinese-rules area scoring, shared by FuegoEngineService (AI games) and
+/// PvpGameService (PvP games) so both count territory the same way instead
+/// of PvP using a separate, less accurate stones-only estimate.
+///
+/// This does NOT attempt dead-stone detection — FuegoEngineService's own
+/// judgeGameEnd only gets that from the native Fuego library's safety
+/// solver when bundled, and PvP games have no engine in the loop at all —
+/// so, same as that fallback, every stone left on the board is counted as
+/// alive. A human player who passes on a board with actually-dead stones
+/// still on it will get a score that doesn't match what they'd expect;
+/// there's no automated way to resolve that without a real engine judging
+/// the position.
+class GoScoring {
+  GoScoring._();
+
+  static const double defaultKomi = 3.75;
+
+  static AreaScore computeAreaScore(
+    List<List<int>> stones,
+    int boardSize, {
+    double komi = defaultKomi,
+  }) {
+    int blackStones = 0;
+    int whiteStones = 0;
+    for (int row = 0; row < boardSize; row++) {
+      for (int col = 0; col < boardSize; col++) {
+        if (stones[row][col] == 1) {
+          blackStones++;
+        } else if (stones[row][col] == 2) {
+          whiteStones++;
+        }
+      }
+    }
+
+    final visited = List.generate(boardSize, (_) => List.filled(boardSize, false));
+    int blackTerritory = 0;
+    int whiteTerritory = 0;
+
+    for (int row = 0; row < boardSize; row++) {
+      for (int col = 0; col < boardSize; col++) {
+        if (stones[row][col] == 0 && !visited[row][col]) {
+          final territory = _evaluateTerritory(stones, visited, row, col, boardSize);
+          if (territory.owner == 1) {
+            blackTerritory += territory.count;
+          } else if (territory.owner == 2) {
+            whiteTerritory += territory.count;
+          }
+        }
+      }
+    }
+
+    return AreaScore(
+      blackScore: blackStones.toDouble() + blackTerritory.toDouble(),
+      whiteScore: whiteStones.toDouble() + whiteTerritory.toDouble() + komi,
+    );
+  }
+
+  /// Flood-fills one connected empty region. Returns owner 1 (black) or 2
+  /// (white) only if every stone bordering the region belongs to that one
+  /// color; owner 0 (neutral dame) otherwise.
+  static ({int owner, int count}) _evaluateTerritory(
+    List<List<int>> stones,
+    List<List<bool>> visited,
+    int startRow,
+    int startCol,
+    int boardSize,
+  ) {
+    final queue = Queue<(int, int)>();
+    queue.add((startRow, startCol));
+    visited[startRow][startCol] = true;
+
+    int emptyCount = 0;
+    final adjacentOwners = <int>{};
+
+    while (queue.isNotEmpty) {
+      final (row, col) = queue.removeFirst();
+      emptyCount++;
+
+      final neighbors = [
+        (row - 1, col),
+        (row + 1, col),
+        (row, col - 1),
+        (row, col + 1),
+      ];
+
+      for (final (nextRow, nextCol) in neighbors) {
+        if (nextRow < 0 || nextRow >= boardSize || nextCol < 0 || nextCol >= boardSize) {
+          continue;
+        }
+
+        final cell = stones[nextRow][nextCol];
+        if (cell == 0) {
+          if (!visited[nextRow][nextCol]) {
+            visited[nextRow][nextCol] = true;
+            queue.add((nextRow, nextCol));
+          }
+        } else {
+          adjacentOwners.add(cell);
+        }
+      }
+    }
+
+    if (adjacentOwners.length == 1) {
+      return (owner: adjacentOwners.first, count: emptyCount);
+    }
+    return (owner: 0, count: 0);
+  }
+}

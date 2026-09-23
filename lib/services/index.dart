@@ -7,6 +7,7 @@
 export 'go_engine_service.dart' hide AIMove, GameEndResult;
 export 'fuego_engine_service.dart';
 export 'go_rules.dart';
+export 'go_scoring.dart';
 export 'firestore_service.dart';
 export 'auth_service.dart';
 export 'ai_explanation_service.dart';

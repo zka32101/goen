@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
 import '../models/pvp_game.dart';
 import 'go_rules.dart';
+import 'go_scoring.dart';
 
 final _logger = Logger();
 
@@ -214,9 +215,11 @@ class PvpGameService {
     }
   }
 
-  /// パスする。2連続パスで終局とし、暫定的に地合いの多い側を勝者にする
-  /// （簡易スコアリング：正式な地合い計算はFuegoエンジンに委ねていないため、
-  /// 石数差での概算。既存のGoEngineによる正式な判定はAI対局専用のため）。
+  /// パスする。2連続パスで終局とし、中国ルールの地合計算
+  /// （GoScoring — AI対局のFuegoEngineService.judgeGameEndと同じロジック）
+  /// で勝者を決める。死石判定は行わない（ネイティブFuegoの安全性読みに
+  /// 委ねているAI対局と異なり、PvP対局にはエンジンが介在しないため）ので、
+  /// 盤面に残った石は全て生きているものとして数える。
   Future<bool> pass({required String gameId, required String uid}) async {
     try {
       return await _firestore.runTransaction<bool>((transaction) async {
@@ -239,10 +242,15 @@ class PvpGameService {
         };
 
         if (gameEnded) {
-          final winnerUid = _estimateWinner(game);
+          final areaScore = GoScoring.computeAreaScore(game.stones, game.boardSize);
           update['status'] = 'finished';
-          update['winnerUid'] = winnerUid;
+          update['winnerUid'] = areaScore.winnerUid(
+            blackUid: game.blackUid,
+            whiteUid: game.whiteUid,
+          );
           update['result'] = 'score';
+          update['blackScore'] = areaScore.blackScore;
+          update['whiteScore'] = areaScore.whiteScore;
         }
 
         transaction.update(docRef, update);
@@ -253,21 +261,6 @@ class PvpGameService {
       _logger.e('Error passing PvP game: $e');
       rethrow;
     }
-  }
-
-  String? _estimateWinner(PvpGame game) {
-    var blackStones = 0;
-    var whiteStones = 0;
-    for (final row in game.stones) {
-      for (final cell in row) {
-        if (cell == 1) blackStones++;
-        if (cell == 2) whiteStones++;
-      }
-    }
-    final blackScore = blackStones + game.capturedWhite;
-    final whiteScore = whiteStones + game.capturedBlack;
-    if (blackScore == whiteScore) return null;
-    return blackScore > whiteScore ? game.blackUid : game.whiteUid;
   }
 
   /// トランザクション内で読み取り・判定・書き込みを行い、パス2連続による

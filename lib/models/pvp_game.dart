@@ -21,6 +21,8 @@ class PvpGame {
   final String status; // 'active', 'finished'
   final String? winnerUid;
   final String? result; // 'resignation', 'score', null(進行中)
+  final double? blackScore; // 中国ルールの地合計算結果（'score'決着時のみ）
+  final double? whiteScore; // コミ込み。'resignation'決着時はnull
   final String? matchId; // matching engineのMatchResult.idとの紐付け（あれば）
   final String? tournamentId; // トーナメント試合の場合の大会ID
   final String? tournamentMatchId; // トーナメント試合の場合のTournamentMatch ID
@@ -47,6 +49,8 @@ class PvpGame {
     required this.status,
     this.winnerUid,
     this.result,
+    this.blackScore,
+    this.whiteScore,
     this.matchId,
     this.tournamentId,
     this.tournamentMatchId,
@@ -100,6 +104,8 @@ class PvpGame {
       status: data['status'] as String? ?? 'active',
       winnerUid: data['winnerUid'] as String?,
       result: data['result'] as String?,
+      blackScore: (data['blackScore'] as num?)?.toDouble(),
+      whiteScore: (data['whiteScore'] as num?)?.toDouble(),
       matchId: data['matchId'] as String?,
       tournamentId: data['tournamentId'] as String?,
       tournamentMatchId: data['tournamentMatchId'] as String?,
@@ -130,6 +136,8 @@ class PvpGame {
       'status': status,
       'winnerUid': winnerUid,
       'result': result,
+      'blackScore': blackScore,
+      'whiteScore': whiteScore,
       'matchId': matchId,
       'tournamentId': tournamentId,
       'tournamentMatchId': tournamentMatchId,
