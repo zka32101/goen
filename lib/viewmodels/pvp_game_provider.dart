@@ -58,7 +58,9 @@ final createPvpGameProvider = Provider((ref) {
         matchId: matchId,
       );
       _logger.i('Created PvP game: ${game.id}');
-      _startPvpSpectatorSession(ref, service, game, blackUid, blackDisplayName, whiteUid);
+      _startPvpSpectatorSession(
+        ref, service, game.id, boardSize, blackUid, blackDisplayName, whiteUid,
+      );
       return game;
     } catch (e) {
       _logger.e('Error creating PvP game: $e');
@@ -77,7 +79,8 @@ final createPvpGameProvider = Provider((ref) {
 void _startPvpSpectatorSession(
   Ref ref,
   PvpGameService service,
-  PvpGame game,
+  String gameId,
+  int boardSize,
   String hostUid,
   String hostDisplayName,
   String coHostUid,
@@ -85,15 +88,15 @@ void _startPvpSpectatorSession(
   () async {
     try {
       final session = await ref.read(createSpectatorSessionProvider)(
-        game.id,
+        gameId,
         'pvp_game',
         hostUid,
         hostDisplayName,
         true,
-        boardSize: game.boardSize,
+        boardSize: boardSize,
         coHostUid: coHostUid,
       );
-      await service.attachSpectatorSession(game.id, session.id);
+      await service.attachSpectatorSession(gameId, session.id);
 
       try {
         await ref.read(notifyFriendsOfLiveSessionProvider)(
@@ -123,6 +126,7 @@ final createTournamentGameProvider = Provider((ref) {
     String blackDisplayName,
     String whiteUid,
     String whiteDisplayName,
+    String callerUid,
   ) async {
     final service = ref.watch(pvpGameServiceProvider);
     try {
@@ -136,6 +140,17 @@ final createTournamentGameProvider = Provider((ref) {
         whiteDisplayName: whiteDisplayName,
       );
       _logger.i('Tournament game ready: $gameId');
+      _startTournamentSpectatorSessionIfNeeded(
+        ref,
+        service,
+        gameId,
+        boardSize,
+        blackUid,
+        blackDisplayName,
+        whiteUid,
+        whiteDisplayName,
+        callerUid,
+      );
       return gameId;
     } catch (e) {
       _logger.e('Error creating tournament game: $e');
@@ -143,6 +158,45 @@ final createTournamentGameProvider = Provider((ref) {
     }
   };
 });
+
+/// 縁機能: トーナメント戦のPvP対局もライブ観戦フレンドの対象にする。
+/// createGameForTournamentMatchは「まだ無ければ作成」をトランザクションで
+/// 保証するため対局自体は1つしか作られないが、観戦セッションはそこに
+/// 便乗する形になるため、まだ紐付いていない場合にのみ作成する（既に
+/// 紐付いていれば何もしない — 二重に作ると片方が孤立し、以後の盤面同期を
+/// 受け取れなくなる）。hostUidはFirestoreルール上request.auth.uidと一致
+/// させる必要があるため、常に「このコードを実行している呼び出し元自身」
+/// のuid（callerUid）を使う — トーナメント戦では黒番が必ずしも呼び出し元
+/// 自身とは限らない（UIDの辞書順で固定されるため、対局を開始する操作を
+/// したのがどちらのプレイヤーでも黒番になり得る）。
+void _startTournamentSpectatorSessionIfNeeded(
+  Ref ref,
+  PvpGameService service,
+  String gameId,
+  int boardSize,
+  String blackUid,
+  String blackDisplayName,
+  String whiteUid,
+  String whiteDisplayName,
+  String callerUid,
+) {
+  () async {
+    try {
+      final game = await service.getGame(gameId);
+      if (game == null || game.spectatorSessionId != null) return;
+
+      final callerIsBlack = callerUid == blackUid;
+      final hostDisplayName = callerIsBlack ? blackDisplayName : whiteDisplayName;
+      final coHostUid = callerIsBlack ? whiteUid : blackUid;
+
+      _startPvpSpectatorSession(
+        ref, service, gameId, boardSize, callerUid, hostDisplayName, coHostUid,
+      );
+    } catch (e) {
+      _logger.w('縁: tournament PvP spectator session check failed (non-fatal): $e');
+    }
+  }();
+}
 
 final applyPvpMoveProvider = Provider((ref) {
   return (String gameId, String uid, int row, int col) async {

@@ -356,6 +356,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
         amIBlack ? myDisplayName : opponentName,
         amIBlack ? opponentUid : uid,
         amIBlack ? opponentName : myDisplayName,
+        uid,
       );
 
       ref.invalidate(tournamentMatchesProvider((tournamentId: widget.tournament.id, round: null)));
