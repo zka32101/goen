@@ -23,6 +23,10 @@ class Tournament {
   // functions/src/weeklyTournament.tsの週刊自動開催ジョブが作った大会か。
   // trueの大会は毎週月曜(JST)に前週分の自動開始/新規作成が行われる。
   final bool isAutoWeekly;
+  // swiss形式のみ使用（開始時に参加者数から自動計算して固定）。何回戦で
+  // 打ち切って順位表から優勝を確定するか。single_elimination/round_robin
+  // は0のまま（不要 — 前者は勝者1人になるまで、後者は全カード終了まで）。
+  final int totalRounds;
   final DateTime createdAt;
 
   Tournament({
@@ -40,6 +44,7 @@ class Tournament {
     this.boardSize = 19,
     this.lastAdvancedRound = 0,
     this.isAutoWeekly = false,
+    this.totalRounds = 0,
     required this.createdAt,
   });
 
@@ -64,6 +69,7 @@ class Tournament {
       boardSize: data['boardSize'] as int? ?? 19,
       lastAdvancedRound: data['lastAdvancedRound'] as int? ?? 0,
       isAutoWeekly: data['isAutoWeekly'] as bool? ?? false,
+      totalRounds: data['totalRounds'] as int? ?? 0,
       createdAt: data['createdAt'] is Timestamp
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
@@ -85,6 +91,7 @@ class Tournament {
       'boardSize': boardSize,
       'lastAdvancedRound': lastAdvancedRound,
       'isAutoWeekly': isAutoWeekly,
+      'totalRounds': totalRounds,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }

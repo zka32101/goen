@@ -102,12 +102,17 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
     }
     final rounds = byRound.keys.toList()..sort();
     final isRoundRobin = widget.tournament.format == 'round_robin';
+    final isSwiss = widget.tournament.format == 'swiss';
+    // round_robinは全節を勝ち数で戦うため順位表が主な進行表示。swissも
+    // 同じ理由（勝ち抜き無し、成績順ペアリング）で順位表を出す。
+    // single_eliminationだけ勝者が1人に絞られる勝ち上がり式なので不要。
+    final showsStandings = isRoundRobin || isSwiss;
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         if (widget.tournament.isCompleted) _buildChampionBanner(matches),
-        if (isRoundRobin) ...[
+        if (showsStandings) ...[
           _buildStandingsSection(),
           const SizedBox(height: 20),
         ],
@@ -115,7 +120,9 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
           Text(
             isRoundRobin
                 ? '第$round節'
-                : (round == rounds.last && widget.tournament.isCompleted ? '決勝' : '第$round回戦'),
+                : isSwiss
+                    ? '第$round回戦${widget.tournament.totalRounds > 0 ? " / 全${widget.tournament.totalRounds}回戦" : ""}'
+                    : (round == rounds.last && widget.tournament.isCompleted ? '決勝' : '第$round回戦'),
             style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),

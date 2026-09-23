@@ -138,11 +138,11 @@ void main() {
       expect(tournament.winnerId, isNull);
     });
 
-    test('startTournament still rejects swiss as unsupported', () async {
+    test('startTournament rejects an unknown format', () async {
       final tournamentId = await createRoundRobinTournament(['p1', 'p2']);
-      // Overwrite the format directly to simulate a swiss tournament, since
+      // Overwrite the format directly to simulate an invalid format, since
       // createTournament/joinTournament don't validate the format string.
-      await firestore.collection('tournaments').doc(tournamentId).update({'format': 'swiss'});
+      await firestore.collection('tournaments').doc(tournamentId).update({'format': 'bogus'});
 
       expect(
         () => service.startTournament(tournamentId),

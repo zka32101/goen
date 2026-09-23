@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/tournament.dart';
@@ -118,7 +120,10 @@ class TournamentService {
   ///   メント自体を作らない）。優勝は全試合終了時点の勝ち数最多者（同数は
   ///   uid昇順の簡易タイブレーク — 対戦成績・得失点差などの本格的な
   ///   タイブレークは未実装、既知の制約）。
-  /// - swiss: 未対応（ペアリングアルゴリズムが未実装）。
+  /// - swiss: 総ラウンド数を参加者数から自動計算（max(3, ceil(log2(n)))）し、
+  ///   1回戦をランダムな組み合わせで生成する（2回戦以降は _generateSwissRound
+  ///   がスコア順ペアリングを行う）。優勝は最終ラウンド終了時点の勝ち数
+  ///   最多者（round_robinと同じ簡易タイブレーク）。
   Future<void> startTournament(String tournamentId) async {
     try {
       final tournamentRef = _firestore.collection(tournamentsCollection).doc(tournamentId);
@@ -127,9 +132,6 @@ class TournamentService {
 
       final tournament = Tournament.fromFirestore(
           tournamentDoc as DocumentSnapshot<Map<String, dynamic>>);
-      if (tournament.format != 'single_elimination' && tournament.format != 'round_robin') {
-        throw Exception('${tournament.format} is not yet supported for automatic bracket generation');
-      }
       if (tournament.participantUids.length < 2) {
         throw Exception('Not enough participants to start');
       }
@@ -150,6 +152,26 @@ class TournamentService {
         await tournamentRef.update({'status': 'active'});
         _logger.i('✅ Tournament started with full round-robin schedule: $tournamentId');
         return;
+      }
+
+      if (tournament.format == 'swiss') {
+        final totalRounds = _computeSwissTotalRounds(tournament.participantUids.length);
+        final shuffledUids = List<String>.from(tournament.participantUids)..shuffle();
+        final (:pairs, :byeUid) = _swissPairings(shuffledUids, const []);
+        await _writeSwissRoundBatch(
+          tournamentRef: tournamentRef,
+          round: 1,
+          pairs: pairs,
+          byeUid: byeUid,
+          displayNames: displayNames,
+        );
+        await tournamentRef.update({'status': 'active', 'totalRounds': totalRounds});
+        _logger.i('✅ Tournament started with swiss round 1 ($totalRounds rounds total): $tournamentId');
+        return;
+      }
+
+      if (tournament.format != 'single_elimination') {
+        throw Exception('${tournament.format} is not a supported tournament format');
       }
 
       await _generateRound(
@@ -233,6 +255,231 @@ class TournamentService {
       players.insert(1, last);
     }
     return rounds;
+  }
+
+  /// swiss形式の総ラウンド数。全参加者を明確に順位付けするための標準的な
+  /// 目安（ceil(log2(n))）に、対局数が少なすぎて順位がほぼ決まらないのを
+  /// 避けるための最低3ラウンドを組み合わせる。
+  int _computeSwissTotalRounds(int participantCount) {
+    final byLog = (math.log(participantCount) / math.log(2)).ceil();
+    return math.max(3, byLog);
+  }
+
+  String _swissPairKey(String a, String b) {
+    final sorted = [a, b]..sort();
+    return '${sorted[0]}|${sorted[1]}';
+  }
+
+  /// swiss形式のペアリング（貪欲法）。現在の勝ち数が多い順（同数はuid昇順）
+  /// に並べ、まだ対戦していない相手の中から先頭に近い人と組ませていく —
+  /// 本格的なDutch systemほど最適ではないが、round_robinの簡易タイブレーク
+  /// と同じ精神で、実用上十分な近似として採用する。組む相手が全員対戦済み
+  /// の場合は稀なフォールバックとして再戦を許容する（無限ループ回避のため）。
+  /// 参加者が奇数なら、最後に残った1人（＝現在最下位）が不戦勝(bye)になる。
+  ({List<(String, String)> pairs, String? byeUid}) _swissPairings(
+    List<String> allPlayerUids,
+    List<TournamentMatch> matchesSoFar,
+  ) {
+    final wins = <String, int>{for (final uid in allPlayerUids) uid: 0};
+    final playedPairs = <String>{};
+    for (final m in matchesSoFar) {
+      if (m.winnerUid != null) {
+        wins[m.winnerUid!] = (wins[m.winnerUid!] ?? 0) + 1;
+      }
+      if (m.player1Uid != null && m.player2Uid != null) {
+        playedPairs.add(_swissPairKey(m.player1Uid!, m.player2Uid!));
+      }
+    }
+
+    final sorted = List<String>.from(allPlayerUids)
+      ..sort((a, b) {
+        final winsCompare = (wins[b] ?? 0).compareTo(wins[a] ?? 0);
+        return winsCompare != 0 ? winsCompare : a.compareTo(b);
+      });
+
+    final unpaired = List<String>.from(sorted);
+    final pairs = <(String, String)>[];
+    while (unpaired.length > 1) {
+      final a = unpaired.removeAt(0);
+      final idx = unpaired.indexWhere((b) => !playedPairs.contains(_swissPairKey(a, b)));
+      final b = unpaired.removeAt(idx == -1 ? 0 : idx);
+      pairs.add((a, b));
+    }
+
+    return (pairs: pairs, byeUid: unpaired.isNotEmpty ? unpaired.first : null);
+  }
+
+  /// swiss形式のある1ラウンド分を、指定されたペア+不戦勝からバッチ書き込み
+  /// する（トーナメント開始時、start時点では他の呼び出しと競合しないため
+  /// トランザクション不要）。不戦勝は即座に完了・勝者確定にする（single_
+  /// eliminationの不戦勝と同じ扱い）。
+  Future<void> _writeSwissRoundBatch({
+    required DocumentReference<Map<String, dynamic>> tournamentRef,
+    required int round,
+    required List<(String, String)> pairs,
+    required String? byeUid,
+    required Map<String, String> displayNames,
+  }) async {
+    final batch = _firestore.batch();
+    final now = DateTime.now();
+
+    for (final pair in pairs) {
+      final matchRef = tournamentRef.collection(matchesCollection).doc();
+      batch.set(
+        matchRef,
+        TournamentMatch(
+          id: matchRef.id,
+          tournamentId: tournamentRef.id,
+          player1Uid: pair.$1,
+          player1DisplayName: displayNames[pair.$1],
+          player2Uid: pair.$2,
+          player2DisplayName: displayNames[pair.$2],
+          round: round,
+          status: 'pending',
+          scheduledAt: now,
+        ).toFirestore(),
+      );
+    }
+
+    if (byeUid != null) {
+      final byeRef = tournamentRef.collection(matchesCollection).doc();
+      batch.set(
+        byeRef,
+        TournamentMatch(
+          id: byeRef.id,
+          tournamentId: tournamentRef.id,
+          player1Uid: byeUid,
+          player1DisplayName: displayNames[byeUid],
+          round: round,
+          winnerUid: byeUid,
+          status: 'completed',
+          scheduledAt: now,
+          completedAt: now,
+        ).toFirestore(),
+      );
+    }
+
+    await batch.commit();
+    _logger.i('Generated swiss round $round (${pairs.length} matches${byeUid != null ? " + 1 bye" : ""})');
+  }
+
+  /// _writeSwissRoundBatchのトランザクション版。_advanceSwissRoundIfComplete
+  /// から、次ラウンドの二重生成を防ぐガードと同じトランザクション内で呼ぶ。
+  void _writeSwissRoundTransaction({
+    required Transaction transaction,
+    required DocumentReference<Map<String, dynamic>> tournamentRef,
+    required int round,
+    required List<(String, String)> pairs,
+    required String? byeUid,
+    required Map<String, String> displayNames,
+  }) {
+    final now = DateTime.now();
+
+    for (final pair in pairs) {
+      final matchRef = tournamentRef.collection(matchesCollection).doc();
+      transaction.set(
+        matchRef,
+        TournamentMatch(
+          id: matchRef.id,
+          tournamentId: tournamentRef.id,
+          player1Uid: pair.$1,
+          player1DisplayName: displayNames[pair.$1],
+          player2Uid: pair.$2,
+          player2DisplayName: displayNames[pair.$2],
+          round: round,
+          status: 'pending',
+          scheduledAt: now,
+        ).toFirestore(),
+      );
+    }
+
+    if (byeUid != null) {
+      final byeRef = tournamentRef.collection(matchesCollection).doc();
+      transaction.set(
+        byeRef,
+        TournamentMatch(
+          id: byeRef.id,
+          tournamentId: tournamentRef.id,
+          player1Uid: byeUid,
+          player1DisplayName: displayNames[byeUid],
+          round: round,
+          winnerUid: byeUid,
+          status: 'completed',
+          scheduledAt: now,
+          completedAt: now,
+        ).toFirestore(),
+      );
+    }
+  }
+
+  /// 指定ラウンドの全試合（不戦勝も含む）が完了していれば、swissの次ラウンド
+  /// を生成するか、最終ラウンドなら順位表から優勝を確定してトーナメントを
+  /// 完了にする。single_eliminationの_advanceRoundIfCompleteと同じく、
+  /// Tournament.lastAdvancedRoundをトランザクション内でチェック＆更新する
+  /// ことで、複数試合がほぼ同時に完了しても次ラウンドを二重生成しない。
+  Future<void> _advanceSwissRoundIfComplete({
+    required String tournamentId,
+    required int round,
+  }) async {
+    final tournamentRef = _firestore.collection(tournamentsCollection).doc(tournamentId);
+
+    // コレクションクエリはトランザクション内で実行できないため、全試合の
+    // 参照だけ先に取得し、内容はトランザクション内で読み直す（次ラウンドの
+    // ペアリングには対戦履歴全体が必要なため、round_robinの完了チェックと
+    // 同様に全ラウンド分を対象にする）。
+    final allMatchesSnapshot = await tournamentRef.collection(matchesCollection).get();
+    final matchRefs = allMatchesSnapshot.docs.map((doc) => doc.reference).toList();
+    if (matchRefs.isEmpty) return;
+
+    await _firestore.runTransaction<void>((transaction) async {
+      final allMatches = <TournamentMatch>[];
+      for (final ref in matchRefs) {
+        allMatches.add(TournamentMatch.fromFirestore(await transaction.get(ref)));
+      }
+
+      final roundMatches = allMatches.where((m) => m.round == round).toList();
+      if (roundMatches.isEmpty || roundMatches.any((m) => !m.isCompleted)) {
+        return; // まだこのラウンドの全試合が終わっていない
+      }
+
+      final tournamentDoc = await transaction.get(tournamentRef);
+      final tournament = Tournament.fromFirestore(tournamentDoc);
+      if (tournament.lastAdvancedRound >= round) {
+        _logger.i('Swiss round $round already advanced for $tournamentId, skipping');
+        return; // 既に別の呼び出しがこのラウンドを処理済み
+      }
+
+      if (round >= tournament.totalRounds) {
+        final championUid = _computeStandingsChampion(allMatches);
+        transaction.update(tournamentRef, {
+          'status': 'completed',
+          'winnerId': championUid,
+          'lastAdvancedRound': round,
+        });
+        _logger.i('🏆 Swiss tournament completed: $tournamentId winner=$championUid');
+        return;
+      }
+
+      final displayNames = <String, String>{
+        for (final m in allMatches) ...{
+          if (m.player1Uid != null) m.player1Uid!: m.player1DisplayName ?? 'Player',
+          if (m.player2Uid != null) m.player2Uid!: m.player2DisplayName ?? 'Player',
+        },
+      };
+      final allPlayerUids = displayNames.keys.toList();
+      final (:pairs, :byeUid) = _swissPairings(allPlayerUids, allMatches);
+
+      _writeSwissRoundTransaction(
+        transaction: transaction,
+        tournamentRef: tournamentRef,
+        round: round + 1,
+        pairs: pairs,
+        byeUid: byeUid,
+        displayNames: displayNames,
+      );
+      transaction.update(tournamentRef, {'lastAdvancedRound': round});
+      _logger.i('Advanced $tournamentId to swiss round ${round + 1}');
+    });
   }
 
   /// プレイヤーのリストからペアを作り、指定ラウンドの試合を生成する。
@@ -332,6 +579,9 @@ class TournamentService {
   /// - round_robin: 全節の全試合が完了していれば、勝ち数最多者を優勝として
   ///   トーナメントを完了にする（全対戦カードは開始時に一度に生成済みなので
   ///   ラウンド自動生成は不要）。
+  /// - swiss: そのラウンドの全試合（不戦勝含む）が完了していれば、最終
+  ///   ラウンドならトーナメントを完了、そうでなければ勝ち数順ペアリングで
+  ///   次ラウンドを自動生成する。
   Future<void> recordMatchResult({
     required String tournamentId,
     required String matchId,
@@ -357,6 +607,8 @@ class TournamentService {
       final format = (tournamentDoc.data()?['format'] as String?) ?? 'single_elimination';
       if (format == 'round_robin') {
         await _completeRoundRobinIfDone(tournamentId: tournamentId);
+      } else if (format == 'swiss') {
+        await _advanceSwissRoundIfComplete(tournamentId: tournamentId, round: round);
       } else {
         await _advanceRoundIfComplete(tournamentId: tournamentId, round: round);
       }
@@ -421,8 +673,9 @@ class TournamentService {
     return sorted.first;
   }
 
-  /// 総当たり戦の順位表。勝ち数の多い順（同数はuid昇順の簡易タイブレーク —
-  /// 対戦成績・得失点差などの本格的なタイブレークは未実装、既知の制約）。
+  /// 総当たり戦/swiss形式共通の順位表。勝ち数の多い順（同数はuid昇順の
+  /// 簡易タイブレーク — 対戦成績・得失点差などの本格的なタイブレークは
+  /// 未実装、既知の制約）。
   Future<List<TournamentStandingEntry>> getStandings(String tournamentId) async {
     try {
       final matches = await getTournamentMatches(tournamentId: tournamentId);

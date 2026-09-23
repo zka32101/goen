@@ -110,6 +110,13 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
               title: '総当たり戦',
               subtitle: '参加者全員と1回ずつ対局し、勝ち数が最も多い人が優勝。',
             ),
+            const SizedBox(height: 8),
+            _buildFormatOption(
+              value: 'swiss',
+              icon: Icons.shuffle,
+              title: 'スイス式',
+              subtitle: '毎ラウンド、成績が近い相手同士で組み合わせる。全員が最後まで対局を続けられる。',
+            ),
             const SizedBox(height: 16),
             _buildLabel('開始日'),
             _buildDatePicker(_startDate, (date) => setState(() => _startDate = date)),
