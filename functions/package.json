@@ -2,7 +2,7 @@
   "name": "goen-functions",
   "version": "1.0.0",
   "private": true,
-  "description": "Cloud Functions for 碁縁 (GoEn) — AI game-review generation and the weekly auto-tournament scheduler.",
+  "description": "Cloud Functions for 碁縁 (GoEn) — AI game-review generation, the weekly auto-tournament scheduler, and push notification delivery.",
   "engines": {
     "node": "20"
   },
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "test": "tsc && node --test lib/sgf.test.js lib/weeklyTournament.test.js",
+    "test": "tsc && node --test lib/sgf.test.js lib/weeklyTournament.test.js lib/pushNotifications.test.js",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "deploy": "firebase deploy --only functions",

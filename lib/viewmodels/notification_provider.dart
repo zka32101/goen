@@ -1,7 +1,12 @@
+import 'dart:io' show Platform;
+
 import 'package:riverpod/riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/notification.dart';
+import 'package:goen/models/user.dart';
 import 'package:goen/services/notification_service.dart';
+import 'package:goen/services/push_notification_service.dart';
+import 'package:goen/viewmodels/auth_provider.dart';
 
 final _logger = Logger();
 
@@ -194,4 +199,82 @@ final clearNotificationsProvider = Provider<
       rethrow;
     }
   };
+});
+
+/// Push Notification Service プロバイダー
+final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) {
+  return PushNotificationService();
+});
+
+/// Keeps the signed-in user's real FCM token registered in Firestore, and
+/// keeps the in-app notification list/badge fresh when a push arrives while
+/// the app is open, for as long as the app is running — the same
+/// whole-app-lifetime pattern as purchaseRecoveryProvider
+/// (lib/viewmodels/purchase_provider.dart). Watched once from GoEnApp.
+final fcmSyncProvider = Provider<void>((ref) {
+  final pushService = ref.watch(pushNotificationServiceProvider);
+  final notificationService = ref.watch(notificationServiceProvider);
+
+  Future<void> registerToken(String uid) async {
+    try {
+      final granted = await pushService.requestPermission();
+      if (!granted) {
+        _logger.w('Notification permission not granted for $uid');
+        return;
+      }
+      final token = await pushService.getToken();
+      if (token == null) return;
+      await notificationService.registerFcmToken(
+        uid: uid,
+        token: token,
+        platform: Platform.isIOS ? 'ios' : 'android',
+      );
+      _logger.i('✅ FCM token registered for $uid');
+    } catch (e) {
+      _logger.e('❌ Failed to register FCM token: $e');
+    }
+  }
+
+  String? currentUid() => ref.read(authStateProvider).valueOrNull?.uid;
+
+  final initialUid = currentUid();
+  if (initialUid != null) {
+    registerToken(initialUid);
+  }
+
+  ref.listen<AsyncValue<User?>>(authStateProvider, (previous, next) {
+    final uid = next.valueOrNull?.uid;
+    if (uid != null && uid != previous?.valueOrNull?.uid) {
+      registerToken(uid);
+    }
+  });
+
+  final tokenSub = pushService.onTokenRefresh.listen((token) {
+    final uid = currentUid();
+    if (uid == null) return;
+    notificationService.registerFcmToken(
+      uid: uid,
+      token: token,
+      platform: Platform.isIOS ? 'ios' : 'android',
+    );
+  });
+
+  final messageSub = pushService.onForegroundMessage.listen((_) {
+    final uid = currentUid();
+    if (uid == null) return;
+    // The Cloud Function that actually sends the push (triggered by the
+    // same notifications/{uid}/messages/{id} Firestore doc NotificationService
+    // already writes for every notification type) doesn't show a
+    // system-tray banner while the app is foregrounded, so refresh the
+    // in-app list/badge instead of leaving them stale until some
+    // unrelated rebuild happens to re-fetch them.
+    ref.invalidate(userNotificationsProvider(uid));
+    ref.invalidate(unreadNotificationsProvider(uid));
+    ref.invalidate(unreadNotificationCountProvider(uid));
+  });
+
+  ref.onDispose(() {
+    tokenSub.cancel();
+    messageSub.cancel();
+  });
 });

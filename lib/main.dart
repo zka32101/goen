@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:logger/logger.dart';
 import 'firebase_options.dart';
 import 'config/theme.dart';
 import 'models/index.dart';
+import 'services/push_notification_service.dart';
 import 'viewmodels/index.dart';
 import 'views/screens/index.dart';
 
@@ -22,6 +24,11 @@ void main() async {
   );
 
   _logger.i('Firebase initialized');
+
+  // Must be registered before runApp: the platform can deliver a push
+  // while the app is fully terminated, invoking this handler in its own
+  // isolate before any of the app's own widget tree exists.
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   // Route uncaught errors to Crashlytics (declared as a dependency but
   // never actually wired up before this) so production crashes are
@@ -49,6 +56,11 @@ class GoEnApp extends ConsumerWidget {
     // session's Firestore write failed before it could be acknowledged)
     // gets recovered instead of leaving the user paid-but-not-entitled.
     ref.watch(purchaseRecoveryProvider);
+
+    // Keeps the signed-in user's FCM token registered and the in-app
+    // notification badge fresh for as long as the app is running (see
+    // fcmSyncProvider's own doc comment).
+    ref.watch(fcmSyncProvider);
 
     return MaterialApp(
       title: 'GoEn - 碁縁',

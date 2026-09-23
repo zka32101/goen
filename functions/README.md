@@ -7,6 +7,9 @@
 - `weeklyTournamentScheduler` — 毎週トーナメントを自動開催する scheduled
   function（`src/weeklyTournament.ts`）。callable ではなく、Cloud Scheduler
   から定期的に呼ばれる。詳細は下の「週刊トーナメントの自動開催」を参照。
+- `sendPushOnNotificationCreated` — `notifications/{uid}/messages/{id}` が
+  作成されたときに実際の FCM プッシュを送信する Firestore トリガー
+  （`src/pushNotifications.ts`）。詳細は下の「プッシュ通知（FCM）」を参照。
 
 このリポジトリにはまだ `functions/` の実デプロイ実績がない（このセッションで
 初めて作成した）。以下は実際にデプロイする開発者向けの手順。
@@ -106,6 +109,45 @@ firebase deploy --only functions:weeklyTournamentScheduler
 スケジュールを変更したい場合は `onSchedule({schedule: "0 0 * * 1", ...})`
 の cron 式（`0 0 * * 1` = 毎週月曜0時）と `timeZone` を編集して再デプロイする。
 
+## プッシュ通知（FCM）
+
+`sendPushOnNotificationCreated`（`src/pushNotifications.ts`）は
+`notifications/{uid}/messages/{messageId}` ドキュメントが作成されるたびに
+発火する Firestore トリガー。このドキュメント自体は以前から
+`NotificationService.sendNotification`（`lib/services/notification_service.dart`）
+がフレンド申請・PvP対戦申請・トーナメント試合開始などのたびに書き込んでいた
+（アプリ内通知一覧の表示用）が、実際にプッシュとして届ける仕組みが無く、
+アプリを閉じている間は気づけなかった。この function がその欠けていた配信
+部分を担う。
+
+動作:
+
+1. `notifications/{uid}/notificationPreferences/settings` を読み、
+   `allNotifications: false` なら送信しない。通知の `type`
+   （`friend_request`/`tournament_match`/`pvp_challenge` など）に応じて
+   `friendRequests`/`tournamentUpdates`/`achievements`/`gameInvitations`
+   の該当カテゴリが `false` ならそれも送信しない（設定ドキュメントが無い
+   場合やフィールドが無い場合はデフォルトで送信 — オプトアウト方式）。
+2. `notifications/{uid}/fcmTokens/*` に登録されている全トークンへ
+   `admin.messaging().sendEachForMulticast` で送信。
+3. プラットフォームが「無効」と報告したトークン
+   （`messaging/invalid-registration-token`/
+   `messaging/registration-token-not-registered`）は自動的に削除する。
+
+クライアント側（`lib/viewmodels/notification_provider.dart` の
+`fcmSyncProvider`）はサインイン時・トークンリフレッシュ時に実トークンを
+`registerFcmToken` 経由で登録し、フォアグラウンド中にプッシュを受信したら
+（システムは自動でバナー表示しないため）アプリ内通知一覧/未読件数を
+再取得する。バックグラウンド/終了時のプッシュ表示は
+`firebase_messaging` プラグイン自体が処理する（`lib/main.dart` の
+`FirebaseMessaging.onBackgroundMessage`）。
+
+デプロイ:
+
+```bash
+firebase deploy --only functions:sendPushOnNotificationCreated
+```
+
 ## 既知の制約 / 未実装
 
 - `lib/services/ai_explanation_service.dart` は `generateMoveExplanation`
@@ -125,3 +167,11 @@ firebase deploy --only functions:weeklyTournamentScheduler
   誘う仕組みは無く、あくまで「毎週決まった枠を用意する」だけ — 実際に
   参加するにはユーザーがアプリの `TournamentScreen` から能動的に
   参加登録する必要がある。
+- `sendPushOnNotificationCreated`: 同じユーザーが複数端末でトークンを
+  登録していれば全端末に送る（重複排除は無い — 意図的な仕様）。iOS で
+  実際にプッシュを受信するには、Firebase コンソール側で APNs 認証キー/
+  証明書を別途設定する必要がある（このリポジトリのコードだけでは完結
+  しない、Apple Developer 側の設定）。サインアウト時にそのデバイスの
+  トークンを `fcmTokens` から削除する処理は無く、無効化されたトークンは
+  実際に送信に失敗した時点で（`messaging/registration-token-not-registered`
+  等を検出して）遅延削除されるのみ。

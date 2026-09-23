@@ -28,6 +28,7 @@ export 'tournament_service.dart';
 export 'game_preset_service.dart';
 export 'analytics_service.dart';
 export 'notification_service.dart';
+export 'push_notification_service.dart';
 export 'spectator_service.dart';
 export 'matching_service.dart';
 export 'playstyle_service.dart';

@@ -11,7 +11,9 @@
  * a shape nothing will ever invoke.
  *
  * Also re-exports `weeklyTournamentScheduler` (see ./weeklyTournament.ts),
- * a scheduled (not callable) function that auto-runs a weekly tournament.
+ * a scheduled (not callable) function that auto-runs a weekly tournament,
+ * and `sendPushOnNotificationCreated` (see ./pushNotifications.ts), a
+ * Firestore-triggered function that actually delivers a push notification.
  */
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {defineSecret} from "firebase-functions/params";
@@ -20,6 +22,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import {parseSgfBoardSize, parseSgfMoves, movesToPromptText, SgfMove} from "./sgf";
 
 export {weeklyTournamentScheduler} from "./weeklyTournament";
+export {sendPushOnNotificationCreated} from "./pushNotifications";
 
 const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
