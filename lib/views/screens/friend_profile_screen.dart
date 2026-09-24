@@ -5,6 +5,7 @@ import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/go_rank.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -32,6 +33,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final friend = widget.friend;
 
     return Scaffold(
@@ -44,14 +46,14 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildHeader(friend),
+          _buildHeader(l10n, friend),
           const SizedBox(height: 24),
-          _buildRankCard(friend.uid),
+          _buildRankCard(l10n, friend.uid),
           const SizedBox(height: 16),
-          _buildEnScoreCard(friend),
+          _buildEnScoreCard(l10n, friend),
           if (friend.notes != null && friend.notes!.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildNotesCard(friend.notes!),
+            _buildNotesCard(l10n, friend.notes!),
           ],
           if (widget.onInvite != null) ...[
             const SizedBox(height: 24),
@@ -60,7 +62,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               child: ElevatedButton.icon(
                 onPressed: widget.onInvite,
                 icon: const Icon(Icons.sports_esports),
-                label: const Text('ゲームに招待'),
+                label: Text(l10n.inviteToGameButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.kin,
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -73,7 +75,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
-  Widget _buildHeader(Friend friend) {
+  Widget _buildHeader(AppLocalizations l10n, Friend friend) {
     return Column(
       children: [
         CircleAvatar(
@@ -97,14 +99,14 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'フレンド歴: ${_formatFriendshipDuration(friend.addedAt)}',
+          l10n.friendshipDurationLabel(_formatFriendshipDuration(l10n, friend.addedAt)),
           style: TextStyle(color: AppColors.washiDim, fontSize: 13),
         ),
       ],
     );
   }
 
-  Widget _buildRankCard(String friendUid) {
+  Widget _buildRankCard(AppLocalizations l10n, String friendUid) {
     final rankAsync = ref.watch(userLeaderboardRankProvider(
       (uid: friendUid, period: LeaderboardPeriod.allTime, type: LeaderboardType.rating),
     ));
@@ -132,7 +134,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                         ),
                       ),
                       Text(
-                        'レート $rating',
+                        l10n.ratingLabel(rating),
                         style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                       ),
                     ],
@@ -148,13 +150,13 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
-          error: (err, stack) => Text('棋力を取得できませんでした', style: TextStyle(color: AppColors.washiDim)),
+          error: (err, stack) => Text(l10n.rankFetchFailedMessage, style: TextStyle(color: AppColors.washiDim)),
         ),
       ),
     );
   }
 
-  Widget _buildEnScoreCard(Friend friend) {
+  Widget _buildEnScoreCard(AppLocalizations l10n, Friend friend) {
     final connectionAsync = ref.watch(
       enConnectionProvider((uid: widget.currentUid, friendUid: friend.uid)),
     );
@@ -170,19 +172,19 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      '縁スコアはまだ計算されていません',
+                      l10n.enScoreNotCalculatedMessage,
                       style: TextStyle(color: AppColors.washiDim),
                     ),
                   ),
                   TextButton(
-                    onPressed: _isCalculatingEnScore ? null : () => _calculateEnScore(friend),
+                    onPressed: _isCalculatingEnScore ? null : () => _calculateEnScore(l10n, friend),
                     child: _isCalculatingEnScore
                         ? const SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('計算する'),
+                        : Text(l10n.calculateButton),
                   ),
                 ],
               );
@@ -206,7 +208,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.refresh, size: 18, color: AppColors.washiDim),
-                      onPressed: _isCalculatingEnScore ? null : () => _calculateEnScore(friend),
+                      onPressed: _isCalculatingEnScore ? null : () => _calculateEnScore(l10n, friend),
                     ),
                   ],
                 ),
@@ -222,7 +224,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '縁スコア ${connection.score} / 100・対局 ${connection.matchesPlayed}回',
+                  l10n.enScoreLabel(connection.score, connection.matchesPlayed),
                   style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                 ),
               ],
@@ -235,13 +237,13 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
-          error: (err, stack) => Text('縁スコアを取得できませんでした', style: TextStyle(color: AppColors.washiDim)),
+          error: (err, stack) => Text(l10n.enScoreFetchFailedMessage, style: TextStyle(color: AppColors.washiDim)),
         ),
       ),
     );
   }
 
-  Widget _buildNotesCard(String notes) {
+  Widget _buildNotesCard(AppLocalizations l10n, String notes) {
     return Card(
       color: AppColors.sumiSurface,
       child: Padding(
@@ -249,7 +251,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('メモ', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+            Text(l10n.notesLabel, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
             const SizedBox(height: 4),
             Text(notes, style: const TextStyle(color: AppColors.washi)),
           ],
@@ -258,7 +260,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
-  Future<void> _calculateEnScore(Friend friend) async {
+  Future<void> _calculateEnScore(AppLocalizations l10n, Friend friend) async {
     setState(() => _isCalculatingEnScore = true);
     try {
       await ref.read(calculateEnScoreProvider)(
@@ -272,7 +274,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
       _logger.e('Failed to calculate en score: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('縁スコアの計算に失敗しました')),
+          SnackBar(content: Text(l10n.enScoreCalculateFailedMessage)),
         );
       }
     } finally {
@@ -280,11 +282,11 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     }
   }
 
-  String _formatFriendshipDuration(DateTime addedAt) {
+  String _formatFriendshipDuration(AppLocalizations l10n, DateTime addedAt) {
     final days = DateTime.now().difference(addedAt).inDays;
-    if (days < 1) return '今日から';
-    if (days < 30) return '$days日';
-    if (days < 365) return '${(days / 30).floor()}ヶ月';
-    return '${(days / 365).floor()}年';
+    if (days < 1) return l10n.friendshipSinceTodayLabel;
+    if (days < 30) return l10n.friendshipDaysLabel(days);
+    if (days < 365) return l10n.friendshipMonthsLabel((days / 30).floor());
+    return l10n.friendshipYearsLabel((days / 365).floor());
   }
 }
