@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -40,7 +41,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _loadError = 'Previous settings not found, using defaults';
+          _loadError = AppLocalizations.of(context)!.settingsLoadFallbackMessage;
         });
       }
     }
@@ -49,9 +50,10 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
   @override
   Widget build(BuildContext context) {
     _logger.i('Building PuzzleRushSettingsScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     if (_isLoading) {
-      return _buildLoadingScreen(context);
+      return _buildLoadingScreen(context, l10n);
     }
 
     final difficulty = ref.watch(puzzleRushDifficultyProvider);
@@ -60,7 +62,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('詰碁ラッシュ設定'),
+        title: Text(l10n.puzzleRushSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -74,26 +76,26 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
           children: [
             if (_loadError != null) _buildErrorMessage(context),
 
-            _buildSectionTitle(context, '難易度を選択'),
+            _buildSectionTitle(context, l10n.selectDifficultyLabel),
             const SizedBox(height: 16),
-            _buildDifficultyCards(ref, difficulty),
+            _buildDifficultyCards(l10n, ref, difficulty),
             const SizedBox(height: 32),
 
-            _buildSessionInfo(context),
+            _buildSessionInfo(context, l10n),
             const SizedBox(height: 32),
 
-            _buildStartButton(context, ref, isValid),
+            _buildStartButton(context, l10n, ref, isValid),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoadingScreen(BuildContext context) {
+  Widget _buildLoadingScreen(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('詰碁ラッシュ設定'),
+        title: Text(l10n.puzzleRushSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -109,7 +111,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
             ),
             const SizedBox(height: 16),
             Text(
-              '設定を読み込み中...',
+              l10n.loadingSettingsMessage,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.washi,
               ),
@@ -156,12 +158,12 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
     );
   }
 
-  Widget _buildDifficultyCards(WidgetRef ref, String selected) {
+  Widget _buildDifficultyCards(AppLocalizations l10n, WidgetRef ref, String selected) {
     final difficulties = [
-      {'label': '初級', 'value': 'easy', 'color': AppColors.wakatake},
-      {'label': '中級', 'value': 'normal', 'color': Colors.yellow[700]},
-      {'label': '上級', 'value': 'hard', 'color': Colors.orange[700]},
-      {'label': '最高級', 'value': 'expert', 'color': AppColors.shuLight},
+      {'label': l10n.difficultyEasy, 'value': 'easy', 'color': AppColors.wakatake},
+      {'label': l10n.difficultyMedium, 'value': 'normal', 'color': Colors.yellow[700]},
+      {'label': l10n.difficultyHard, 'value': 'hard', 'color': Colors.orange[700]},
+      {'label': l10n.difficultyExpertLabel, 'value': 'expert', 'color': AppColors.shuLight},
     ];
 
     return Column(
@@ -210,7 +212,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
     );
   }
 
-  Widget _buildSessionInfo(BuildContext context) {
+  Widget _buildSessionInfo(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -221,7 +223,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'セッション情報',
+            l10n.sessionInfoTitle,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: AppColors.washi,
             ),
@@ -232,7 +234,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
               Icon(Icons.timer, color: AppColors.kin, size: 20),
               const SizedBox(width: 8),
               Text(
-                '5分間のセッション',
+                l10n.fiveMinuteSessionLabel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppColors.washiDim,
                 ),
@@ -245,7 +247,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
               Icon(Icons.whatshot, color: Colors.orange[600], size: 20),
               const SizedBox(width: 8),
               Text(
-                'コンボシステム搭載',
+                l10n.comboSystemLabel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppColors.washiDim,
                 ),
@@ -258,7 +260,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
               Icon(Icons.leaderboard, color: AppColors.kin, size: 20),
               const SizedBox(width: 8),
               Text(
-                'グローバルリーダーボード',
+                l10n.globalLeaderboardLabel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppColors.washiDim,
                 ),
@@ -270,7 +272,7 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
     );
   }
 
-  Widget _buildStartButton(BuildContext context, WidgetRef ref, bool isValid) {
+  Widget _buildStartButton(BuildContext context, AppLocalizations l10n, WidgetRef ref, bool isValid) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -296,9 +298,9 @@ class _PuzzleRushSettingsScreenState extends ConsumerState<PuzzleRushSettingsScr
                 }
               }
             : null,
-        child: const Text(
-          'ゲーム開始',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        child: Text(
+          l10n.startGameButton,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );

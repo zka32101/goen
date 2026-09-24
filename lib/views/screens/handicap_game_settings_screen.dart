@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -28,11 +29,12 @@ class _HandicapGameSettingsScreenState
   @override
   Widget build(BuildContext context) {
     _logger.i('Building HandicapGameSettingsScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ハンディキャップ戦'),
+        title: Text(l10n.handicapSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -45,24 +47,24 @@ class _HandicapGameSettingsScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'ハンディキャップ石を先に盤上に置いた状態で、白番（AI）から対局を始めます。',
+              l10n.handicapIntroMessage,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.washiDim,
               ),
             ),
             const SizedBox(height: 32),
 
-            _buildSectionTitle(context, 'ボードサイズ'),
+            _buildSectionTitle(context, l10n.boardSizeLabel),
             const SizedBox(height: 12),
             _buildBoardSizeSelector(),
             const SizedBox(height: 32),
 
-            _buildSectionTitle(context, '置き石の数'),
+            _buildSectionTitle(context, l10n.handicapStonesCountLabel),
             const SizedBox(height: 12),
-            _buildHandicapSlider(context),
+            _buildHandicapSlider(context, l10n),
             const SizedBox(height: 32),
 
-            _buildStartButton(context),
+            _buildStartButton(context, l10n),
           ],
         ),
       ),
@@ -104,7 +106,7 @@ class _HandicapGameSettingsScreenState
     );
   }
 
-  Widget _buildHandicapSlider(BuildContext context) {
+  Widget _buildHandicapSlider(BuildContext context, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -120,7 +122,7 @@ class _HandicapGameSettingsScreenState
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Center(
             child: Text(
-              '$_handicapStones 子',
+              l10n.stonesCountShortLabel(_handicapStones),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: AppColors.washi,
               ),
@@ -131,7 +133,7 @@ class _HandicapGameSettingsScreenState
     );
   }
 
-  Widget _buildStartButton(BuildContext context) {
+  Widget _buildStartButton(BuildContext context, AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -152,9 +154,9 @@ class _HandicapGameSettingsScreenState
             (route) => route.settings.name == '/home',
           );
         },
-        child: const Text(
-          'ゲーム開始',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        child: Text(
+          l10n.startGameButton,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
