@@ -4,7 +4,9 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/pvp_game.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/stone_feedback.dart';
+import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/views/widgets/index.dart';
 
 final _logger = Logger();
 
@@ -137,16 +139,13 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
   Widget _buildBoard(BuildContext context, PvpGame game, bool isMyTurn) {
     final boardSize = game.boardSize;
     const boardPixelSize = 320.0;
-    final cellSize = boardPixelSize / boardSize;
+    final geometry = GoBoardGeometry(size: boardPixelSize, boardSize: boardSize);
 
     return GestureDetector(
       onTapDown: (details) {
         if (!isMyTurn || _isSubmittingMove) return;
-        final row = (details.localPosition.dy / cellSize).floor();
-        final col = (details.localPosition.dx / cellSize).floor();
-        if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
-          _handleTap(game, row, col);
-        }
+        final nearest = geometry.nearestIntersection(details.localPosition);
+        _handleTap(game, nearest.row, nearest.col);
       },
       child: Container(
         width: boardPixelSize,
@@ -177,17 +176,25 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
         child: Stack(
           children: [
             CustomPaint(
-              painter: _PvpGridPainter(boardSize: boardSize),
+              painter: GoBoardGridPainter(
+                boardSize: boardSize,
+                lineColor: AppColors.sumi,
+                starPointColor: Colors.black54,
+              ),
               size: const Size(boardPixelSize, boardPixelSize),
             ),
-            ..._buildStones(boardSize, cellSize, game.stones),
+            ..._buildStones(geometry, game.stones),
             if (game.lastMoveRow != null && game.lastMoveCol != null)
               Positioned(
-                left: game.lastMoveCol! * cellSize + cellSize / 2 - cellSize * 0.12,
-                top: game.lastMoveRow! * cellSize + cellSize / 2 - cellSize * 0.12,
+                left:
+                    geometry.intersectionOffset(game.lastMoveRow!, game.lastMoveCol!).dx -
+                    geometry.pitch * 0.12,
+                top:
+                    geometry.intersectionOffset(game.lastMoveRow!, game.lastMoveCol!).dy -
+                    geometry.pitch * 0.12,
                 child: Container(
-                  width: cellSize * 0.24,
-                  height: cellSize * 0.24,
+                  width: geometry.pitch * 0.24,
+                  height: geometry.pitch * 0.24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.redAccent, width: 2),
@@ -212,20 +219,21 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
     );
   }
 
-  List<Widget> _buildStones(int boardSize, double cellSize, List<List<int>> stones) {
+  List<Widget> _buildStones(GoBoardGeometry geometry, List<List<int>> stones) {
     final stoneWidgets = <Widget>[];
-    final stoneRadius = cellSize * 0.4;
+    final stoneRadius = geometry.pitch * 0.4;
 
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
+    for (int row = 0; row < geometry.boardSize; row++) {
+      for (int col = 0; col < geometry.boardSize; col++) {
         final stone = stones[row][col];
         if (stone != 0) {
           final isBlack = stone == 1;
           final border = isBlack ? null : Border.all(color: AppColors.washiDim, width: 0.5);
+          final center = geometry.intersectionOffset(row, col);
           stoneWidgets.add(
             Positioned(
-              left: col * cellSize + cellSize / 2 - stoneRadius,
-              top: row * cellSize + cellSize / 2 - stoneRadius,
+              left: center.dx - stoneRadius,
+              top: center.dy - stoneRadius,
               child: Container(
                 width: stoneRadius * 2,
                 height: stoneRadius * 2,
@@ -368,55 +376,8 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
   }
 }
 
-class _PvpGridPainter extends CustomPainter {
-  final int boardSize;
-
-  _PvpGridPainter({required this.boardSize});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.sumi
-      ..strokeWidth = 1;
-
-    final cellSize = size.width / boardSize;
-
-    for (int i = 0; i < boardSize; i++) {
-      final offset = cellSize * i + cellSize / 2;
-      canvas.drawLine(Offset(offset, cellSize / 2), Offset(offset, size.height - cellSize / 2), paint);
-      canvas.drawLine(Offset(cellSize / 2, offset), Offset(size.width - cellSize / 2, offset), paint);
-    }
-
-    // 星（hoshi） - 実際の碁盤に合わせた標準位置
-    final starPositions = switch (boardSize) {
-      9 => const [(2, 2), (2, 6), (4, 4), (6, 2), (6, 6)],
-      13 => const [(3, 3), (3, 9), (6, 6), (9, 3), (9, 9)],
-      19 => const [
-          (3, 3), (3, 9), (3, 15),
-          (9, 3), (9, 9), (9, 15),
-          (15, 3), (15, 9), (15, 15),
-        ],
-      _ => const <(int, int)>[],
-    };
-    if (starPositions.isNotEmpty) {
-      final starPaint = Paint()..color = Colors.black54;
-      for (final (row, col) in starPositions) {
-        canvas.drawCircle(
-          Offset(col * cellSize + cellSize / 2, row * cellSize + cellSize / 2),
-          3,
-          starPaint,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_PvpGridPainter oldDelegate) => oldDelegate.boardSize != boardSize;
-}
-
 /// 捕獲時の演出。ai_game_screen.dartの同名ウィジェットと同じ内容だが、
-/// privateクラスなので共有できず、このファイル内に複製している
-/// （_PvpGridPainter/_GoGridPainterと同じ分割方針）。
+/// privateクラスなので共有できず、このファイル内に複製している。
 class _CaptureFlash extends StatefulWidget {
   final int count;
   final VoidCallback onDone;

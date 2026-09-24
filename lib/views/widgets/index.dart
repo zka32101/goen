@@ -9,3 +9,6 @@ export 'achievement_badge_widget.dart';
 export 'stats_chart_widget.dart';
 export 'leaderboard_rank_card.dart';
 export 'friend_list_widget.dart';
+
+// Go board rendering
+export 'go_board_grid_painter.dart';

@@ -4,7 +4,9 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/sgf_parser.dart';
+import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/views/widgets/index.dart';
 
 final _logger = Logger();
 
@@ -506,14 +508,17 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                   final moves = parseSgfMoves(game.sgfData);
                   final boardSize = parseSgfBoardSize(game.sgfData);
                   final stones = replaySgfMoves(moves, boardSize, moves.length);
-                  final cellSize = 300 / boardSize;
+                  final geometry = GoBoardGeometry(size: 300, boardSize: boardSize);
                   return Stack(
                     children: [
                       CustomPaint(
-                        painter: _GoGridPainter(boardSize: boardSize),
+                        painter: GoBoardGridPainter(
+                          boardSize: boardSize,
+                          starPointColor: null,
+                        ),
                         size: const Size(300, 300),
                       ),
-                      ..._buildFinalStones(boardSize, cellSize, stones),
+                      ..._buildFinalStones(geometry, stones),
                     ],
                   );
                 }),
@@ -574,19 +579,20 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     );
   }
 
-  List<Widget> _buildFinalStones(int boardSize, double cellSize, List<List<int>> stones) {
+  List<Widget> _buildFinalStones(GoBoardGeometry geometry, List<List<int>> stones) {
     final stoneWidgets = <Widget>[];
-    final stoneRadius = cellSize * 0.4;
+    final stoneRadius = geometry.pitch * 0.4;
 
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
+    for (int row = 0; row < geometry.boardSize; row++) {
+      for (int col = 0; col < geometry.boardSize; col++) {
         final stone = stones[row][col];
         if (stone == 0) continue;
         final isBlack = stone == 1;
+        final center = geometry.intersectionOffset(row, col);
         stoneWidgets.add(
           Positioned(
-            left: col * cellSize + cellSize / 2 - stoneRadius,
-            top: row * cellSize + cellSize / 2 - stoneRadius,
+            left: center.dx - stoneRadius,
+            top: center.dy - stoneRadius,
             child: Container(
               width: stoneRadius * 2,
               height: stoneRadius * 2,
@@ -793,42 +799,4 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
       return '${dateOnly.year}/${dateOnly.month}/${dateOnly.day}';
     }
   }
-}
-
-/// Custom painter for Go board grid
-class _GoGridPainter extends CustomPainter {
-  final int boardSize;
-
-  _GoGridPainter({required this.boardSize});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.grey500
-      ..strokeWidth = 1;
-
-    final step = size.width / boardSize;
-
-    // Horizontal lines
-    for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(
-        Offset(0, i * step),
-        Offset(size.width, i * step),
-        paint,
-      );
-    }
-
-    // Vertical lines
-    for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(
-        Offset(i * step, 0),
-        Offset(i * step, size.height),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GoGridPainter oldDelegate) =>
-      oldDelegate.boardSize != boardSize;
 }
