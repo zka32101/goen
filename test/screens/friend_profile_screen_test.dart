@@ -3,6 +3,7 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart';
 import 'package:goen/viewmodels/index.dart';
@@ -37,6 +38,9 @@ Widget _buildApp(ProviderContainer container, Friend friend, {VoidCallback? onIn
         onInvite: onInvite,
       ),
       theme: ThemeData.dark(),
+      locale: const Locale('ja'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     ),
   );
 }
