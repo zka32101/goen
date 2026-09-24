@@ -591,5 +591,28 @@
       "spectate": { "type": "int" },
       "echoes": { "type": "int" }
     }
-  }
+  },
+
+  "reanalyzeTooltip": "棋風を再分析",
+  "noGamesAnalyzedMessage": "まだ対局データがありません。対局を重ねると棋風が分析されます。",
+  "myPlaystyleLabel": "あなたの棋風（{count}局分析）",
+  "@myPlaystyleLabel": { "placeholders": { "count": { "type": "int" } } },
+  "aggressivenessLabel": "攻撃性",
+  "territorialityLabel": "地合い重視度",
+  "sacrificeRateLabel": "捨て石率",
+  "compatibilityWithFriendsTitle": "フレンドとの相性",
+  "addFriendsForCompatibilityMessage": "フレンドを追加すると、棋風の相性がわかります。",
+  "noCompatibilityDataMessage": "相性を計算するデータがまだありません。",
+  "complementaryStyleLabel": "補完し合う棋風 - 学び合える相手",
+  "similarStyleLabel": "似た棋風 - 共感し合える相手",
+  "playstyleReanalyzedMessage": "棋風を再分析しました",
+
+  "noLiveFriendsMessage": "いま対局中のフレンドはいません",
+  "gameTypeSpectatorsLabel": "{gameType} / 観戦者 {count}人",
+  "@gameTypeSpectatorsLabel": {
+    "placeholders": { "gameType": { "type": "String" }, "count": { "type": "int" } }
+  },
+  "watchButton": "観戦する",
+  "spectateFailedMessage": "観戦を開始できませんでした: {error}",
+  "@spectateFailedMessage": { "placeholders": { "error": { "type": "String" } } }
 }

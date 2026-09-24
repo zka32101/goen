@@ -591,5 +591,28 @@
       "spectate": { "type": "int" },
       "echoes": { "type": "int" }
     }
-  }
+  },
+
+  "reanalyzeTooltip": "Reanalyze Playstyle",
+  "noGamesAnalyzedMessage": "No game data yet. Your playstyle will be analyzed as you play more games.",
+  "myPlaystyleLabel": "Your Playstyle ({count} games analyzed)",
+  "@myPlaystyleLabel": { "placeholders": { "count": { "type": "int" } } },
+  "aggressivenessLabel": "Aggressiveness",
+  "territorialityLabel": "Territoriality",
+  "sacrificeRateLabel": "Sacrifice Rate",
+  "compatibilityWithFriendsTitle": "Compatibility with Friends",
+  "addFriendsForCompatibilityMessage": "Add friends to see your playstyle compatibility.",
+  "noCompatibilityDataMessage": "Not enough data to calculate compatibility yet.",
+  "complementaryStyleLabel": "Complementary styles - you can learn from each other",
+  "similarStyleLabel": "Similar styles - you understand each other",
+  "playstyleReanalyzedMessage": "Playstyle reanalyzed",
+
+  "noLiveFriendsMessage": "No friends are currently playing",
+  "gameTypeSpectatorsLabel": "{gameType} / {count} spectators",
+  "@gameTypeSpectatorsLabel": {
+    "placeholders": { "gameType": { "type": "String" }, "count": { "type": "int" } }
+  },
+  "watchButton": "Watch",
+  "spectateFailedMessage": "Could not start spectating: {error}",
+  "@spectateFailedMessage": { "placeholders": { "error": { "type": "String" } } }
 }

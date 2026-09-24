@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -20,13 +21,14 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('縁スコア'),
+        title: Text(l10n.enScoreCardTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: uid == null
@@ -45,14 +47,14 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
               ],
       ),
       body: uid == null
-          ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
+          ? Center(
+              child: Text(l10n.loginRequiredMessage, style: const TextStyle(color: AppColors.washiDim)),
             )
-          : _buildConnectionsList(uid),
+          : _buildConnectionsList(l10n, uid),
     );
   }
 
-  Widget _buildConnectionsList(String uid) {
+  Widget _buildConnectionsList(AppLocalizations l10n, String uid) {
     final connectionsAsync = ref.watch(enConnectionsProvider(uid));
     return connectionsAsync.when(
       data: (connections) {
@@ -61,7 +63,7 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                '右上の更新ボタンで、フレンドとの縁スコアを計算できます',
+                l10n.calculateHintMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.washiDim),
               ),
@@ -113,13 +115,17 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '縁スコア ${c.score} / 100',
+                      l10n.enScoreValueLabel(c.score),
                       style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${c.friendshipDays}日の友情 / 対戦${c.matchesPlayed}回 / '
-                      '共同観戦${c.sharedSpectateSessions}回 / 局面共有${c.sharedPositionEchoes}回',
+                      l10n.friendshipStatsLabel(
+                        c.friendshipDays,
+                        c.matchesPlayed,
+                        c.sharedSpectateSessions,
+                        c.sharedPositionEchoes,
+                      ),
                       style: TextStyle(color: AppColors.washiDim, fontSize: 11),
                     ),
                   ],
@@ -133,7 +139,7 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
       error: (err, _) {
         _logger.e('En connections error: $err');
         return Center(
-          child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)),
+          child: Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent)),
         );
       },
     );
