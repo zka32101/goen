@@ -4,13 +4,19 @@ import 'package:flutter/material.dart';
 /// トランジション。対局画面へ入る「さあ打ちましょう」という節目の演出用。
 Route<T> shojiTransitionRoute<T>(Widget page) {
   return PageRouteBuilder<T>(
-    transitionDuration: const Duration(milliseconds: 500),
+    transitionDuration: const Duration(milliseconds: 1400),
     pageBuilder: (context, animation, secondaryAnimation) => page,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       final curved = CurvedAnimation(parent: animation, curve: Curves.easeInOutCubic);
+      // パネルが開ききる前にページがうっすら透けて見えると
+      // 「開いている最中」の雰囲気が薄れるため、フェードは終盤だけにかける。
+      final fade = CurvedAnimation(
+        parent: animation,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeIn),
+      );
       return Stack(
         children: [
-          FadeTransition(opacity: curved, child: child),
+          FadeTransition(opacity: fade, child: child),
           // 左の障子パネル：左へスライドして退く
           Align(
             alignment: Alignment.centerLeft,

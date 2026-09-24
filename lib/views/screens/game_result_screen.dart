@@ -9,6 +9,7 @@ import 'package:goen/utils/shoji_transition.dart';
 import 'package:goen/utils/sgf_parser.dart';
 import 'ai_game_screen.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -35,6 +36,7 @@ class GameResultScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building GameResultScreen: result=$result');
+    final l10n = AppLocalizations.of(context)!;
 
     // 実績解除トースト: _checkAndRecordAchievements（game_provider.dart、
     // 「対局を保存」タップ後にbest-effortで実行される）が新規解除実績を
@@ -45,15 +47,28 @@ class GameResultScreen extends ConsumerWidget {
       if (next.isEmpty) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
-        _showAchievementUnlockedSnackBar(context, next);
+        _showAchievementUnlockedSnackBar(context, l10n, next);
       });
       ref.read(newlyUnlockedAchievementsProvider.notifier).state = [];
+    });
+
+    // 対局終了時のインタースティシャル広告。何度も再ビルドされる画面
+    // なので、フラグで一度だけに制限する（プレミアム会員には出さない
+    // 判定はshowGameEndInterstitialProvider側で行う）。フラグの読み書き
+    // はbuild中ではなくpostFrameCallback内で行う（Riverpodはbuild中の
+    // プロバイダー変更を許可しないため）。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!ref.read(hasShownGameEndAdProvider)) {
+        ref.read(hasShownGameEndAdProvider.notifier).state = true;
+        ref.read(showGameEndInterstitialProvider)();
+      }
     });
 
     final boardState = ref.watch(gameBoardStateProvider);
     final aiLevel = ref.watch(aiLevelProvider);
     final movesCount = ref.watch(movesCountProvider);
     final currentUser = ref.watch(currentUserProvider);
+    final savedGameId = ref.watch(currentGameSavedIdProvider);
 
     // Determine winner
     final winner = _determineWinner(
@@ -62,26 +77,47 @@ class GameResultScreen extends ConsumerWidget {
       whiteScore ?? 0,
     );
 
-    // Prepare game share data
-    final gameShareData = GameShareData(
-      gameId: '${DateTime.now().millisecondsSinceEpoch}',
-      result: winner == 'player' ? 'win' : winner == 'ai' ? 'loss' : 'draw',
-      blackScore: blackScore ?? 0,
-      whiteScore: whiteScore ?? 0,
-      boardSize: boardState.boardSize,
-      aiLevel: aiLevel,
-    );
-
-    return Scaffold(
-      backgroundColor: AppColors.sumi,
-      floatingActionButton: GameShareButton(
+    // 保存済みの実際のgame IDが無いと、共有した相手が開くdeepLinkが
+    // 存在しない対局を指してしまう(過去のバグ)。未保存の間はシェア
+    // ボタンをタップすると先に保存してから共有ダイアログを出す。
+    Widget shareFab;
+    if (savedGameId != null) {
+      final gameShareData = GameShareData(
+        gameId: savedGameId,
+        result: winner == 'player' ? 'win' : winner == 'ai' ? 'loss' : 'draw',
+        blackScore: blackScore ?? 0,
+        whiteScore: whiteScore ?? 0,
+        boardSize: boardState.boardSize,
+        aiLevel: aiLevel,
+      );
+      shareFab = GameShareButton(
         gameData: gameShareData,
         onShared: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Game shared successfully!')),
+            SnackBar(content: Text(l10n.gameSharedSuccessMessage)),
           );
         },
-      ),
+      );
+    } else {
+      shareFab = FloatingActionButton.extended(
+        onPressed: () async {
+          await _handleSaveGame(context, ref, l10n, currentUser);
+          if (!context.mounted) return;
+          if (ref.read(currentGameSavedIdProvider) != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.savedPromptShareAgainMessage)),
+            );
+          }
+        },
+        icon: const Icon(Icons.share),
+        label: Text(l10n.shareButton),
+        backgroundColor: AppColors.kin,
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.sumi,
+      floatingActionButton: shareFab,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Column(
@@ -132,7 +168,7 @@ class GameResultScreen extends ConsumerWidget {
 
                     // Result text
                     Text(
-                      _getResultTitle(winner),
+                      _getResultTitle(l10n, winner),
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: AppColors.washi,
                         fontWeight: FontWeight.bold,
@@ -142,7 +178,7 @@ class GameResultScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
 
                     Text(
-                      _getResultSubtitle(result),
+                      _getResultSubtitle(l10n, result),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColors.washiDim,
                       ),
@@ -158,6 +194,7 @@ class GameResultScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: _buildScoreSection(
                     context,
+                    l10n,
                     blackScore ?? 0,
                     whiteScore ?? 0,
                   ),
@@ -173,7 +210,7 @@ class GameResultScreen extends ConsumerWidget {
                       color: AppColors.washi.withOpacity(0.03),
                     ),
                     child: Text(
-                      'Game resigned. No final score calculated.',
+                      l10n.gameResignedMessage,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.washiDim,
                       ),
@@ -189,6 +226,7 @@ class GameResultScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: _buildStatsSection(
                   context,
+                  l10n,
                   boardSize: boardState.boardSize,
                   aiLevel: aiLevel,
                   movesCount: movesCount,
@@ -222,8 +260,8 @@ class GameResultScreen extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => _handleSaveGame(context, ref, currentUser),
-                        child: const Text('Save Game'),
+                        onPressed: () => _handleSaveGame(context, ref, l10n, currentUser),
+                        child: Text(l10n.saveGameButton),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -235,7 +273,7 @@ class GameResultScreen extends ConsumerWidget {
                           backgroundColor: AppColors.kin,
                         ),
                         child: Text(
-                          'Play Again',
+                          l10n.playAgainButton,
                           style: TextStyle(
                             color: AppColors.sumi,
                             fontWeight: FontWeight.bold,
@@ -248,7 +286,7 @@ class GameResultScreen extends ConsumerWidget {
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: () => _handleBackToHome(context),
-                        child: const Text('Back to Home'),
+                        child: Text(l10n.backToHomeButton),
                       ),
                     ),
                   ],
@@ -274,6 +312,7 @@ class GameResultScreen extends ConsumerWidget {
   /// Score section showing final positions
   Widget _buildScoreSection(
     BuildContext context,
+    AppLocalizations l10n,
     double blackScore,
     double whiteScore,
   ) {
@@ -289,7 +328,7 @@ class GameResultScreen extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            'Final Score (Chinese Rules)',
+            l10n.finalScoreTitle,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -313,7 +352,7 @@ class GameResultScreen extends ConsumerWidget {
                     ),
                     child: Center(
                       child: Text(
-                        'Black\n(You)',
+                        l10n.blackYouLabel,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.washi,
@@ -356,7 +395,7 @@ class GameResultScreen extends ConsumerWidget {
                     ),
                     child: Center(
                       child: Text(
-                        'White\n(AI)',
+                        l10n.whiteAiLabel,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.sumi,
@@ -383,7 +422,8 @@ class GameResultScreen extends ConsumerWidget {
 
   /// Stats section
   Widget _buildStatsSection(
-    BuildContext context, {
+    BuildContext context,
+    AppLocalizations l10n, {
     required int boardSize,
     required int aiLevel,
     required int movesCount,
@@ -398,7 +438,7 @@ class GameResultScreen extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            'Game Stats',
+            l10n.gameStatsTitle,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: AppColors.washi,
             ),
@@ -407,9 +447,9 @@ class GameResultScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(context, 'Board', '${boardSize}×$boardSize'),
-              _buildStatItem(context, 'AI Level', '$aiLevel'),
-              _buildStatItem(context, 'Moves', '$movesCount'),
+              _buildStatItem(context, l10n.boardLabel, '${boardSize}×$boardSize'),
+              _buildStatItem(context, l10n.aiLevelLabel, '$aiLevel'),
+              _buildStatItem(context, l10n.movesLabel, '$movesCount'),
             ],
           ),
         ],
@@ -439,25 +479,25 @@ class GameResultScreen extends ConsumerWidget {
     );
   }
 
-  String _getResultTitle(String? winner) {
+  String _getResultTitle(AppLocalizations l10n, String? winner) {
     switch (winner) {
       case 'player':
-        return 'Victory!';
+        return l10n.gameResultVictoryTitle;
       case 'ai':
-        return 'Defeat';
+        return l10n.gameResultDefeatTitle;
       default:
-        return 'Game Over';
+        return l10n.gameResultGameOverTitle;
     }
   }
 
-  String _getResultSubtitle(String result) {
+  String _getResultSubtitle(AppLocalizations l10n, String result) {
     switch (result) {
       case 'resign':
-        return 'You resigned the game';
+        return l10n.gameResultResignSubtitle;
       case 'draw':
-        return 'The game ended in a draw';
+        return l10n.gameResultDrawSubtitle;
       default:
-        return 'The game has ended';
+        return l10n.gameResultDefaultSubtitle;
     }
   }
 
@@ -471,11 +511,12 @@ class GameResultScreen extends ConsumerWidget {
   Future<void> _handleSaveGame(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     User? currentUser,
   ) async {
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please log in to save games')),
+        SnackBar(content: Text(l10n.pleaseLoginToSaveMessage)),
       );
       return;
     }
@@ -492,16 +533,17 @@ class GameResultScreen extends ConsumerWidget {
         whiteScore: whiteScore,
       );
       _logger.i('✅ Game saved: $gameId');
+      ref.read(currentGameSavedIdProvider.notifier).state = gameId;
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Game saved!')),
+        SnackBar(content: Text(l10n.gameSavedMessage)),
       );
     } catch (e) {
       _logger.e('❌ Failed to save game: $e');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save game: $e')),
+        SnackBar(content: Text(l10n.failedToSaveGameMessage('$e'))),
       );
     }
   }
@@ -520,7 +562,11 @@ class GameResultScreen extends ConsumerWidget {
     Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
   }
 
-  void _showAchievementUnlockedSnackBar(BuildContext context, List<Achievement> unlocked) {
+  void _showAchievementUnlockedSnackBar(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<Achievement> unlocked,
+  ) {
     for (final achievement in unlocked) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -535,9 +581,9 @@ class GameResultScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      '実績解除！',
-                      style: TextStyle(color: AppColors.kin, fontWeight: FontWeight.bold, fontSize: 12),
+                    Text(
+                      l10n.achievementUnlockedLabel,
+                      style: const TextStyle(color: AppColors.kin, fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                     Text(
                       achievement.name,
@@ -585,7 +631,8 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
       setState(() => _analysis = analysis);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = 'AI振り返りの生成に失敗しました: $e');
+      final l10n = AppLocalizations.of(context)!;
+      setState(() => _error = l10n.aiReviewFailedMessage('$e'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -593,6 +640,7 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -604,7 +652,7 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'AI振り返り',
+            l10n.aiReviewTitle,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppColors.washi),
           ),
           const SizedBox(height: 12),
@@ -613,7 +661,7 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'AIが対局を振り返り、良かった手・改善点を解説します。',
+                  l10n.aiReviewPrompt,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.washiDim,
                         height: 1.6,
@@ -624,7 +672,7 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
                   width: double.infinity,
                   child: OutlinedButton(
                     onPressed: _runReview,
-                    child: const Text('AIで振り返る'),
+                    child: Text(l10n.aiReviewButton),
                   ),
                 ),
               ],
@@ -636,13 +684,13 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
             ),
           if (_error != null)
             Text(_error!, style: const TextStyle(color: Colors.redAccent)),
-          if (_analysis != null) _buildAnalysis(context, _analysis!),
+          if (_analysis != null) _buildAnalysis(context, l10n, _analysis!),
         ],
       ),
     );
   }
 
-  Widget _buildAnalysis(BuildContext context, GameAnalysis analysis) {
+  Widget _buildAnalysis(BuildContext context, AppLocalizations l10n, GameAnalysis analysis) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -652,7 +700,7 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
         ),
         const SizedBox(height: 8),
         Text(
-          '転換点: ${analysis.keyTurningPoints}',
+          l10n.turningPointLabel(analysis.keyTurningPoints),
           style: TextStyle(color: AppColors.washiDim, height: 1.6),
         ),
         const SizedBox(height: 8),
@@ -665,8 +713,13 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
-              '${move.moveNumber}手目 (${move.playerColor == 'black' ? '黒' : '白'} '
-              '[${move.row},${move.col}]): ${move.basicExplanation}',
+              l10n.moveExplanationLine(
+                move.moveNumber,
+                move.playerColor == 'black' ? l10n.colorBlackLabel : l10n.colorWhiteLabel,
+                move.row,
+                move.col,
+                move.basicExplanation,
+              ),
               style: TextStyle(color: AppColors.washiDim, fontSize: 13),
             ),
           ),

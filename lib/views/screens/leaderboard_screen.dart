@@ -5,6 +5,7 @@ import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import '../../utils/go_rank.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -14,13 +15,14 @@ class LeaderboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final period = ref.watch(leaderboardPeriodProvider);
     final type = ref.watch(leaderboardTypeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('リーダーボード'),
+        title: Text(l10n.leaderboardTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
@@ -29,7 +31,7 @@ class LeaderboardScreen extends ConsumerWidget {
           _buildPeriodSelector(ref, period),
           _buildTypeSelector(ref, type),
           Expanded(
-            child: _buildLeaderboardList(ref, period, type),
+            child: _buildLeaderboardList(ref, l10n, period, type),
           ),
         ],
       ),
@@ -94,6 +96,7 @@ class LeaderboardScreen extends ConsumerWidget {
 
   Widget _buildLeaderboardList(
     WidgetRef ref,
+    AppLocalizations l10n,
     LeaderboardPeriod period,
     LeaderboardType type,
   ) {
@@ -106,7 +109,7 @@ class LeaderboardScreen extends ConsumerWidget {
         if (entries.isEmpty) {
           return Center(
             child: Text(
-              'ランキングデータはまだありません',
+              l10n.noLeaderboardDataMessage,
               style: TextStyle(color: AppColors.washiDim),
             ),
           );
@@ -118,19 +121,19 @@ class LeaderboardScreen extends ConsumerWidget {
           itemCount: entries.length,
           itemBuilder: (context, index) {
             final entry = entries[index];
-            return _buildRankCard(entry);
+            return _buildRankCard(l10n, entry);
           },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, stack) {
         _logger.e('Leaderboard error: $err');
-        return Center(child: Text('エラー: $err'));
+        return Center(child: Text(l10n.errorPrefix('$err')));
       },
     );
   }
 
-  Widget _buildRankCard(LeaderboardEntry entry) {
+  Widget _buildRankCard(AppLocalizations l10n, LeaderboardEntry entry) {
     final medalColor = _getMedalColor(entry.rank);
     final medalEmoji = _getMedalEmoji(entry.rank);
 
@@ -159,7 +162,7 @@ class LeaderboardScreen extends ConsumerWidget {
           ),
         ),
         subtitle: Text(
-          'レート: ${entry.rating} (${formatGoRank(entry.rating)}) | ${entry.gamesPlayed}試合 (勝: ${entry.wins})',
+          l10n.leaderboardEntrySubtitle(entry.rating, formatGoRank(entry.rating), entry.gamesPlayed, entry.wins),
           style: TextStyle(color: AppColors.washiDim, fontSize: 12),
         ),
         trailing: Column(
@@ -167,14 +170,14 @@ class LeaderboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              '${entry.rank}位',
+              l10n.rankPositionLabel(entry.rank),
               style: TextStyle(
                 color: AppColors.kin,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              '勝率: ${(entry.winRate * 100).toStringAsFixed(1)}%',
+              l10n.winRateLabel((entry.winRate * 100).toStringAsFixed(1)),
               style: TextStyle(color: AppColors.washiDim, fontSize: 11),
             ),
           ],

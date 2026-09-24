@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/views/screens/handicap_game_settings_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 
@@ -12,13 +13,16 @@ void main() {
           child: MaterialApp(
             home: const HandicapGameSettingsScreen(),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
       await tester.pump();
 
       expect(find.text('ハンディキャップ戦'), findsOneWidget);
-      expect(find.text('ボードサイズ'), findsOneWidget);
+      expect(find.text('碁盤サイズ'), findsOneWidget);
       expect(find.text('置き石の数'), findsOneWidget);
     });
 
@@ -28,6 +32,9 @@ void main() {
           child: MaterialApp(
             home: const HandicapGameSettingsScreen(),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -44,6 +51,9 @@ void main() {
           child: MaterialApp(
             home: const HandicapGameSettingsScreen(),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -58,6 +68,9 @@ void main() {
           child: MaterialApp(
             home: const HandicapGameSettingsScreen(),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -76,6 +89,9 @@ void main() {
           child: MaterialApp(
             home: const HandicapGameSettingsScreen(),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -96,6 +112,9 @@ void main() {
           child: MaterialApp(
             home: const HandicapGameSettingsScreen(),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             routes: {
               '/ai-game': (_) => const Scaffold(body: Text('ai-game-stub')),
             },
@@ -127,6 +146,9 @@ void main() {
           child: MaterialApp(
             home: const HandicapGameSettingsScreen(),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );

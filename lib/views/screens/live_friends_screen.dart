@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'spectator_view_screen.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -13,13 +14,14 @@ class LiveFriendsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('いま対局中のフレンド'),
+        title: Text(l10n.liveFriendsCardTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: uid == null
@@ -32,21 +34,21 @@ class LiveFriendsScreen extends ConsumerWidget {
               ],
       ),
       body: uid == null
-          ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
+          ? Center(
+              child: Text(l10n.loginRequiredMessage, style: const TextStyle(color: AppColors.washiDim)),
             )
-          : _buildActivityList(context, ref, uid),
+          : _buildActivityList(context, l10n, ref, uid),
     );
   }
 
-  Widget _buildActivityList(BuildContext context, WidgetRef ref, String uid) {
+  Widget _buildActivityList(BuildContext context, AppLocalizations l10n, WidgetRef ref, String uid) {
     final activitiesAsync = ref.watch(liveFriendActivitiesProvider(uid));
     return activitiesAsync.when(
       data: (activities) {
         if (activities.isEmpty) {
           return Center(
             child: Text(
-              'いま対局中のフレンドはいません',
+              l10n.noLiveFriendsMessage,
               style: TextStyle(color: AppColors.washiDim),
             ),
           );
@@ -66,13 +68,13 @@ class LiveFriendsScreen extends ConsumerWidget {
                 ),
                 title: Text(activity.hostDisplayName, style: const TextStyle(color: AppColors.washi)),
                 subtitle: Text(
-                  '${activity.gameType} / 観戦者 ${activity.spectatorCount}人',
+                  l10n.gameTypeSpectatorsLabel(activity.gameType, activity.spectatorCount),
                   style: TextStyle(color: AppColors.washiDim),
                 ),
                 trailing: ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.shuLight),
-                  onPressed: () => _joinSpectate(context, ref, uid, activity.sessionId),
-                  child: const Text('観戦する', style: TextStyle(color: AppColors.washi)),
+                  onPressed: () => _joinSpectate(context, l10n, ref, uid, activity.sessionId),
+                  child: Text(l10n.watchButton, style: const TextStyle(color: AppColors.washi)),
                 ),
               ),
             );
@@ -83,7 +85,7 @@ class LiveFriendsScreen extends ConsumerWidget {
       error: (err, _) {
         _logger.e('Live friend activities error: $err');
         return Center(
-          child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)),
+          child: Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent)),
         );
       },
     );
@@ -91,6 +93,7 @@ class LiveFriendsScreen extends ConsumerWidget {
 
   Future<void> _joinSpectate(
     BuildContext context,
+    AppLocalizations l10n,
     WidgetRef ref,
     String uid,
     String sessionId,
@@ -106,7 +109,7 @@ class LiveFriendsScreen extends ConsumerWidget {
       _logger.e('Error joining spectate session: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('観戦を開始できませんでした: $e')),
+          SnackBar(content: Text(l10n.spectateFailedMessage('$e'))),
         );
       }
     }

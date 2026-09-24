@@ -354,8 +354,8 @@ void main() {
 
       // Check for descriptive button labels (real card title/tooltip -
       // this screen has no button literally labeled "Play")
-      expect(find.text('Play AI Game'), findsWidgets);
-      expect(find.byTooltip('Settings'), findsWidgets);
+      expect(find.text('AI対局'), findsWidgets);
+      expect(find.byTooltip('設定'), findsWidgets);
 
       print('✓ Button labels are descriptive');
     });

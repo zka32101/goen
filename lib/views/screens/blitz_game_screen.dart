@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -72,8 +73,9 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
   }
 
   void _handleGameTimeout() {
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('時間切れです')),
+      SnackBar(content: Text(l10n.timeExpiredMessage)),
     );
     if (Navigator.canPop(context)) {
       Navigator.of(context).pop();
@@ -89,6 +91,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
   @override
   Widget build(BuildContext context) {
     _logger.i('Building BlitzGameScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     final gameAsync = ref.watch(
       startBlitzGameProvider(
@@ -106,7 +109,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('Blitz ゲーム'),
+        title: Text(l10n.blitzGameTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -116,9 +119,10 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
         ),
       ),
       body: gameAsync.when(
-        data: (game) => _buildGameBoard(context, ref, game),
-        loading: () => _buildLoadingState(context),
-        error: (error, stackTrace) => _buildErrorState(context, error.toString()),
+        data: (game) => _buildGameBoard(context, ref, l10n, game),
+        loading: () => _buildLoadingState(context, l10n),
+        error: (error, stackTrace) =>
+            _buildErrorState(context, l10n, error.toString()),
       ),
     );
   }
@@ -126,6 +130,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
   Widget _buildGameBoard(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     BlitzGameRecord game,
   ) {
     return SingleChildScrollView(
@@ -141,7 +146,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                 Column(
                   children: [
                     Text(
-                      '残り時間',
+                      l10n.timeRemainingLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.washiDim,
                       ),
@@ -160,7 +165,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                 Column(
                   children: [
                     Text(
-                      'AIレベル',
+                      l10n.aiLevelLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.washiDim,
                       ),
@@ -177,7 +182,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                 Column(
                   children: [
                     Text(
-                      'ボードサイズ',
+                      l10n.boardSizeLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.washiDim,
                       ),
@@ -206,7 +211,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'ゲーム終了: ${game.result}',
+                l10n.gameEndedResultLabel(game.result),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.washi,
                   fontWeight: FontWeight.bold,
@@ -222,7 +227,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '着手履歴',
+                  l10n.moveHistoryLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: AppColors.washi,
                   ),
@@ -237,7 +242,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                   ),
                   child: game.moveHistory.isEmpty
                       ? Text(
-                          'まだ手はありません',
+                          l10n.noMovesYetMessage,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.washiDim,
                           ),
@@ -271,9 +276,9 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => _handleAddMove(context, ref, game),
+                  onPressed: () => _handleAddMove(context, ref, l10n, game),
                   icon: const Icon(Icons.touch_app),
-                  label: const Text('着手を提出'),
+                  label: Text(l10n.submitMoveButton),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor: Colors.blue.shade600,
@@ -281,9 +286,9 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
-                  onPressed: () => _handleEndGame(context, ref, game),
+                  onPressed: () => _handleEndGame(context, ref, l10n, game),
                   icon: const Icon(Icons.stop_circle),
-                  label: const Text('ゲーム終了'),
+                  label: Text(l10n.endGameButton),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor: Colors.red.shade600,
@@ -301,6 +306,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
   void _handleAddMove(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     BlitzGameRecord game,
   ) async {
     _logger.i('Adding move to Blitz game: ${game.id}');
@@ -321,13 +327,13 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
 
       _logger.i('Move added successfully');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('着手 $move を記録しました')),
+        SnackBar(content: Text(l10n.moveRecordedMessage(move))),
       );
     } catch (e) {
       _logger.e('Error adding move: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('エラー: ${e.toString()}'),
+          content: Text(l10n.errorPrefix(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -337,6 +343,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
   void _handleEndGame(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     BlitzGameRecord game,
   ) async {
     _logger.i('Ending Blitz game: ${game.id}');
@@ -360,7 +367,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
       _logger.i('Game ended successfully');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ゲームを終了しました')),
+          SnackBar(content: Text(l10n.gameEndedMessage)),
         );
         Navigator.of(context).pop();
       }
@@ -368,14 +375,14 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
       _logger.e('Error ending game: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('エラー: ${e.toString()}'),
+          content: Text(l10n.errorPrefix(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  Widget _buildLoadingState(BuildContext context) {
+  Widget _buildLoadingState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -383,7 +390,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
           Text(
-            'ゲームを準備中...',
+            l10n.preparingGameMessage,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -393,7 +400,11 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, String error) {
+  Widget _buildErrorState(
+    BuildContext context,
+    AppLocalizations l10n,
+    String error,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -401,7 +412,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
           Icon(Icons.error_outline, color: Colors.red.shade600, size: 48),
           const SizedBox(height: 16),
           Text(
-            'エラーが発生しました',
+            l10n.genericErrorMessage,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: AppColors.washi,
             ),
@@ -417,7 +428,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('戻る'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),

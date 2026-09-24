@@ -121,7 +121,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('ボードサイズ'), findsWidgets);
+      expect(find.text('碁盤サイズ'), findsWidgets);
       expect(find.text('AIレベル'), findsWidgets);
     });
 

@@ -5,6 +5,7 @@ import 'package:goen/models/tournament.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'pvp_game_screen.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -24,6 +25,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
     final matchesAsync = ref.watch(
@@ -38,11 +40,11 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
         elevation: 0,
       ),
       body: matchesAsync.when(
-        data: (matches) => _buildContent(context, matches, uid, currentUser?.displayName),
+        data: (matches) => _buildContent(context, l10n, matches, uid, currentUser?.displayName),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) {
           _logger.e('Tournament matches error: $err');
-          return Center(child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)));
+          return Center(child: Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent)));
         },
       ),
     );
@@ -50,6 +52,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
 
   Widget _buildContent(
     BuildContext context,
+    AppLocalizations l10n,
     List<TournamentMatch> matches,
     String? uid,
     String? myDisplayName,
@@ -62,14 +65,14 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'まだブラケットは作成されていません',
+                l10n.bracketNotCreatedMessage,
                 style: TextStyle(color: AppColors.washiDim),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               if (widget.tournament.participantUids.length >= 2)
                 ElevatedButton(
-                  onPressed: _isStarting ? null : () => _startTournament(context),
+                  onPressed: _isStarting ? null : () => _startTournament(context, l10n),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
                   child: _isStarting
                       ? const SizedBox(
@@ -77,11 +80,11 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('トーナメントを開始する', style: TextStyle(color: AppColors.sumi)),
+                      : Text(l10n.startTournamentButton, style: const TextStyle(color: AppColors.sumi)),
                 )
               else
                 Text(
-                  '開始には最低2人の参加者が必要です',
+                  l10n.needTwoParticipantsMessage,
                   style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                 ),
             ],
@@ -92,7 +95,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
 
     if (matches.isEmpty) {
       return Center(
-        child: Text('試合データがありません', style: TextStyle(color: AppColors.washiDim)),
+        child: Text(l10n.noMatchDataMessage, style: TextStyle(color: AppColors.washiDim)),
       );
     }
 
@@ -111,29 +114,33 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (widget.tournament.isCompleted) _buildChampionBanner(matches),
+        if (widget.tournament.isCompleted) _buildChampionBanner(l10n, matches),
         if (showsStandings) ...[
-          _buildStandingsSection(),
+          _buildStandingsSection(l10n),
           const SizedBox(height: 20),
         ],
         for (final round in rounds) ...[
           Text(
             isRoundRobin
-                ? '第$round節'
+                ? l10n.roundRobinRoundLabel(round)
                 : isSwiss
-                    ? '第$round回戦${widget.tournament.totalRounds > 0 ? " / 全${widget.tournament.totalRounds}回戦" : ""}'
-                    : (round == rounds.last && widget.tournament.isCompleted ? '決勝' : '第$round回戦'),
+                    ? (widget.tournament.totalRounds > 0
+                        ? l10n.swissRoundOfTotalLabel(round, widget.tournament.totalRounds)
+                        : l10n.swissRoundLabel(round))
+                    : (round == rounds.last && widget.tournament.isCompleted
+                        ? l10n.finalRoundLabel
+                        : l10n.swissRoundLabel(round)),
             style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
-          ...byRound[round]!.map((match) => _buildMatchCard(context, match, uid, myDisplayName)),
+          ...byRound[round]!.map((match) => _buildMatchCard(context, l10n, match, uid, myDisplayName)),
           const SizedBox(height: 20),
         ],
       ],
     );
   }
 
-  Widget _buildStandingsSection() {
+  Widget _buildStandingsSection(AppLocalizations l10n) {
     final standingsAsync = ref.watch(tournamentStandingsProvider(widget.tournament.id));
     return standingsAsync.when(
       data: (standings) {
@@ -147,12 +154,12 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '順位表',
-                style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
+              Text(
+                l10n.standingsTitle,
+                style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 8),
-              for (var i = 0; i < standings.length; i++) _buildStandingRow(i + 1, standings[i]),
+              for (var i = 0; i < standings.length; i++) _buildStandingRow(l10n, i + 1, standings[i]),
             ],
           ),
         );
@@ -160,12 +167,12 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) {
         _logger.e('Standings error: $err');
-        return Text('順位表の取得に失敗しました', style: TextStyle(color: AppColors.washiDim));
+        return Text(l10n.standingsFetchFailedMessage, style: TextStyle(color: AppColors.washiDim));
       },
     );
   }
 
-  Widget _buildStandingRow(int rank, TournamentStandingEntry entry) {
+  Widget _buildStandingRow(AppLocalizations l10n, int rank, TournamentStandingEntry entry) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -184,7 +191,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
             child: Text(entry.displayName, style: const TextStyle(color: AppColors.washi)),
           ),
           Text(
-            '${entry.wins}勝${entry.losses}敗',
+            l10n.winsLossesLabel(entry.wins, entry.losses),
             style: TextStyle(color: AppColors.washiDim, fontSize: 12),
           ),
         ],
@@ -192,7 +199,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
     );
   }
 
-  Widget _buildChampionBanner(List<TournamentMatch> matches) {
+  Widget _buildChampionBanner(AppLocalizations l10n, List<TournamentMatch> matches) {
     final winnerId = widget.tournament.winnerId;
     final championName = winnerId == null ? null : _resolveDisplayName(matches, winnerId);
 
@@ -210,7 +217,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              championName != null ? '優勝: $championName' : 'トーナメント終了',
+              championName != null ? l10n.championLabel(championName) : l10n.tournamentEndedLabel,
               style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
             ),
           ),
@@ -234,6 +241,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
 
   Widget _buildMatchCard(
     BuildContext context,
+    AppLocalizations l10n,
     TournamentMatch match,
     String? uid,
     String? myDisplayName,
@@ -255,10 +263,11 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
           children: [
             Row(
               children: [
-                Expanded(child: _buildPlayerLabel(match.player1Uid, match.player1DisplayName, match.winnerUid)),
+                Expanded(child: _buildPlayerLabel(l10n, match.player1Uid, match.player1DisplayName, match.winnerUid)),
                 Text(match.isBye ? 'BYE' : 'vs', style: TextStyle(color: AppColors.washiDim)),
                 Expanded(
                   child: _buildPlayerLabel(
+                    l10n,
                     match.player2Uid,
                     match.player2DisplayName,
                     match.winnerUid,
@@ -274,8 +283,8 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
                 child: OutlinedButton(
                   onPressed: match.gameId != null
                       ? () => _openGame(context, match.gameId!, uid!)
-                      : (_isCreatingGame ? null : () => _startMatch(context, match, uid!, myDisplayName!)),
-                  child: Text(match.gameId != null ? '対局を見る' : '対局を開始する'),
+                      : (_isCreatingGame ? null : () => _startMatch(context, l10n, match, uid!, myDisplayName!)),
+                  child: Text(match.gameId != null ? l10n.watchGameButton : l10n.startGameButton),
                 ),
               ),
             ],
@@ -286,6 +295,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
   }
 
   Widget _buildPlayerLabel(
+    AppLocalizations l10n,
     String? uid,
     String? displayName,
     String? winnerUid, {
@@ -293,7 +303,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
   }) {
     if (uid == null) {
       return Text(
-        '(不戦勝待ち)',
+        l10n.byeWaitingLabel,
         textAlign: alignEnd ? TextAlign.end : TextAlign.start,
         style: TextStyle(color: AppColors.washiDim, fontStyle: FontStyle.italic),
       );
@@ -309,7 +319,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
     );
   }
 
-  Future<void> _startTournament(BuildContext context) async {
+  Future<void> _startTournament(BuildContext context, AppLocalizations l10n) async {
     setState(() => _isStarting = true);
     try {
       await ref.read(startTournamentProvider)(widget.tournament.id);
@@ -317,14 +327,14 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
       ref.invalidate(activeTournamentsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('トーナメントを開始しました')),
+          SnackBar(content: Text(l10n.tournamentStartedMessage)),
         );
       }
     } catch (e) {
       _logger.e('Error starting tournament: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('開始できませんでした: $e')),
+          SnackBar(content: Text(l10n.tournamentStartFailedMessage('$e'))),
         );
       }
     } finally {
@@ -334,6 +344,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
 
   Future<void> _startMatch(
     BuildContext context,
+    AppLocalizations l10n,
     TournamentMatch match,
     String uid,
     String myDisplayName,
@@ -369,7 +380,7 @@ class _TournamentBracketScreenState extends ConsumerState<TournamentBracketScree
       _logger.e('Error starting tournament match: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('対局を開始できませんでした: $e')),
+          SnackBar(content: Text(l10n.gameStartFailedMessage('$e'))),
         );
       }
     } finally {

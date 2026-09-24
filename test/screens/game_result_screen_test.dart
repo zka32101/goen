@@ -38,7 +38,7 @@ void main() {
       expect(find.byType(Scaffold), findsWidgets);
 
       // Verify victory message shown
-      expect(find.text('Victory!'), findsWidgets);
+      expect(find.text('勝利！'), findsWidgets);
     });
 
     testWidgets('displays result title for different outcomes',
@@ -55,7 +55,7 @@ void main() {
       );
 
       // Verify defeat title for loss
-      expect(find.text('Defeat'), findsWidgets);
+      expect(find.text('敗北'), findsWidgets);
     });
 
     testWidgets('shows final score with Chinese rules', (WidgetTester tester) async {
@@ -71,7 +71,7 @@ void main() {
       );
 
       // Verify score display
-      expect(find.text('Final Score (Chinese Rules)'), findsWidgets);
+      expect(find.text('最終スコア（中国ルール）'), findsWidgets);
       expect(find.text('45.5'), findsWidgets);
       expect(find.text('38.0'), findsWidgets);
     });
@@ -89,8 +89,8 @@ void main() {
       );
 
       // Verify player and AI labels
-      expect(find.text('Black\n(You)'), findsWidgets);
-      expect(find.text('White\n(AI)'), findsWidgets);
+      expect(find.text('黒\n(あなた)'), findsWidgets);
+      expect(find.text('白\n(AI)'), findsWidgets);
     });
 
     testWidgets('shows game stats section', (WidgetTester tester) async {
@@ -106,10 +106,10 @@ void main() {
       );
 
       // Verify stats section
-      expect(find.text('Game Stats'), findsWidgets);
-      expect(find.text('Board'), findsWidgets);
-      expect(find.text('AI Level'), findsWidgets);
-      expect(find.text('Moves'), findsWidgets);
+      expect(find.text('対局統計'), findsWidgets);
+      expect(find.text('碁盤'), findsWidgets);
+      expect(find.text('AIレベル'), findsWidgets);
+      expect(find.text('手数'), findsWidgets);
     });
 
     testWidgets('displays board size in stats', (WidgetTester tester) async {
@@ -176,9 +176,9 @@ void main() {
       );
 
       // Verify action buttons
-      expect(find.text('Save Game'), findsWidgets);
-      expect(find.text('Play Again'), findsWidgets);
-      expect(find.text('Back to Home'), findsWidgets);
+      expect(find.text('対局を保存'), findsWidgets);
+      expect(find.text('もう一度対局'), findsWidgets);
+      expect(find.text('ホームに戻る'), findsWidgets);
     });
 
     testWidgets('shows golden "Play Again" button', (WidgetTester tester) async {
@@ -194,7 +194,7 @@ void main() {
       );
 
       // Play Again button should exist
-      expect(find.text('Play Again'), findsWidgets);
+      expect(find.text('もう一度対局'), findsWidgets);
     });
 
     testWidgets('displays resignation message when result is resign',
@@ -211,7 +211,7 @@ void main() {
       );
 
       // Verify resignation message
-      expect(find.text('Game resigned. No final score calculated.'), findsWidgets);
+      expect(find.text('投了しました。最終スコアは計算されません。'), findsWidgets);
     });
 
     testWidgets('shows draw outcome message', (WidgetTester tester) async {
@@ -227,7 +227,7 @@ void main() {
       );
 
       // Verify draw title
-      expect(find.text('Game Over'), findsWidgets);
+      expect(find.text('対局終了'), findsWidgets);
     });
 
     testWidgets('dark theme styling applied', (WidgetTester tester) async {
@@ -281,7 +281,7 @@ void main() {
       );
 
       // Save button still exists but shows message when tapped
-      expect(find.text('Save Game'), findsWidgets);
+      expect(find.text('対局を保存'), findsWidgets);
     });
 
     testWidgets('displays score breakdown for loss', (WidgetTester tester) async {

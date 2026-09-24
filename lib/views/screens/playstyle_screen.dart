@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -13,13 +14,14 @@ class PlaystyleScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('棋風の相性'),
+        title: Text(l10n.playstyleCardTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: uid == null
@@ -27,43 +29,43 @@ class PlaystyleScreen extends ConsumerWidget {
             : [
                 IconButton(
                   icon: const Icon(Icons.refresh),
-                  tooltip: '棋風を再分析',
-                  onPressed: () => _recompute(context, ref, uid),
+                  tooltip: l10n.reanalyzeTooltip,
+                  onPressed: () => _recompute(context, l10n, ref, uid),
                 ),
               ],
       ),
       body: uid == null
-          ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
+          ? Center(
+              child: Text(l10n.loginRequiredMessage, style: const TextStyle(color: AppColors.washiDim)),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildMyProfile(ref, uid),
+                  _buildMyProfile(l10n, ref, uid),
                   const SizedBox(height: 28),
                   Text(
-                    'フレンドとの相性',
+                    l10n.compatibilityWithFriendsTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 12),
-                  _buildCompatibilityList(ref, uid),
+                  _buildCompatibilityList(l10n, ref, uid),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildMyProfile(WidgetRef ref, String uid) {
+  Widget _buildMyProfile(AppLocalizations l10n, WidgetRef ref, String uid) {
     final profileAsync = ref.watch(playstyleProfileProvider(uid));
     return profileAsync.when(
       data: (profile) {
         if (profile.gamesAnalyzed == 0) {
-          return _infoBox('まだ対局データがありません。対局を重ねると棋風が分析されます。');
+          return _infoBox(l10n.noGamesAnalyzedMessage);
         }
         return Container(
           padding: const EdgeInsets.all(16),
@@ -76,15 +78,15 @@ class PlaystyleScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'あなたの棋風（${profile.gamesAnalyzed}局分析）',
+                l10n.myPlaystyleLabel(profile.gamesAnalyzed),
                 style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              _buildBar('攻撃性', profile.aggressiveness, Colors.redAccent),
+              _buildBar(l10n.aggressivenessLabel, profile.aggressiveness, Colors.redAccent),
               const SizedBox(height: 8),
-              _buildBar('地合い重視度', profile.territoriality, Colors.blueAccent),
+              _buildBar(l10n.territorialityLabel, profile.territoriality, Colors.blueAccent),
               const SizedBox(height: 8),
-              _buildBar('捨て石率', profile.sacrificeRate, Colors.orangeAccent),
+              _buildBar(l10n.sacrificeRateLabel, profile.sacrificeRate, Colors.orangeAccent),
             ],
           ),
         );
@@ -92,7 +94,7 @@ class PlaystyleScreen extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) {
         _logger.e('Playstyle profile error: $err');
-        return Text('エラー: $err', style: const TextStyle(color: Colors.redAccent));
+        return Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent));
       },
     );
   }
@@ -116,18 +118,18 @@ class PlaystyleScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCompatibilityList(WidgetRef ref, String uid) {
+  Widget _buildCompatibilityList(AppLocalizations l10n, WidgetRef ref, String uid) {
     final friendsAsync = ref.watch(friendsStreamProvider(uid));
     return friendsAsync.when(
       data: (friends) {
         if (friends.isEmpty) {
-          return _infoBox('フレンドを追加すると、棋風の相性がわかります。');
+          return _infoBox(l10n.addFriendsForCompatibilityMessage);
         }
         final compatAsync = ref.watch(compatibleFriendsProvider(uid));
         return compatAsync.when(
           data: (results) {
             if (results.isEmpty) {
-              return _infoBox('相性を計算するデータがまだありません。');
+              return _infoBox(l10n.noCompatibilityDataMessage);
             }
             return Column(
               children: results.map((c) {
@@ -142,7 +144,7 @@ class PlaystyleScreen extends ConsumerWidget {
                     ),
                     title: Text(c.otherDisplayName, style: const TextStyle(color: AppColors.washi)),
                     subtitle: Text(
-                      isComplementary ? '補完し合う棋風 - 学び合える相手' : '似た棋風 - 共感し合える相手',
+                      isComplementary ? l10n.complementaryStyleLabel : l10n.similarStyleLabel,
                       style: TextStyle(color: AppColors.washiDim),
                     ),
                     trailing: Text(
@@ -157,14 +159,14 @@ class PlaystyleScreen extends ConsumerWidget {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) {
             _logger.e('Compatibility error: $err');
-            return Text('エラー: $err', style: const TextStyle(color: Colors.redAccent));
+            return Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent));
           },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) {
         _logger.e('Friends list error: $err');
-        return Text('エラー: $err', style: const TextStyle(color: Colors.redAccent));
+        return Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent));
       },
     );
   }
@@ -180,13 +182,13 @@ class PlaystyleScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _recompute(BuildContext context, WidgetRef ref, String uid) async {
+  Future<void> _recompute(BuildContext context, AppLocalizations l10n, WidgetRef ref, String uid) async {
     try {
       await ref.read(computePlaystyleProfileProvider)(uid);
       ref.invalidate(playstyleProfileProvider(uid));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('棋風を再分析しました')),
+          SnackBar(content: Text(l10n.playstyleReanalyzedMessage)),
         );
       }
     } catch (e) {

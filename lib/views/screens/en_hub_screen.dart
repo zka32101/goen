@@ -10,6 +10,7 @@ import 'fateful_moves_screen.dart';
 import 'concurrent_players_screen.dart';
 import 'en_score_screen.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -19,21 +20,22 @@ class EnHubScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('縁'),
+        title: Text(l10n.homeEnHubTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: uid == null
-          ? const Center(
+          ? Center(
               child: Text(
-                'ログインすると縁を確認できます',
-                style: TextStyle(color: AppColors.washiDim),
+                l10n.loginToSeeEnMessage,
+                style: const TextStyle(color: AppColors.washiDim),
               ),
             )
           : SingleChildScrollView(
@@ -42,7 +44,7 @@ class EnHubScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '碁を通じたつながり',
+                    l10n.enHubIntroTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppColors.washi,
                           fontWeight: FontWeight.bold,
@@ -50,7 +52,7 @@ class EnHubScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '対局・観戦・局面から生まれる、人との縁を可視化します',
+                    l10n.enHubIntroSubtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.white60,
                         ),
@@ -60,56 +62,56 @@ class EnHubScreen extends ConsumerWidget {
                     context,
                     icon: Icons.favorite,
                     color: Colors.pink[300]!,
-                    title: '縁スコア',
-                    subtitle: 'フレンドとのつながりの深さ',
+                    title: l10n.enScoreCardTitle,
+                    subtitle: l10n.enScoreCardSubtitle,
                     onTap: () => _push(context, const EnScoreScreen()),
                   ),
                   _buildCard(
                     context,
                     icon: Icons.handshake,
                     color: AppColors.kin,
-                    title: '実力マッチング',
-                    subtitle: 'レートの近い相手との運命の対戦',
+                    title: l10n.matchingTitle,
+                    subtitle: l10n.skillMatchingCardSubtitle,
                     onTap: () => _push(context, const MatchingScreen()),
                   ),
                   _buildCard(
                     context,
                     icon: Icons.psychology,
                     color: AppColors.aiLight,
-                    title: '棋風の相性',
-                    subtitle: 'フレンドとの棋風の相性を診断',
+                    title: l10n.playstyleCardTitle,
+                    subtitle: l10n.playstyleCardSubtitle,
                     onTap: () => _push(context, const PlaystyleScreen()),
                   ),
                   _buildCard(
                     context,
                     icon: Icons.history_edu,
                     color: Colors.deepPurple[300]!,
-                    title: '局面の轍',
-                    subtitle: '名局と同じ局面に辿り着いた記録',
+                    title: l10n.positionEchoCardTitle,
+                    subtitle: l10n.positionEchoCardSubtitle,
                     onTap: () => _push(context, const PositionEchoScreen()),
                   ),
                   _buildCard(
                     context,
                     icon: Icons.live_tv,
                     color: AppColors.shuLight,
-                    title: 'いま対局中のフレンド',
-                    subtitle: 'ライブ観戦できるフレンドの対局',
+                    title: l10n.liveFriendsCardTitle,
+                    subtitle: l10n.liveFriendsCardSubtitle,
                     onTap: () => _push(context, const LiveFriendsScreen()),
                   ),
                   _buildCard(
                     context,
                     icon: Icons.auto_awesome,
                     color: Colors.orange[400]!,
-                    title: '運命の一手',
-                    subtitle: '劇的な瞬間の記録とシェア',
+                    title: l10n.fatefulMovesCardTitle,
+                    subtitle: l10n.fatefulMovesCardSubtitle,
                     onTap: () => _push(context, const FatefulMovesScreen()),
                   ),
                   _buildCard(
                     context,
                     icon: Icons.groups,
                     color: AppColors.wakatake,
-                    title: '同時刻の碁盤',
-                    subtitle: 'いま同じ時間に対局している仲間',
+                    title: l10n.concurrentPlayersCardTitle,
+                    subtitle: l10n.concurrentPlayersCardSubtitle,
                     onTap: () => _push(context, const ConcurrentPlayersScreen()),
                   ),
                 ],

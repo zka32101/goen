@@ -6,6 +6,7 @@ import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/go_rank.dart';
 import 'pvp_game_screen.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -26,19 +27,20 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('実力マッチング'),
+        title: Text(l10n.matchingTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: uid == null
-          ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
+          ? Center(
+              child: Text(l10n.loginRequiredMessage, style: const TextStyle(color: AppColors.washiDim)),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -46,15 +48,15 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'レートが近い相手を探して、運命の対戦を始めましょう',
+                    l10n.matchingIntro,
                     style: TextStyle(color: AppColors.washiDim),
                   ),
                   const SizedBox(height: 8),
-                  _buildMyRank(uid),
+                  _buildMyRank(l10n, uid),
                   const SizedBox(height: 16),
                   _buildBoardSizeSelector(),
                   const SizedBox(height: 20),
-                  if (_foundMatch != null) _buildMatchFoundCard(_foundMatch!, uid, currentUser!),
+                  if (_foundMatch != null) _buildMatchFoundCard(l10n, _foundMatch!, uid, currentUser!),
                   if (_error != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -63,7 +65,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isSearching ? null : () => _findMatch(uid, currentUser!),
+                      onPressed: _isSearching ? null : () => _findMatch(l10n, uid, currentUser!),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.kin,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -74,47 +76,48 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text(
-                              '対戦相手を探す',
-                              style: TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold),
+                          : Text(
+                              l10n.findOpponentButton,
+                              style: const TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold),
                             ),
                     ),
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    'これまでの対戦',
+                    l10n.matchHistoryTitle,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppColors.washi,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 12),
-                  _buildMatchHistory(uid),
+                  _buildMatchHistory(l10n, uid),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildMyRank(String uid) {
+  Widget _buildMyRank(AppLocalizations l10n, String uid) {
     final rankAsync = ref.watch(userLeaderboardRankProvider(
       (uid: uid, period: LeaderboardPeriod.allTime, type: LeaderboardType.rating),
     ));
     final rating = rankAsync.valueOrNull?.rating ?? 1200;
     return Text(
-      'あなたの棋力: ${formatGoRank(rating)} (レート $rating)',
+      l10n.myRankLabel(formatGoRank(rating), rating),
       style: const TextStyle(color: AppColors.kin, fontWeight: FontWeight.bold),
     );
   }
 
   Widget _buildBoardSizeSelector() {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [9, 13, 19].map((size) {
         final selected = _boardSize == size;
         return Padding(
           padding: const EdgeInsets.only(right: 8),
           child: ChoiceChip(
-            label: Text('$size路盤'),
+            label: Text(l10n.boardSizePathLabel(size)),
             selected: selected,
             onSelected: (_) => setState(() => _boardSize = size),
             selectedColor: AppColors.kin,
@@ -125,7 +128,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     );
   }
 
-  Widget _buildMatchFoundCard(MatchResult match, String uid, User currentUser) {
+  Widget _buildMatchFoundCard(AppLocalizations l10n, MatchResult match, String uid, User currentUser) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -141,9 +144,9 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
             children: [
               Icon(Icons.handshake, color: AppColors.kin),
               const SizedBox(width: 8),
-              const Text(
-                '運命の対戦が見つかりました！',
-                style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
+              Text(
+                l10n.matchFoundTitle,
+                style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -155,7 +158,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'レート差: ${match.ratingDiff} / ${match.boardSize}路盤',
+            l10n.ratingDiffLabel(match.ratingDiff, match.boardSize),
             style: TextStyle(color: AppColors.washiDim, fontSize: 12),
           ),
           if (match.gameId == null) ...[
@@ -163,7 +166,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isStartingGame ? null : () => _startGame(match, uid, currentUser),
+                onPressed: _isStartingGame ? null : () => _startGame(l10n, match, uid, currentUser),
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.wakatake),
                 child: _isStartingGame
                     ? const SizedBox(
@@ -171,7 +174,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.washi),
                       )
-                    : const Text('対局を開始する', style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold)),
+                    : Text(l10n.startGameButton, style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -180,12 +183,12 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     );
   }
 
-  Widget _buildMatchHistory(String uid) {
+  Widget _buildMatchHistory(AppLocalizations l10n, String uid) {
     final historyAsync = ref.watch(matchHistoryProvider(uid));
     return historyAsync.when(
       data: (matches) {
         if (matches.isEmpty) {
-          return Text('まだ対戦履歴がありません', style: TextStyle(color: AppColors.washiDim));
+          return Text(l10n.noMatchHistoryMessage, style: TextStyle(color: AppColors.washiDim));
         }
         return Column(
           children: matches.map((match) {
@@ -199,7 +202,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
                 leading: const Icon(Icons.person, color: AppColors.washiDim),
                 title: Text(opponentName, style: const TextStyle(color: AppColors.washi)),
                 subtitle: Text(
-                  'レート $opponentRating / ${match.boardSize}路盤',
+                  l10n.ratingBoardSizeLabel(opponentRating, match.boardSize),
                   style: TextStyle(color: AppColors.washiDim),
                 ),
                 trailing: match.gameId != null
@@ -220,12 +223,12 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) {
         _logger.e('Match history error: $err');
-        return Text('エラー: $err', style: const TextStyle(color: Colors.redAccent));
+        return Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent));
       },
     );
   }
 
-  Future<void> _findMatch(String uid, User currentUser) async {
+  Future<void> _findMatch(AppLocalizations l10n, String uid, User currentUser) async {
     setState(() {
       _isSearching = true;
       _error = null;
@@ -244,7 +247,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
       if (!mounted) return;
       setState(() {
         _foundMatch = match;
-        _error = match == null ? '今は条件に合う相手が見つかりませんでした。また試してください' : null;
+        _error = match == null ? l10n.noMatchFoundMessage : null;
       });
 
       if (match != null) {
@@ -253,7 +256,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     } catch (e) {
       _logger.e('Error finding match: $e');
       if (mounted) {
-        setState(() => _error = 'エラーが発生しました: $e');
+        setState(() => _error = l10n.errorPrefix('$e'));
       }
     } finally {
       if (mounted) {
@@ -262,7 +265,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
     }
   }
 
-  Future<void> _startGame(MatchResult match, String uid, User currentUser) async {
+  Future<void> _startGame(AppLocalizations l10n, MatchResult match, String uid, User currentUser) async {
     setState(() => _isStartingGame = true);
     try {
       final isPlayer1 = match.player1Uid == uid;
@@ -285,8 +288,8 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
       try {
         await ref.read(sendNotificationProvider)(
           uid: opponentUid,
-          title: '$myName さんとの対局が始まりました',
-          body: 'マッチングで見つかった相手との対局です。今すぐ打ちましょう！',
+          title: l10n.opponentGameStartedNotifTitle(myName),
+          body: l10n.opponentGameStartedNotifBody,
           type: 'pvp_challenge',
           data: {'gameId': game.id},
         );
@@ -303,7 +306,7 @@ class _MatchingScreenState extends ConsumerState<MatchingScreen> {
       _logger.e('Error starting PvP game: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('対局を開始できませんでした: $e')),
+          SnackBar(content: Text(l10n.gameStartFailedMessage('$e'))),
         );
       }
     } finally {

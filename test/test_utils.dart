@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 
@@ -60,6 +61,12 @@ class TestUtils {
         home: child,
         theme: ThemeData.dark(),
         navigatorObservers: [],
+        // Matches GoEnApp's actual default (localeProvider starts at 'ja')
+        // so widget tests see the same strings production users do by
+        // default, instead of falling back to the test harness's 'en'.
+        locale: const Locale('ja'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
       ),
     );
   }

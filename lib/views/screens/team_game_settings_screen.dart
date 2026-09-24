@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -40,7 +41,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _loadError = 'Previous settings not found, using defaults';
+          _loadError = AppLocalizations.of(context)!.settingsLoadFallbackMessage;
         });
       }
     }
@@ -49,9 +50,10 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
   @override
   Widget build(BuildContext context) {
     _logger.i('Building TeamGameSettingsScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     if (_isLoading) {
-      return _buildLoadingScreen(context);
+      return _buildLoadingScreen(context, l10n);
     }
 
     final boardSize = ref.watch(teamBoardSizeProvider);
@@ -62,7 +64,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('チーム戦設定'),
+        title: Text(l10n.teamSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -76,33 +78,33 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
           children: [
             if (_loadError != null) _buildErrorMessage(context),
 
-            _buildSectionTitle(context, 'ボードサイズ'),
+            _buildSectionTitle(context, l10n.boardSizeLabel),
             const SizedBox(height: 12),
             _buildBoardSizeSelector(ref, boardSize),
             const SizedBox(height: 32),
 
-            _buildSectionTitle(context, 'チーム1 (白石)'),
+            _buildSectionTitle(context, l10n.team1Label),
             const SizedBox(height: 12),
-            _buildTeamInfo(context, team1),
+            _buildTeamInfo(context, l10n, team1),
             const SizedBox(height: 32),
 
-            _buildSectionTitle(context, 'チーム2 (黒石)'),
+            _buildSectionTitle(context, l10n.team2Label),
             const SizedBox(height: 12),
-            _buildTeamInfo(context, team2),
+            _buildTeamInfo(context, l10n, team2),
             const SizedBox(height: 32),
 
-            _buildStartButton(context, ref, isValid),
+            _buildStartButton(context, l10n, ref, isValid),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoadingScreen(BuildContext context) {
+  Widget _buildLoadingScreen(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('チーム戦設定'),
+        title: Text(l10n.teamSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -118,7 +120,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              '設定を読み込み中...',
+              l10n.loadingSettingsMessage,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.washi,
               ),
@@ -190,7 +192,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
     );
   }
 
-  Widget _buildTeamInfo(BuildContext context, List<String> players) {
+  Widget _buildTeamInfo(BuildContext context, AppLocalizations l10n, List<String> players) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -201,7 +203,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
       child: Column(
         children: [
           Text(
-            '${players.length}/2 プレイヤー',
+            l10n.playersOfTwoLabel(players.length),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: players.length == 2 ? AppColors.wakatake : Colors.yellow[600],
             ),
@@ -216,7 +218,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
                   )),
             )).toList()
           else
-            Text('プレイヤー未選択',
+            Text(l10n.noPlayersSelectedMessage,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Colors.white54,
                 )),
@@ -225,7 +227,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
     );
   }
 
-  Widget _buildStartButton(BuildContext context, WidgetRef ref, bool isValid) {
+  Widget _buildStartButton(BuildContext context, AppLocalizations l10n, WidgetRef ref, bool isValid) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -251,7 +253,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
                 }
               }
             : null,
-        child: const Text('ゲーム開始'),
+        child: Text(l10n.startGameButton),
       ),
     );
   }

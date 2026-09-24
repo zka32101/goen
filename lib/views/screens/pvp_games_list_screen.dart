@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'pvp_game_screen.dart';
 
 final _logger = Logger();
@@ -17,20 +18,21 @@ class PvpGamesListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('対局中の対局'),
+        title: Text(l10n.homePvpGamesTitle),
         backgroundColor: AppColors.sumi,
         elevation: 0,
       ),
       body: uid == null
           ? Center(
               child: Text(
-                'サインインが必要です',
+                l10n.loginRequiredMessage,
                 style: TextStyle(color: AppColors.washiDim),
               ),
             )
@@ -39,12 +41,12 @@ class PvpGamesListScreen extends ConsumerWidget {
                 ref.invalidate(userActivePvpGamesProvider(uid));
                 await ref.read(userActivePvpGamesProvider(uid).future);
               },
-              child: _buildGamesList(context, ref, uid),
+              child: _buildGamesList(context, l10n, ref, uid),
             ),
     );
   }
 
-  Widget _buildGamesList(BuildContext context, WidgetRef ref, String uid) {
+  Widget _buildGamesList(BuildContext context, AppLocalizations l10n, WidgetRef ref, String uid) {
     final gamesAsync = ref.watch(userActivePvpGamesProvider(uid));
 
     return gamesAsync.when(
@@ -56,7 +58,7 @@ class PvpGamesListScreen extends ConsumerWidget {
               SizedBox(height: MediaQuery.of(context).size.height * 0.3),
               Center(
                 child: Text(
-                  '進行中のPvP対局はありません',
+                  l10n.noActivePvpGamesMessage,
                   style: TextStyle(color: AppColors.washiDim),
                 ),
               ),
@@ -69,7 +71,7 @@ class PvpGamesListScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           itemCount: games.length,
           itemBuilder: (context, index) {
-            return _buildGameCard(context, games[index], uid);
+            return _buildGameCard(context, l10n, games[index], uid);
           },
         );
       },
@@ -82,7 +84,7 @@ class PvpGamesListScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                'エラー: $err',
+                l10n.errorPrefix('$err'),
                 style: const TextStyle(color: Colors.redAccent),
               ),
             ),
@@ -92,7 +94,7 @@ class PvpGamesListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGameCard(BuildContext context, PvpGame game, String uid) {
+  Widget _buildGameCard(BuildContext context, AppLocalizations l10n, PvpGame game, String uid) {
     final isBlack = game.playerColorOf(uid) == 1;
     final opponentName = isBlack ? game.whiteDisplayName : game.blackDisplayName;
     final myTurn = game.isTurnOf(uid);
@@ -110,11 +112,11 @@ class PvpGamesListScreen extends ConsumerWidget {
           ),
         ),
         title: Text(
-          'vs $opponentName',
+          l10n.vsOpponentLabel(opponentName),
           style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          '${game.boardSize}路盤 · ${game.movesCount}手目 · ${isBlack ? '黒番' : '白番'}',
+          '${l10n.boardMovesLabel(game.boardSize, game.movesCount)} · ${isBlack ? l10n.blackTurnLabel : l10n.whiteTurnLabel}',
           style: TextStyle(color: AppColors.washiDim),
         ),
         trailing: myTurn
@@ -124,12 +126,12 @@ class PvpGamesListScreen extends ConsumerWidget {
                   color: AppColors.kin,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'あなたの番',
-                  style: TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold, fontSize: 12),
+                child: Text(
+                  l10n.yourTurnLabel,
+                  style: const TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               )
-            : Text('相手の番', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+            : Text(l10n.opponentTurnLabel, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => PvpGameScreen(gameId: game.id, uid: uid),

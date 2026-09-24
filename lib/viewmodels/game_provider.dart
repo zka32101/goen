@@ -84,6 +84,23 @@ final currentSpectatorSessionIdProvider = StateProvider<String?>((ref) {
   return null;
 });
 
+/// 「対局を保存」で発行された実際のFirestore game ID。SNS共有はこのIDを
+/// deepLinkに埋め込むため、保存前は必ずnull（GameResultScreenが仮の
+/// タイムスタンプ等をgameIdとして共有してしまい、共有先でデータが
+/// 引き継がれないバグを防ぐ)。startNewGameProviderで次の対局の開始時に
+/// リセットされる。
+final currentGameSavedIdProvider = StateProvider<String?>((ref) {
+  return null;
+});
+
+/// この対局についてすでに対局終了インタースティシャル広告を表示した
+/// かどうか。GameResultScreenは何度も再ビルドされるため、これが無いと
+/// 再ビルドのたびに広告を出そうとしてしまう。startNewGameProviderで
+/// 次の対局の開始時にリセットされる。
+final hasShownGameEndAdProvider = StateProvider<bool>((ref) {
+  return false;
+});
+
 /// Resets all per-game state and marks the game active. This is the only
 /// correct way to start a fresh game: the game state providers above are
 /// plain (non-autoDispose) globals, so simply navigating to a new
@@ -117,6 +134,8 @@ final startNewGameProvider =
     ref.invalidate(consecutivePassesProvider);
     ref.invalidate(lastPlayerPassedProvider);
     ref.invalidate(currentSpectatorSessionIdProvider);
+    ref.invalidate(currentGameSavedIdProvider);
+    ref.invalidate(hasShownGameEndAdProvider);
     ref.read(isGameActiveProvider.notifier).state = true;
     _logger.i('🆕 New game started');
 

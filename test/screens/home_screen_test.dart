@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/views/screens/home_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
@@ -61,10 +62,10 @@ void main() {
       expect(find.byType(GestureDetector), findsWidgets);
 
       // Verify action buttons/text
-      expect(find.text('Play AI Game'), findsWidgets);
-      expect(find.text("Today's Puzzle"), findsWidgets);
-      expect(find.text('Watch & Learn'), findsWidgets);
-      expect(find.text('My Games'), findsWidgets);
+      expect(find.text('AI対局'), findsWidgets);
+      expect(find.text('今日の詰碁'), findsWidgets);
+      expect(find.text('観戦・学習'), findsWidgets);
+      expect(find.text('対局履歴'), findsWidgets);
     });
 
     testWidgets('displays subscription status when inactive',
@@ -144,12 +145,15 @@ void main() {
           child: MaterialApp(
             home: const HomeScreen(),
             navigatorObservers: [],
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             routes: {
               '/ai-game': (_) => const Scaffold(body: Text('AI Game')),
               '/tsume-go': (_) => const Scaffold(body: Text('Tsume-Go')),
               '/kifu-observation': (_) =>
-                  const Scaffold(body: Text('Watch & Learn')),
-              '/game-history': (_) => const Scaffold(body: Text('My Games')),
+                  const Scaffold(body: Text('観戦・学習')),
+              '/game-history': (_) => const Scaffold(body: Text('対局履歴')),
             },
           ),
           container: container,

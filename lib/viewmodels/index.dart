@@ -11,7 +11,9 @@ export 'game_mode_provider.dart';
 // game_modes_provider.dart's versions, so hide them here.
 export 'game_modes_provider.dart'
     hide GameModeUIState, GameModeUINotifier, gameModeUIProvider;
+export 'ad_provider.dart';
 export 'game_settings_provider.dart';
+export 'locale_provider.dart';
 export 'tsume_go_provider.dart';
 export 'kifu_go_provider.dart';
 export 'analytics_provider.dart';

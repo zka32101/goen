@@ -2,6 +2,7 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/services/game_preset_service.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/screens/game_preset_manager_screen.dart';
@@ -15,6 +16,9 @@ Widget _buildApp(ProviderContainer container) {
     child: MaterialApp(
       home: const GamePresetManagerScreen(),
       theme: ThemeData.dark(),
+      locale: const Locale('ja'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routes: {
         '/blitz-game': (_) => const Scaffold(body: Text('BLITZ_GAME_SCREEN')),
       },

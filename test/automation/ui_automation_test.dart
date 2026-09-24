@@ -6,6 +6,7 @@ import 'package:goen/views/screens/splash_screen.dart';
 import 'package:goen/views/screens/home_screen.dart';
 import 'package:goen/views/screens/ai_game_screen.dart';
 import 'package:goen/views/screens/game_result_screen.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import '../test_utils.dart';
 import '../fixtures/test_data.dart';
 
@@ -19,6 +20,9 @@ Widget _buildSplashTestableApp(ProviderContainer container) {
     child: MaterialApp(
       home: const SplashScreen(),
       theme: ThemeData.dark(),
+      locale: const Locale('ja'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routes: {
         '/onboarding': (_) => const OnboardingScreen(),
         '/home': (_) => const HomeScreen(),
@@ -66,7 +70,7 @@ void main() {
       print('✓ Step 2: Home screen reached');
 
       // Step 4: Tap Play button
-      await tester.tap(find.text('Play AI Game').first);
+      await tester.tap(find.text('AI対局').first);
       await tester.pumpAndSettle();
 
       // Step 5: Verify game screen
@@ -148,7 +152,7 @@ void main() {
       );
 
       // Navigate to history
-      final historyButton = find.text('My Games');
+      final historyButton = find.text('対局履歴');
       if (historyButton.evaluate().isNotEmpty) {
         await tester.tap(historyButton);
         await tester.pumpAndSettle();
@@ -174,7 +178,7 @@ void main() {
       );
 
       // Navigate to settings
-      final settingsButton = find.text('Settings');
+      final settingsButton = find.text('設定');
       if (settingsButton.evaluate().isNotEmpty) {
         await tester.tap(settingsButton);
         await tester.pumpAndSettle();
@@ -209,7 +213,7 @@ void main() {
         );
 
         // Play game
-        await tester.tap(find.text('Play AI Game').first);
+        await tester.tap(find.text('AI対局').first);
         await tester.pumpAndSettle();
 
         await tester.pumpWidget(const SizedBox.shrink());
@@ -274,7 +278,7 @@ void main() {
 
       // Navigate back and forth to trigger recovery
       for (int i = 0; i < 3; i++) {
-        final playButton = find.text('Play AI Game');
+        final playButton = find.text('AI対局');
         if (playButton.evaluate().isNotEmpty) {
           await tester.tap(playButton.first);
           await tester.pumpAndSettle();
@@ -302,7 +306,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Play AI Game').first);
+      await tester.tap(find.text('AI対局').first);
       await tester.pumpAndSettle();
 
       stopwatch.stop();

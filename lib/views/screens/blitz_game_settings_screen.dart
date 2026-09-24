@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -41,7 +42,7 @@ class _BlitzGameSettingsScreenState
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _loadError = 'Previous settings not found, using defaults';
+          _loadError = AppLocalizations.of(context)!.settingsLoadFallbackMessage;
         });
       }
     }
@@ -50,9 +51,10 @@ class _BlitzGameSettingsScreenState
   @override
   Widget build(BuildContext context) {
     _logger.i('Building BlitzGameSettingsScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     if (_isLoading) {
-      return _buildLoadingScreen(context);
+      return _buildLoadingScreen(context, l10n);
     }
 
     final boardSize = ref.watch(blitzBoardSizeProvider);
@@ -62,7 +64,7 @@ class _BlitzGameSettingsScreenState
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ブリッツゲーム設定'),
+        title: Text(l10n.blitzSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -77,30 +79,30 @@ class _BlitzGameSettingsScreenState
             if (_loadError != null) _buildErrorMessage(context),
 
             // Board Size Selection
-            _buildSectionTitle(context, 'ボードサイズ'),
+            _buildSectionTitle(context, l10n.boardSizeLabel),
             const SizedBox(height: 12),
             _buildBoardSizeSelector(ref, boardSize),
             const SizedBox(height: 32),
 
             // AI Level Selection
-            _buildSectionTitle(context, 'AI難易度'),
+            _buildSectionTitle(context, l10n.aiDifficultyLabel),
             const SizedBox(height: 12),
-            _buildAILevelSlider(context, ref, aiLevel),
+            _buildAILevelSlider(context, l10n, ref, aiLevel),
             const SizedBox(height: 32),
 
             // Start Button
-            _buildStartButton(context, ref, isValid),
+            _buildStartButton(context, l10n, ref, isValid),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoadingScreen(BuildContext context) {
+  Widget _buildLoadingScreen(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ブリッツゲーム設定'),
+        title: Text(l10n.blitzSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -116,7 +118,7 @@ class _BlitzGameSettingsScreenState
             ),
             const SizedBox(height: 16),
             Text(
-              '設定を読み込み中...',
+              l10n.loadingSettingsMessage,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.washi,
               ),
@@ -191,7 +193,7 @@ class _BlitzGameSettingsScreenState
   }
 
   Widget _buildAILevelSlider(
-      BuildContext context, WidgetRef ref, int level) {
+      BuildContext context, AppLocalizations l10n, WidgetRef ref, int level) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -210,17 +212,17 @@ class _BlitzGameSettingsScreenState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('初級',
+              Text(l10n.beginnerLabel,
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
                       ?.copyWith(color: Colors.white54)),
-              Text('Level $level',
+              Text(l10n.levelLabel(level),
                   style: Theme.of(context)
                       .textTheme
                       .titleSmall
                       ?.copyWith(color: AppColors.washi)),
-              Text('上級',
+              Text(l10n.expertLabel,
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
@@ -232,7 +234,7 @@ class _BlitzGameSettingsScreenState
     );
   }
 
-  Widget _buildStartButton(BuildContext context, WidgetRef ref, bool isValid) {
+  Widget _buildStartButton(BuildContext context, AppLocalizations l10n, WidgetRef ref, bool isValid) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -258,9 +260,9 @@ class _BlitzGameSettingsScreenState
                 }
               }
             : null,
-        child: const Text(
-          'ゲーム開始',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        child: Text(
+          l10n.startGameButton,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );

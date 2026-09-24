@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -12,19 +13,20 @@ class PositionEchoScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('局面の轍'),
+        title: Text(l10n.positionEchoCardTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: uid == null
-          ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
+          ? Center(
+              child: Text(l10n.loginRequiredMessage, style: const TextStyle(color: AppColors.washiDim)),
             )
           : Padding(
               padding: const EdgeInsets.all(16),
@@ -32,25 +34,25 @@ class PositionEchoScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '対局中に名局(秀策の碁など)と同じ局面へ辿り着くと、ここに記録されます',
+                    l10n.positionEchoIntro,
                     style: TextStyle(color: AppColors.washiDim),
                   ),
                   const SizedBox(height: 16),
-                  Expanded(child: _buildEchoList(ref, uid)),
+                  Expanded(child: _buildEchoList(l10n, ref, uid)),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildEchoList(WidgetRef ref, String uid) {
+  Widget _buildEchoList(AppLocalizations l10n, WidgetRef ref, String uid) {
     final echoesAsync = ref.watch(historicalEchoesProvider(uid));
     return echoesAsync.when(
       data: (echoes) {
         if (echoes.isEmpty) {
           return Center(
             child: Text(
-              'まだ名局との縁は記録されていません',
+              l10n.noEchoesMessage,
               style: TextStyle(color: AppColors.washiDim),
             ),
           );
@@ -63,11 +65,11 @@ class PositionEchoScreen extends ConsumerWidget {
             return ListTile(
               leading: const Icon(Icons.history_edu, color: Colors.deepPurpleAccent),
               title: Text(
-                echo.kifuTitle ?? '名局',
+                echo.kifuTitle ?? l10n.famousGameDefaultLabel,
                 style: const TextStyle(color: AppColors.washi),
               ),
               subtitle: Text(
-                '${echo.moveNumber}手目 / ${echo.boardSize}路盤',
+                l10n.moveNumberBoardSizeLabel(echo.moveNumber, echo.boardSize),
                 style: TextStyle(color: AppColors.washiDim),
               ),
               trailing: Text(
@@ -81,7 +83,7 @@ class PositionEchoScreen extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) {
         _logger.e('Position echo error: $err');
-        return Text('エラー: $err', style: const TextStyle(color: Colors.redAccent));
+        return Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent));
       },
     );
   }

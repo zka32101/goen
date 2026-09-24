@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -31,6 +32,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building CorrespondenceGameScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     final gamesAsync = ref.watch(
       userCorrespondenceGamesProvider(uid),
@@ -42,7 +44,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('手紙型対局'),
+        title: Text(l10n.correspondenceGameTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -68,7 +70,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                       Icon(Icons.schedule, color: AppColors.washi),
                       const SizedBox(width: 8),
                       Text(
-                        '待機中の着手: $count',
+                        l10n.pendingMovesLabel(count),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.washi,
                           fontWeight: FontWeight.bold,
@@ -89,13 +91,13 @@ class CorrespondenceGameScreen extends ConsumerWidget {
             gamesAsync.when(
               data: (games) {
                 if (games.isEmpty) {
-                  return _buildEmptyState(context);
+                  return _buildEmptyState(context, l10n);
                 }
-                return _buildGamesList(context, ref, games);
+                return _buildGamesList(context, ref, l10n, games);
               },
-              loading: () => _buildLoadingState(context),
+              loading: () => _buildLoadingState(context, l10n),
               error: (error, stackTrace) =>
-                  _buildErrorState(context, error.toString()),
+                  _buildErrorState(context, l10n, error.toString()),
             ),
           ],
         ),
@@ -106,6 +108,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
   Widget _buildGamesList(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     List<CorrespondenceGameRecord> games,
   ) {
     return Padding(
@@ -114,14 +117,14 @@ class CorrespondenceGameScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ゲーム一覧',
+            l10n.gamesListLabel,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: AppColors.washi,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          ...games.map((game) => _buildGameCard(context, ref, game)),
+          ...games.map((game) => _buildGameCard(context, ref, l10n, game)),
         ],
       ),
     );
@@ -130,6 +133,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
   Widget _buildGameCard(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     CorrespondenceGameRecord game,
   ) {
     final isMyTurn = game.currentPlayerColor == 'black';
@@ -156,7 +160,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ゲーム ID',
+                    l10n.gameIdLabel,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.washiDim,
                     ),
@@ -173,7 +177,9 @@ class CorrespondenceGameScreen extends ConsumerWidget {
               ),
               Chip(
                 label: Text(
-                  game.status == 'active' ? 'アクティブ' : '完了',
+                  game.status == 'active'
+                      ? l10n.activeStatusLabel
+                      : l10n.completedStatusLabel,
                   style: const TextStyle(color: AppColors.washi, fontSize: 12),
                 ),
                 backgroundColor: game.status == 'active'
@@ -190,7 +196,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ボードサイズ',
+                    l10n.boardSizeLabel,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.washiDim,
                     ),
@@ -207,7 +213,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'ターン数',
+                    l10n.turnNumberLabel,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.washiDim,
                     ),
@@ -244,7 +250,9 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    isMyTurn ? 'あなたの番です' : '相手の番を待機中',
+                    isMyTurn
+                        ? l10n.yourTurnMessage
+                        : l10n.waitingOpponentTurnMessage,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.washi,
                       fontWeight: FontWeight.bold,
@@ -264,7 +272,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '最後の着手',
+                    l10n.lastMoveLabel,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.washiDim,
                     ),
@@ -287,10 +295,10 @@ class CorrespondenceGameScreen extends ConsumerWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: game.status == 'active' && isMyTurn
-                      ? () => _handleAddMove(context, ref, game)
+                      ? () => _handleAddMove(context, ref, l10n, game)
                       : null,
                   icon: const Icon(Icons.touch_app),
-                  label: const Text('着手'),
+                  label: Text(l10n.moveButtonLabel),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     backgroundColor: Colors.blue.shade600,
@@ -301,10 +309,10 @@ class CorrespondenceGameScreen extends ConsumerWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: game.status == 'active'
-                      ? () => _handleAbandonGame(context, ref, game)
+                      ? () => _handleAbandonGame(context, ref, l10n, game)
                       : null,
                   icon: const Icon(Icons.close),
-                  label: const Text('放棄'),
+                  label: Text(l10n.abandonButtonLabel),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     backgroundColor: Colors.red.shade600,
@@ -321,6 +329,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
   void _handleAddMove(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     CorrespondenceGameRecord game,
   ) async {
     _logger.i('Adding move to Correspondence game: ${game.id}');
@@ -343,7 +352,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
       _logger.i('Move added successfully');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('着手 $move を記録しました')),
+          SnackBar(content: Text(l10n.moveRecordedMessage(move))),
         );
       }
     } catch (e) {
@@ -351,7 +360,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('エラー: ${e.toString()}'),
+            content: Text(l10n.errorPrefix(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -362,6 +371,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
   void _handleAbandonGame(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     CorrespondenceGameRecord game,
   ) async {
     _logger.i('Abandoning Correspondence game: ${game.id}');
@@ -370,16 +380,16 @@ class CorrespondenceGameScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.sumi,
-        title: const Text('ゲームを放棄しますか？'),
-        content: const Text('この操作は取り消せません。'),
+        title: Text(l10n.abandonConfirmTitle),
+        content: Text(l10n.abandonConfirmMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('キャンセル'),
+            child: Text(l10n.cancelButton),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('放棄'),
+            child: Text(l10n.abandonButtonLabel),
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
             ),
@@ -398,7 +408,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
       _logger.i('Game abandoned successfully');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ゲームを放棄しました')),
+          SnackBar(content: Text(l10n.gameAbandonedMessage)),
         );
       }
     } catch (e) {
@@ -406,7 +416,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('エラー: ${e.toString()}'),
+            content: Text(l10n.errorPrefix(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -414,7 +424,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
     }
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -427,7 +437,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '手紙型対局がありません',
+            l10n.noCorrespondenceGamesMessage,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -436,14 +446,14 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.add),
-            label: const Text('新しいゲームを開始'),
+            label: Text(l10n.startNewGameButton),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLoadingState(BuildContext context) {
+  Widget _buildLoadingState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -451,7 +461,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
           Text(
-            'ゲーム一覧を読み込み中...',
+            l10n.loadingGamesListMessage,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -461,7 +471,11 @@ class CorrespondenceGameScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, String error) {
+  Widget _buildErrorState(
+    BuildContext context,
+    AppLocalizations l10n,
+    String error,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -469,7 +483,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           Icon(Icons.error_outline, color: Colors.red.shade600, size: 48),
           const SizedBox(height: 16),
           Text(
-            'エラーが発生しました',
+            l10n.genericErrorMessage,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: AppColors.washi,
             ),
@@ -485,7 +499,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('戻る'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),

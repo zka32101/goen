@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/views/screens/pvp_games_list_screen.dart';
 import 'package:goen/viewmodels/index.dart';
@@ -45,7 +46,12 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: const MaterialApp(home: PvpGamesListScreen()),
+          child: MaterialApp(
+            home: const PvpGamesListScreen(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
         ),
       );
       await tester.pump();
@@ -70,7 +76,12 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: const MaterialApp(home: PvpGamesListScreen()),
+          child: MaterialApp(
+            home: const PvpGamesListScreen(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
         ),
       );
       await tester.pump();

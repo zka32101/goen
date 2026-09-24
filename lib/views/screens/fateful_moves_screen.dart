@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -13,32 +14,33 @@ class FatefulMovesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('運命の一手'),
+        title: Text(l10n.fatefulMovesCardTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: uid == null
-          ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
+          ? Center(
+              child: Text(l10n.loginRequiredMessage, style: const TextStyle(color: AppColors.washiDim)),
             )
-          : _buildMovesList(ref, uid),
+          : _buildMovesList(l10n, ref, uid),
     );
   }
 
-  Widget _buildMovesList(WidgetRef ref, String uid) {
+  Widget _buildMovesList(AppLocalizations l10n, WidgetRef ref, String uid) {
     final movesAsync = ref.watch(fatefulMovesProvider(uid));
     return movesAsync.when(
       data: (moves) {
         if (moves.isEmpty) {
           return Center(
             child: Text(
-              '大石を仕留めたり劫を制したりすると、ここに記録されます',
+              l10n.noFatefulMovesMessage,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.washiDim),
             ),
@@ -59,7 +61,7 @@ class FatefulMovesScreen extends ConsumerWidget {
                   style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  '${move.moveNumber}手目 / ${move.stonesCaptured}子捕獲',
+                  l10n.moveNumberStonesCapturedLabel(move.moveNumber, move.stonesCaptured),
                   style: TextStyle(color: AppColors.washiDim),
                 ),
                 trailing: move.sharedWithFriends
@@ -74,7 +76,7 @@ class FatefulMovesScreen extends ConsumerWidget {
       error: (err, _) {
         _logger.e('Fateful moves error: $err');
         return Center(
-          child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)),
+          child: Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent)),
         );
       },
     );

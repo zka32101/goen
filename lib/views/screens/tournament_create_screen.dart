@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/tournament.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -45,10 +46,24 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final presetTournamentTitles = [
+      l10n.weekendCupTitle,
+      l10n.newYearCupTitle,
+      l10n.thanksgivingCupTitle,
+      l10n.beginnerCupTitle,
+      l10n.advancedCupTitle,
+      l10n.memorialCupTitle,
+      l10n.invitationalCupTitle,
+      l10n.championshipTitle,
+      l10n.leagueMatchTitle,
+      l10n.summerCupTitle,
+    ];
+
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: Text(_isEditing ? '大会を編集' : 'トーナメントを作成'),
+        title: Text(_isEditing ? l10n.editTournamentTitle : l10n.createTournamentTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
@@ -57,77 +72,92 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLabel('大会名'),
+            _buildLabel(l10n.tournamentNameLabel),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: presetTournamentTitles.map((title) {
+                return ChoiceChip(
+                  label: Text(title),
+                  selected: _nameController.text == title,
+                  onSelected: (_) => setState(() => _nameController.text = title),
+                  selectedColor: AppColors.kin,
+                  backgroundColor: AppColors.sumiCard,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: _nameController,
               style: const TextStyle(color: AppColors.washi),
-              decoration: _inputDecoration('例: 週末杯'),
+              decoration: _inputDecoration(l10n.tournamentNameHint),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
-            _buildLabel('説明'),
+            _buildLabel(l10n.descriptionHint),
             TextField(
               controller: _descriptionController,
               style: const TextStyle(color: AppColors.washi),
               maxLines: 3,
-              decoration: _inputDecoration('大会の説明を入力'),
+              decoration: _inputDecoration(l10n.tournamentDescriptionHint),
             ),
             const SizedBox(height: 16),
-            _buildLabel('碁盤サイズ'),
+            _buildLabel(l10n.boardSizeLabel),
             _buildChipRow(
               options: const [9, 13, 19],
               selected: _boardSize,
-              labelBuilder: (v) => '$v路盤',
+              labelBuilder: (v) => l10n.boardSizePathLabel(v),
               onSelected: (v) => setState(() => _boardSize = v),
             ),
             const SizedBox(height: 16),
-            _buildLabel('最大参加人数'),
+            _buildLabel(l10n.maxParticipantsLabel),
             _buildChipRow(
               options: const [4, 8, 16, 32],
               selected: _maxParticipants,
-              labelBuilder: (v) => '$v人',
+              labelBuilder: (v) => l10n.participantsCountLabel(v),
               onSelected: (v) => setState(() => _maxParticipants = v),
             ),
             const SizedBox(height: 16),
-            _buildLabel('形式'),
+            _buildLabel(l10n.formatLabel),
             if (_isEditing)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
-                  '形式は作成後に変更できません',
+                  l10n.formatLockedNote,
                   style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                 ),
               ),
             _buildFormatOption(
               value: 'single_elimination',
               icon: Icons.account_tree,
-              title: 'シングルエリミネーション',
-              subtitle: '負けたら終わり。勝ち上がり式のトーナメント表。',
+              title: l10n.formatSingleEliminationTitle,
+              subtitle: l10n.formatSingleEliminationDesc,
             ),
             const SizedBox(height: 8),
             _buildFormatOption(
               value: 'round_robin',
               icon: Icons.repeat,
-              title: '総当たり戦',
-              subtitle: '参加者全員と1回ずつ対局し、勝ち数が最も多い人が優勝。',
+              title: l10n.formatRoundRobinTitle,
+              subtitle: l10n.formatRoundRobinDesc,
             ),
             const SizedBox(height: 8),
             _buildFormatOption(
               value: 'swiss',
               icon: Icons.shuffle,
-              title: 'スイス式',
-              subtitle: '毎ラウンド、成績が近い相手同士で組み合わせる。全員が最後まで対局を続けられる。',
+              title: l10n.formatSwissTitle,
+              subtitle: l10n.formatSwissDesc,
             ),
             const SizedBox(height: 16),
-            _buildLabel('開始日'),
+            _buildLabel(l10n.startDateLabel),
             _buildDatePicker(_startDate, (date) => setState(() => _startDate = date)),
             const SizedBox(height: 16),
-            _buildLabel('終了日'),
+            _buildLabel(l10n.endDateLabel),
             _buildDatePicker(_endDate, (date) => setState(() => _endDate = date)),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isSubmitting ? null : _submit,
+                onPressed: _isSubmitting ? null : () => _submit(l10n),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.kin,
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -139,7 +169,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
-                        _isEditing ? '変更を保存する' : '大会を作成する',
+                        _isEditing ? l10n.saveChangesButton : l10n.createTournamentButton,
                         style: const TextStyle(color: AppColors.sumi, fontWeight: FontWeight.bold),
                       ),
               ),
@@ -266,24 +296,24 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(AppLocalizations l10n) async {
     final name = _nameController.text.trim();
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ログインが必要です')),
+        SnackBar(content: Text(l10n.loginRequiredMessage)),
       );
       return;
     }
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('大会名を入力してください')),
+        SnackBar(content: Text(l10n.tournamentNameRequiredMessage)),
       );
       return;
     }
     if (_endDate.isBefore(_startDate)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('終了日は開始日より後にしてください')),
+        SnackBar(content: Text(l10n.endDateAfterStartMessage)),
       );
       return;
     }
@@ -325,14 +355,14 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
         Navigator.of(context).pop(true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('作成できませんでした')),
+          SnackBar(content: Text(l10n.tournamentCreateFailedMessage)),
         );
       }
     } catch (e) {
       _logger.e('Error ${_isEditing ? "updating" : "creating"} tournament: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラーが発生しました: $e')),
+          SnackBar(content: Text(l10n.errorPrefix('$e'))),
         );
       }
     } finally {

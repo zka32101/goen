@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -41,7 +42,7 @@ class _CorrespondenceGameSettingsScreenState
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _loadError = 'Previous settings not found, using defaults';
+          _loadError = AppLocalizations.of(context)!.settingsLoadFallbackMessage;
         });
       }
     }
@@ -50,9 +51,10 @@ class _CorrespondenceGameSettingsScreenState
   @override
   Widget build(BuildContext context) {
     _logger.i('Building CorrespondenceGameSettingsScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     if (_isLoading) {
-      return _buildLoadingScreen(context);
+      return _buildLoadingScreen(context, l10n);
     }
 
     final boardSize = ref.watch(correspondenceBoardSizeProvider);
@@ -62,7 +64,7 @@ class _CorrespondenceGameSettingsScreenState
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ターンベース対局設定'),
+        title: Text(l10n.correspondenceSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -76,33 +78,33 @@ class _CorrespondenceGameSettingsScreenState
           children: [
             if (_loadError != null) _buildErrorMessage(context),
 
-            _buildSectionTitle(context, 'ボードサイズ'),
+            _buildSectionTitle(context, l10n.boardSizeLabel),
             const SizedBox(height: 12),
             _buildBoardSizeSelector(ref, boardSize),
             const SizedBox(height: 32),
 
-            _buildSectionTitle(context, '手番'),
+            _buildSectionTitle(context, l10n.playerColorLabel),
             const SizedBox(height: 12),
-            _buildColorSelector(ref, playerColor),
+            _buildColorSelector(l10n, ref, playerColor),
             const SizedBox(height: 32),
 
-            _buildSectionTitle(context, '考慮時間'),
+            _buildSectionTitle(context, l10n.considerationTimeLabel),
             const SizedBox(height: 12),
-            _buildConsiderationTimeInfo(context),
+            _buildConsiderationTimeInfo(context, l10n),
             const SizedBox(height: 32),
 
-            _buildStartButton(context, ref, isValid),
+            _buildStartButton(context, l10n, ref, isValid),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoadingScreen(BuildContext context) {
+  Widget _buildLoadingScreen(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ターンベース対局設定'),
+        title: Text(l10n.correspondenceSettingsTitle),
         backgroundColor: AppColors.sumi,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -118,7 +120,7 @@ class _CorrespondenceGameSettingsScreenState
             ),
             const SizedBox(height: 16),
             Text(
-              '設定を読み込み中...',
+              l10n.loadingSettingsMessage,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.washi,
               ),
@@ -190,10 +192,10 @@ class _CorrespondenceGameSettingsScreenState
     );
   }
 
-  Widget _buildColorSelector(WidgetRef ref, String selected) {
+  Widget _buildColorSelector(AppLocalizations l10n, WidgetRef ref, String selected) {
     return Row(
       children: ['black', 'white', 'random'].map((color) {
-        final label = color == 'black' ? '黒' : color == 'white' ? '白' : 'ランダム';
+        final label = color == 'black' ? l10n.colorBlackLabel : color == 'white' ? l10n.colorWhiteLabel : l10n.randomColorOption;
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -217,7 +219,7 @@ class _CorrespondenceGameSettingsScreenState
     );
   }
 
-  Widget _buildConsiderationTimeInfo(BuildContext context) {
+  Widget _buildConsiderationTimeInfo(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -225,7 +227,7 @@ class _CorrespondenceGameSettingsScreenState
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        '1手につき24時間の考慮時間があります',
+        l10n.considerationTimeInfoMessage,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: AppColors.washiDim,
         ),
@@ -233,7 +235,7 @@ class _CorrespondenceGameSettingsScreenState
     );
   }
 
-  Widget _buildStartButton(BuildContext context, WidgetRef ref, bool isValid) {
+  Widget _buildStartButton(BuildContext context, AppLocalizations l10n, WidgetRef ref, bool isValid) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -260,7 +262,7 @@ class _CorrespondenceGameSettingsScreenState
                 }
               }
             : null,
-        child: const Text('ゲーム開始'),
+        child: Text(l10n.startGameButton),
       ),
     );
   }

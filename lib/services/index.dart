@@ -18,6 +18,7 @@ export 'youtube_share_service.dart';
 export 'twitch_share_service.dart';
 export 'sponsorship_service.dart';
 export 'blitz_game_service.dart';
+export 'ad_service.dart';
 export 'correspondence_game_service.dart';
 export 'team_game_service.dart';
 export 'puzzle_rush_service.dart';
