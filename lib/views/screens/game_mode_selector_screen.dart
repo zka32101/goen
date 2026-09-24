@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -22,6 +23,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building GameModeSelectorScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     final gameModes = ref.watch(activeGameModesProvider);
     final selectedMode = ref.watch(selectedGameModeProvider);
@@ -30,7 +32,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ゲームモード選択'),
+        title: Text(l10n.gameModeSelectorTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -42,13 +44,13 @@ class GameModeSelectorScreen extends ConsumerWidget {
       body: gameModes.when(
         data: (modes) {
           if (modes.isEmpty) {
-            return _buildEmptyState(context);
+            return _buildEmptyState(context, l10n);
           }
-          return _buildModesList(context, ref, modes, selectedMode, uiState);
+          return _buildModesList(context, ref, l10n, modes, selectedMode, uiState);
         },
-        loading: () => _buildLoadingState(context),
+        loading: () => _buildLoadingState(context, l10n),
         error: (error, stackTrace) =>
-            _buildErrorState(context, error.toString()),
+            _buildErrorState(context, l10n, error.toString()),
       ),
     );
   }
@@ -57,6 +59,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
   Widget _buildModesList(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     List<GameMode> modes,
     GameMode? selectedMode,
     GameModeUIState uiState,
@@ -68,7 +71,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'マッチするモードを選択',
+              l10n.selectModeToMatchLabel,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppColors.washiDim,
               ),
@@ -91,6 +94,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
                 return _buildModeCard(
                   context,
                   ref,
+                  l10n,
                   mode,
                   isSelected,
                   uiState.isLoading,
@@ -111,6 +115,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
   Widget _buildModeCard(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     GameMode mode,
     bool isSelected,
     bool isLoading,
@@ -155,18 +160,18 @@ class GameModeSelectorScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildModeBadge(mode),
+                  _buildModeBadge(l10n, mode),
                   const SizedBox(height: 4),
                   if (mode.timeLimit > 0)
                     Text(
-                      '${mode.timeLimit}秒',
+                      l10n.timeLimitSecondsLabel(mode.timeLimit),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Colors.white54,
                       ),
                     ),
                   if (mode.maxPlayers > 1)
                     Text(
-                      '最大${mode.maxPlayers}人',
+                      l10n.maxPlayersLabel(mode.maxPlayers),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Colors.white54,
                       ),
@@ -210,23 +215,23 @@ class GameModeSelectorScreen extends ConsumerWidget {
   }
 
   /// Build difficulty/type badge
-  Widget _buildModeBadge(GameMode mode) {
+  Widget _buildModeBadge(AppLocalizations l10n, GameMode mode) {
     Color badgeColor;
     String difficultyText;
 
     switch (mode.difficulty) {
       case 'easy':
         badgeColor = AppColors.wakatake;
-        difficultyText = '初級';
+        difficultyText = l10n.difficultyEasy;
       case 'medium':
         badgeColor = Colors.yellow[700]!;
-        difficultyText = '中級';
+        difficultyText = l10n.difficultyMedium;
       case 'hard':
         badgeColor = AppColors.shuLight;
-        difficultyText = '上級';
+        difficultyText = l10n.difficultyHard;
       case 'master':
         badgeColor = AppColors.fuji;
-        difficultyText = 'マスター';
+        difficultyText = l10n.difficultyMaster;
       default:
         badgeColor = AppColors.washiDim;
         difficultyText = mode.difficulty;
@@ -312,7 +317,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
 
   // ================== UI BUILDERS ==================
 
-  Widget _buildLoadingState(BuildContext context) {
+  Widget _buildLoadingState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -322,7 +327,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'ゲームモード読込中...',
+            l10n.loadingGameModesMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -332,7 +337,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -344,7 +349,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'ゲームモードがありません',
+            l10n.noGameModesMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -354,7 +359,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, String error) {
+  Widget _buildErrorState(BuildContext context, AppLocalizations l10n, String error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -366,7 +371,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'エラーが発生しました',
+            l10n.genericErrorMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washi,
             ),

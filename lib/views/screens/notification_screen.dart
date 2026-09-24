@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/notification.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'pvp_game_screen.dart';
 import 'package:goen/config/theme.dart';
 
@@ -14,13 +15,14 @@ class NotificationScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('通知'),
+        title: Text(l10n.notificationsTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: uid == null
@@ -28,31 +30,31 @@ class NotificationScreen extends ConsumerWidget {
             : [
                 IconButton(
                   icon: const Icon(Icons.settings),
-                  tooltip: '通知設定',
-                  onPressed: () => _showPreferenceDialog(context, ref, uid),
+                  tooltip: l10n.notificationSettingsTooltip,
+                  onPressed: () => _showPreferenceDialog(context, ref, l10n, uid),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_sweep),
-                  tooltip: 'すべて削除',
-                  onPressed: () => _confirmClear(context, ref, uid),
+                  tooltip: l10n.clearAllTooltip,
+                  onPressed: () => _confirmClear(context, ref, l10n, uid),
                 ),
               ],
       ),
       body: uid == null
-          ? const Center(
-              child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
+          ? Center(
+              child: Text(l10n.loginRequiredMessage, style: const TextStyle(color: AppColors.washiDim)),
             )
-          : _buildNotificationList(context, ref, uid),
+          : _buildNotificationList(context, ref, l10n, uid),
     );
   }
 
-  Widget _buildNotificationList(BuildContext context, WidgetRef ref, String uid) {
+  Widget _buildNotificationList(BuildContext context, WidgetRef ref, AppLocalizations l10n, String uid) {
     final notificationsAsync = ref.watch(userNotificationsProvider(uid));
     return notificationsAsync.when(
       data: (notifications) {
         if (notifications.isEmpty) {
           return Center(
-            child: Text('通知はまだありません', style: TextStyle(color: AppColors.washiDim)),
+            child: Text(l10n.noNotificationsMessage, style: TextStyle(color: AppColors.washiDim)),
           );
         }
         return ListView.separated(
@@ -88,7 +90,7 @@ class NotificationScreen extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) {
         _logger.e('Notifications error: $err');
-        return Center(child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)));
+        return Center(child: Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent)));
       },
     );
   }
@@ -137,21 +139,21 @@ class NotificationScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _confirmClear(BuildContext context, WidgetRef ref, String uid) async {
+  Future<void> _confirmClear(BuildContext context, WidgetRef ref, AppLocalizations l10n, String uid) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('通知をすべて削除しますか？', style: TextStyle(color: AppColors.washi)),
-        content: const Text('この操作は取り消せません。', style: TextStyle(color: AppColors.washiDim)),
+        title: Text(l10n.clearAllDialogTitle, style: const TextStyle(color: AppColors.washi)),
+        content: Text(l10n.clearAllDialogContent, style: const TextStyle(color: AppColors.washiDim)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('キャンセル', style: TextStyle(color: AppColors.aiLight)),
+            child: Text(l10n.cancelButton, style: TextStyle(color: AppColors.aiLight)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text('削除', style: TextStyle(color: AppColors.shuLight)),
+            child: Text(l10n.deleteButton, style: TextStyle(color: AppColors.shuLight)),
           ),
         ],
       ),
@@ -168,7 +170,7 @@ class NotificationScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _showPreferenceDialog(BuildContext context, WidgetRef ref, String uid) async {
+  Future<void> _showPreferenceDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n, String uid) async {
     final preference = await ref.read(notificationPreferenceProvider(uid).future);
     if (!context.mounted) return;
 
@@ -228,26 +230,27 @@ class _NotificationPreferenceDialogState extends State<_NotificationPreferenceDi
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       backgroundColor: AppColors.sumiSurface,
-      title: const Text('通知設定', style: TextStyle(color: AppColors.washi)),
+      title: Text(l10n.notificationSettingsTooltip, style: const TextStyle(color: AppColors.washi)),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildSwitch('すべての通知', _allNotifications, (v) => setState(() => _allNotifications = v)),
-            _buildSwitch('友達リクエスト', _friendRequests, (v) => setState(() => _friendRequests = v)),
-            _buildSwitch('トーナメント更新', _tournamentUpdates, (v) => setState(() => _tournamentUpdates = v)),
-            _buildSwitch('実績', _achievements, (v) => setState(() => _achievements = v)),
-            _buildSwitch('対局招待', _gameInvitations, (v) => setState(() => _gameInvitations = v)),
+            _buildSwitch(l10n.allNotificationsLabel, _allNotifications, (v) => setState(() => _allNotifications = v)),
+            _buildSwitch(l10n.friendRequestsLabel, _friendRequests, (v) => setState(() => _friendRequests = v)),
+            _buildSwitch(l10n.tournamentUpdatesLabel, _tournamentUpdates, (v) => setState(() => _tournamentUpdates = v)),
+            _buildSwitch(l10n.achievementsLabel, _achievements, (v) => setState(() => _achievements = v)),
+            _buildSwitch(l10n.gameInvitationsLabel, _gameInvitations, (v) => setState(() => _gameInvitations = v)),
           ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('キャンセル', style: TextStyle(color: AppColors.aiLight)),
+          child: Text(l10n.cancelButton, style: TextStyle(color: AppColors.aiLight)),
         ),
         TextButton(
           onPressed: () async {
@@ -261,7 +264,7 @@ class _NotificationPreferenceDialogState extends State<_NotificationPreferenceDi
             ));
             if (context.mounted) Navigator.pop(context);
           },
-          child: Text('保存', style: TextStyle(color: AppColors.kin)),
+          child: Text(l10n.saveButton, style: TextStyle(color: AppColors.kin)),
         ),
       ],
     );
