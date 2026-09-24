@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 /// Game preset manager screen
 class GamePresetManagerScreen extends ConsumerStatefulWidget {
@@ -19,6 +20,7 @@ class _GamePresetManagerScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // currentUserProvider is a plain Provider<User?> (not an AsyncValue),
     // so this reads the user directly rather than through AsyncValue.when.
     final currentUser = ref.watch(currentUserProvider);
@@ -26,12 +28,12 @@ class _GamePresetManagerScreenState
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ゲームプリセット'),
+        title: Text(l10n.gamePresetsTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: currentUser == null
-          ? const Center(child: Text('ログインしてください'))
+          ? Center(child: Text(l10n.loginRequiredMessage))
           : Column(
               children: [
                 // Game mode filter
@@ -41,13 +43,13 @@ class _GamePresetManagerScreenState
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildModeChip('blitz', 'ブリッツ'),
+                        _buildModeChip('blitz', l10n.modeBlitzChip),
                         const SizedBox(width: 8),
-                        _buildModeChip('correspondence', '対局'),
+                        _buildModeChip('correspondence', l10n.modeCorrespondenceChip),
                         const SizedBox(width: 8),
-                        _buildModeChip('team', 'チーム'),
+                        _buildModeChip('team', l10n.modeTeamChip),
                         const SizedBox(width: 8),
-                        _buildModeChip('puzzle', 'パズル'),
+                        _buildModeChip('puzzle', l10n.modePuzzleChip),
                       ],
                     ),
                   ),
@@ -55,7 +57,7 @@ class _GamePresetManagerScreenState
 
                 // Presets list
                 Expanded(
-                  child: _buildPresetsList(currentUser.uid),
+                  child: _buildPresetsList(l10n, currentUser.uid),
                 ),
               ],
             ),
@@ -86,7 +88,7 @@ class _GamePresetManagerScreenState
     );
   }
 
-  Widget _buildPresetsList(String userId) {
+  Widget _buildPresetsList(AppLocalizations l10n, String userId) {
     final presetsAsync = ref.watch(presetsByModeProvider((userId, _selectedMode)));
 
     return presetsAsync.when(
@@ -98,7 +100,7 @@ class _GamePresetManagerScreenState
               children: [
                 Icon(Icons.tune_outlined, size: 64, color: AppColors.washiDim),
                 const SizedBox(height: 16),
-                Text('このモードのプリセットはありません',
+                Text(l10n.noPresetsForModeMessage,
                     style: TextStyle(color: AppColors.washiDim)),
               ],
             ),
@@ -109,17 +111,18 @@ class _GamePresetManagerScreenState
           itemCount: presets.length,
           itemBuilder: (context, index) {
             final preset = presets[index];
-            return _buildPresetTile(context, userId, preset);
+            return _buildPresetTile(context, l10n, userId, preset);
           },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('エラー: $err')),
+      error: (err, stack) => Center(child: Text(l10n.errorPrefix('$err'))),
     );
   }
 
   Widget _buildPresetTile(
     BuildContext context,
+    AppLocalizations l10n,
     String userId,
     GamePreset preset,
   ) {
@@ -160,7 +163,7 @@ class _GamePresetManagerScreenState
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              'Level ${preset.aiLevel}',
+                              l10n.levelLabel(preset.aiLevel),
                               style: TextStyle(
                                 color: AppColors.aiLight,
                                 fontSize: 12,
@@ -179,7 +182,7 @@ class _GamePresetManagerScreenState
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                '置碁${preset.handicap!.handicapStones}',
+                                l10n.handicapStonesBadgeLabel(preset.handicap!.handicapStones),
                                 style: TextStyle(
                                   color: Colors.orange[300],
                                   fontSize: 12,
@@ -190,7 +193,7 @@ class _GamePresetManagerScreenState
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '使用回数: ${preset.usageCount}',
+                        l10n.usageCountLabel(preset.usageCount),
                         style:
                             TextStyle(color: AppColors.washiDim, fontSize: 12),
                       ),
@@ -200,27 +203,27 @@ class _GamePresetManagerScreenState
                 PopupMenuButton<String>(
                   color: AppColors.sumiSurface,
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      child: Text('このプリセットでゲーム開始'),
+                    PopupMenuItem(
                       value: 'play',
+                      child: Text(l10n.presetPlayMenuItem),
                     ),
-                    const PopupMenuItem(
-                      child: Text('編集'),
+                    PopupMenuItem(
                       value: 'edit',
+                      child: Text(l10n.editMenuItem),
                     ),
-                    const PopupMenuItem(
-                      child: Text('複製'),
+                    PopupMenuItem(
                       value: 'duplicate',
+                      child: Text(l10n.presetDuplicateMenuItem),
                     ),
                     const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      child: Text('削除', style: TextStyle(color: Colors.red)),
+                    PopupMenuItem(
                       value: 'delete',
+                      child: Text(l10n.deleteMenuItem, style: const TextStyle(color: Colors.red)),
                     ),
                   ],
                   onSelected: (value) {
                     _handlePresetAction(
-                        context, userId, preset, value as String);
+                        context, l10n, userId, preset, value as String);
                   },
                 ),
               ],
@@ -281,13 +284,14 @@ class _GamePresetManagerScreenState
 
   void _duplicatePreset(
     BuildContext context,
+    AppLocalizations l10n,
     String userId,
     GamePreset preset,
   ) async {
     final success = await ref.read(
       createGamePresetProvider((
         userId: userId,
-        name: '${preset.name}のコピー',
+        name: l10n.copyOfPresetName(preset.name),
         gameMode: preset.gameMode,
         boardSize: preset.boardSize,
         aiLevel: preset.aiLevel,
@@ -300,11 +304,12 @@ class _GamePresetManagerScreenState
       ref.invalidate(presetsByModeProvider((userId, preset.gameMode)));
     }
     if (!context.mounted) return;
-    _showMessage(context, success ? 'プリセットを複製しました' : 'エラーが発生しました');
+    _showMessage(context, success ? l10n.presetDuplicatedMessage : l10n.genericErrorMessage);
   }
 
   void _playPreset(
     BuildContext context,
+    AppLocalizations l10n,
     String userId,
     GamePreset preset,
   ) async {
@@ -313,7 +318,7 @@ class _GamePresetManagerScreenState
     // プリセットに保存されておらず、puzzleは盤サイズ/AIレベルではなく難易度
     // で開始するため、この一覧からの直接開始はblitzモードのみ対応する。
     if (preset.gameMode != 'blitz') {
-      _showMessage(context, 'このモードのプリセットからの開始には対応していません');
+      _showMessage(context, l10n.modeNotSupportedForDirectStartMessage);
       return;
     }
 
@@ -336,37 +341,38 @@ class _GamePresetManagerScreenState
 
   void _handlePresetAction(
     BuildContext context,
+    AppLocalizations l10n,
     String userId,
     GamePreset preset,
     String action,
   ) {
     switch (action) {
       case 'play':
-        _playPreset(context, userId, preset);
+        _playPreset(context, l10n, userId, preset);
         break;
       case 'edit':
         _showPresetDialog(context, userId, editing: preset);
         break;
       case 'duplicate':
-        _duplicatePreset(context, userId, preset);
+        _duplicatePreset(context, l10n, userId, preset);
         break;
       case 'delete':
-        _deletePreset(context, userId, preset);
+        _deletePreset(context, l10n, userId, preset);
         break;
     }
   }
 
-  void _deletePreset(BuildContext context, String userId, GamePreset preset) {
+  void _deletePreset(BuildContext context, AppLocalizations l10n, String userId, GamePreset preset) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('プリセットを削除しますか？'),
-        content: const Text('この操作は取り消せません。'),
+        title: Text(l10n.deletePresetDialogTitle),
+        content: Text(l10n.clearAllDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('キャンセル'),
+            child: Text(l10n.cancelButton),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -379,10 +385,10 @@ class _GamePresetManagerScreenState
               if (!context.mounted) return;
               Navigator.pop(context);
               _showMessage(context,
-                  success ? '削除しました' : 'エラーが発生しました');
+                  success ? l10n.deletedMessage : l10n.genericErrorMessage);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.shuLight),
-            child: const Text('削除'),
+            child: Text(l10n.deleteMenuItem),
           ),
         ],
       ),
@@ -432,10 +438,11 @@ class _PresetFormDialogState extends ConsumerState<_PresetFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final editing = widget.editing;
     return AlertDialog(
       backgroundColor: AppColors.sumiSurface,
-      title: Text(editing == null ? '新しいプリセットを作成' : 'プリセットを編集'),
+      title: Text(editing == null ? l10n.newPresetDialogTitle : l10n.editPresetDialogTitle),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -444,7 +451,7 @@ class _PresetFormDialogState extends ConsumerState<_PresetFormDialog> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                hintText: 'プリセット名',
+                hintText: l10n.presetNameHint,
                 hintStyle: TextStyle(color: AppColors.washiDim),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: AppColors.kin),
@@ -453,13 +460,13 @@ class _PresetFormDialogState extends ConsumerState<_PresetFormDialog> {
               style: const TextStyle(color: AppColors.washi),
             ),
             const SizedBox(height: 20),
-            Text('盤の大きさ', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+            Text(l10n.boardSizeLabel, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               children: [9, 13, 19].map((size) {
                 return ChoiceChip(
-                  label: Text('$size路盤'),
+                  label: Text(l10n.boardSizePathLabel(size)),
                   selected: _selectedBoardSize == size,
                   onSelected: (_) => setState(() => _selectedBoardSize = size),
                   backgroundColor: AppColors.sumiCard,
@@ -472,7 +479,7 @@ class _PresetFormDialogState extends ConsumerState<_PresetFormDialog> {
             ),
             const SizedBox(height: 20),
             Text(
-              'AIレベル: $_selectedAiLevel',
+              l10n.aiLevelColonLabel(_selectedAiLevel),
               style: TextStyle(color: AppColors.washiDim, fontSize: 12),
             ),
             Slider(
@@ -485,12 +492,12 @@ class _PresetFormDialogState extends ConsumerState<_PresetFormDialog> {
               onChanged: (value) => setState(() => _selectedAiLevel = value.toInt()),
             ),
             const SizedBox(height: 12),
-            Text('置き碁（ハンディキャップ）', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+            Text(l10n.handicapSectionLabel, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               children: [0, 2, 3, 4, 5, 6, 7, 8, 9].map((stones) {
-                final label = stones == 0 ? '互先' : '$stones子';
+                final label = stones == 0 ? l10n.evenGameLabel : l10n.stonesLabel(stones);
                 return ChoiceChip(
                   label: Text(label),
                   selected: _handicapStones == stones,
@@ -509,18 +516,18 @@ class _PresetFormDialogState extends ConsumerState<_PresetFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('キャンセル'),
+          child: Text(l10n.cancelButton),
         ),
         ElevatedButton(
-          onPressed: _submit,
+          onPressed: () => _submit(l10n),
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
-          child: Text(editing == null ? '作成' : '保存'),
+          child: Text(editing == null ? l10n.createButton : l10n.saveButton),
         ),
       ],
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(AppLocalizations l10n) async {
     final name = _nameController.text;
     if (name.isEmpty) return;
 
@@ -558,8 +565,8 @@ class _PresetFormDialogState extends ConsumerState<_PresetFormDialog> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(success
-            ? (editing == null ? 'プリセットを作成しました' : 'プリセットを更新しました')
-            : 'エラーが発生しました'),
+            ? (editing == null ? l10n.presetCreatedMessage : l10n.presetUpdatedMessage)
+            : l10n.genericErrorMessage),
       ),
     );
   }

@@ -667,5 +667,36 @@
   "presetCreatedMessage": "Preset created",
   "presetUpdatedMessage": "Preset updated",
   "copyOfPresetName": "Copy of {name}",
-  "@copyOfPresetName": { "placeholders": { "name": { "type": "String" } } }
+  "@copyOfPresetName": { "placeholders": { "name": { "type": "String" } } },
+
+  "analyticsDashboardTitle": "Game Statistics",
+  "noStatsDataMessage": "No statistics yet",
+  "gamesCountStatLabel": "Games",
+  "winsStatLabel": "Wins",
+  "winRateStatLabel": "Win Rate",
+  "avgTimeStatLabel": "Avg Time",
+  "avgDurationMinutesValue": "{minutes}m",
+  "@avgDurationMinutesValue": { "placeholders": { "minutes": { "type": "String" } } },
+  "favoriteModeLabel": "Favorite Mode",
+  "favoriteLevelLabel": "Favorite Level",
+  "favoriteSizeLabel": "Favorite Size",
+  "winRateByBoardSizeTitle": "Win Rate by Board Size",
+  "boardSizeAxisLabel": "Board Size",
+  "winRatePercentAxisLabel": "Win Rate (%)",
+  "winRateByAiLevelTitle": "Win Rate by AI Level",
+  "aiLevelAxisLabel": "AI Level",
+  "achievementsTitle": "Achievements",
+  "noAchievementsMessage": "No achievements unlocked yet",
+
+  "noActivePvpGamesMessage": "No active PvP games",
+  "boardMovesLabel": "{boardSize}-line board · Move {moves}",
+  "@boardMovesLabel": {
+    "placeholders": { "boardSize": { "type": "int" }, "moves": { "type": "int" } }
+  },
+  "blackTurnLabel": "Black",
+  "whiteTurnLabel": "White",
+  "vsOpponentLabel": "vs {name}",
+  "@vsOpponentLabel": { "placeholders": { "name": { "type": "String" } } },
+  "yourTurnLabel": "Your Turn",
+  "opponentTurnLabel": "Opponent's Turn"
 }

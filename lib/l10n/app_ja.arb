@@ -667,5 +667,36 @@
   "presetCreatedMessage": "プリセットを作成しました",
   "presetUpdatedMessage": "プリセットを更新しました",
   "copyOfPresetName": "{name}のコピー",
-  "@copyOfPresetName": { "placeholders": { "name": { "type": "String" } } }
+  "@copyOfPresetName": { "placeholders": { "name": { "type": "String" } } },
+
+  "analyticsDashboardTitle": "ゲーム統計",
+  "noStatsDataMessage": "統計データはまだありません",
+  "gamesCountStatLabel": "ゲーム数",
+  "winsStatLabel": "勝利",
+  "winRateStatLabel": "勝率",
+  "avgTimeStatLabel": "平均時間",
+  "avgDurationMinutesValue": "{minutes}分",
+  "@avgDurationMinutesValue": { "placeholders": { "minutes": { "type": "String" } } },
+  "favoriteModeLabel": "好みのモード",
+  "favoriteLevelLabel": "好みのレベル",
+  "favoriteSizeLabel": "好みのサイズ",
+  "winRateByBoardSizeTitle": "ボードサイズ別勝率",
+  "boardSizeAxisLabel": "ボードサイズ",
+  "winRatePercentAxisLabel": "勝率（%）",
+  "winRateByAiLevelTitle": "AI レベル別勝率",
+  "aiLevelAxisLabel": "AIレベル",
+  "achievementsTitle": "アチーブメント",
+  "noAchievementsMessage": "アチーブメントを獲得してください",
+
+  "noActivePvpGamesMessage": "進行中のPvP対局はありません",
+  "boardMovesLabel": "{boardSize}路盤 · {moves}手目",
+  "@boardMovesLabel": {
+    "placeholders": { "boardSize": { "type": "int" }, "moves": { "type": "int" } }
+  },
+  "blackTurnLabel": "黒番",
+  "whiteTurnLabel": "白番",
+  "vsOpponentLabel": "vs {name}",
+  "@vsOpponentLabel": { "placeholders": { "name": { "type": "String" } } },
+  "yourTurnLabel": "あなたの番",
+  "opponentTurnLabel": "相手の番"
 }
