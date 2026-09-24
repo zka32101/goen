@@ -1,0 +1,84 @@
+{
+  "@@locale": "ja",
+
+  "languageJapanese": "日本語",
+  "languageEnglish": "English",
+
+  "settingsTitle": "設定",
+  "sectionProfile": "プロフィール",
+  "sectionSubscription": "サブスクリプション",
+  "sectionPreferences": "ゲーム設定",
+  "sectionPrivacy": "プライバシーとデータ",
+  "sectionAccount": "アカウント",
+  "sectionConnections": "連携・共有",
+  "sectionAbout": "このアプリについて",
+  "sectionLanguage": "言語",
+
+  "displayNameLabel": "表示名",
+  "displayNameHint": "名前を入力",
+  "emailLabel": "メールアドレス",
+  "shareProfileButton": "プロフィールを共有",
+  "saveChangesButton": "変更を保存",
+
+  "premiumSubscriptionTitle": "プレミアムサブスクリプション",
+  "statusActive": "有効",
+  "statusInactive": "無効",
+  "premiumActiveDescription": "無制限の対局、棋譜ライブラリ、詳細統計などプレミアム機能をすべてご利用いただけます。",
+  "premiumInactiveDescription": "プレミアムにアップグレードすると、無制限の対局、棋譜ライブラリ、詳細統計が解放されます。",
+  "upgradeButton": "プレミアムにアップグレード",
+
+  "preferredBoardSizeLabel": "碁盤サイズの初期設定",
+  "defaultAiDifficultyLabel": "AI難易度の初期設定",
+  "levelLabel": "レベル {level}",
+  "@levelLabel": {
+    "placeholders": { "level": { "type": "int" } }
+  },
+  "beginnerLabel": "初心者",
+  "expertLabel": "エキスパート",
+
+  "shareStatsTitle": "対局統計を共有",
+  "shareStatsSubtitle": "勝率をランキングに表示する",
+  "anonymousModeTitle": "匿名モード",
+  "anonymousModeSubtitle": "対局再生でプロフィール名を非表示にする",
+  "dataPrivacyLabel": "データとプライバシー",
+  "privacyDescription": "お客様のプライバシーを尊重します。対局データは安全に保管され、第三者に販売されることはありません。詳しくはプライバシーポリシーをご覧ください。",
+  "readPrivacyPolicyButton": "プライバシーポリシーを読む",
+
+  "signOutButton": "サインアウト",
+  "deleteAccountButton": "アカウントを削除",
+  "deleteAccountDescription": "アカウントと関連データを完全に削除します。",
+  "signOutDialogTitle": "サインアウトしますか？",
+  "signOutDialogContent": "本当にサインアウトしますか？",
+  "deleteAccountDialogTitle": "アカウントを削除しますか？",
+  "deleteAccountDialogContent": "アカウントと関連データはすべて完全に削除され、元に戻せません。",
+  "cancelButton": "キャンセル",
+  "deleteButton": "削除",
+
+  "sponsorshipLabel": "スポンサーシップ",
+  "twitchStreamLabel": "Twitch 配信",
+  "youtubeShareLabel": "YouTube 共有",
+
+  "appNameFieldLabel": "アプリ名",
+  "versionFieldLabel": "バージョン",
+  "buildFieldLabel": "ビルド",
+  "termsOfServiceButton": "利用規約",
+  "privacyPolicyButton": "プライバシーポリシー",
+  "creditsButton": "クレジット・謝辞",
+  "creditsDialogTitle": "クレジット",
+  "creditsDialogContent": "GoEn - 碁縁\n\nプレミアム囲碁学習プラットフォーム\n\nFlutter・Firebase・GNU Goで構築\n\n棋譜は公開されている囲碁アーカイブより提供\n\n音楽・効果音: 未定\n\nご利用ありがとうございます！",
+  "closeButton": "閉じる",
+
+  "loginRequiredTitle": "設定を利用するにはログインしてください",
+  "goBackButton": "戻る",
+
+  "displayNameEmptyError": "表示名を入力してください",
+  "profileUpdatedMessage": "プロフィールを更新しました",
+  "profileUpdateFailedMessage": "プロフィールの更新に失敗しました: {error}",
+  "@profileUpdateFailedMessage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "profileSharedMessage": "{platform}で共有しました",
+  "@profileSharedMessage": {
+    "placeholders": { "platform": { "type": "String" } }
+  }
+}

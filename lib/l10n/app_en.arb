@@ -1,0 +1,84 @@
+{
+  "@@locale": "en",
+
+  "languageJapanese": "日本語",
+  "languageEnglish": "English",
+
+  "settingsTitle": "Settings",
+  "sectionProfile": "Profile",
+  "sectionSubscription": "Subscription",
+  "sectionPreferences": "Preferences",
+  "sectionPrivacy": "Privacy & Data",
+  "sectionAccount": "Account",
+  "sectionConnections": "Connections & Sharing",
+  "sectionAbout": "About",
+  "sectionLanguage": "Language",
+
+  "displayNameLabel": "Display Name",
+  "displayNameHint": "Enter your name",
+  "emailLabel": "Email",
+  "shareProfileButton": "Share Profile",
+  "saveChangesButton": "Save Changes",
+
+  "premiumSubscriptionTitle": "Premium Subscription",
+  "statusActive": "Active",
+  "statusInactive": "Inactive",
+  "premiumActiveDescription": "You have access to all premium features including unlimited games, historical kifu library, and advanced statistics.",
+  "premiumInactiveDescription": "Upgrade to premium to unlock unlimited games, historical kifu library, and advanced statistics.",
+  "upgradeButton": "Upgrade to Premium",
+
+  "preferredBoardSizeLabel": "Preferred Board Size",
+  "defaultAiDifficultyLabel": "Default AI Difficulty",
+  "levelLabel": "Level {level}",
+  "@levelLabel": {
+    "placeholders": { "level": { "type": "int" } }
+  },
+  "beginnerLabel": "Beginner",
+  "expertLabel": "Expert",
+
+  "shareStatsTitle": "Share game statistics",
+  "shareStatsSubtitle": "Allow your win rate to be visible in leaderboards",
+  "anonymousModeTitle": "Anonymous mode",
+  "anonymousModeSubtitle": "Hide your profile name in replays",
+  "dataPrivacyLabel": "Data & Privacy",
+  "privacyDescription": "We respect your privacy. Your game data is stored securely and never sold to third parties. Read our privacy policy for more details.",
+  "readPrivacyPolicyButton": "Read Privacy Policy",
+
+  "signOutButton": "Sign Out",
+  "deleteAccountButton": "Delete Account",
+  "deleteAccountDescription": "Permanently delete your account and all associated data.",
+  "signOutDialogTitle": "Sign Out?",
+  "signOutDialogContent": "Are you sure you want to sign out?",
+  "deleteAccountDialogTitle": "Delete Account?",
+  "deleteAccountDialogContent": "This will permanently delete your account and all associated data. This action cannot be undone.",
+  "cancelButton": "Cancel",
+  "deleteButton": "Delete",
+
+  "sponsorshipLabel": "Sponsorship",
+  "twitchStreamLabel": "Twitch Stream",
+  "youtubeShareLabel": "YouTube Share",
+
+  "appNameFieldLabel": "App Name",
+  "versionFieldLabel": "Version",
+  "buildFieldLabel": "Build",
+  "termsOfServiceButton": "Terms of Service",
+  "privacyPolicyButton": "Privacy Policy",
+  "creditsButton": "Credits & Attribution",
+  "creditsDialogTitle": "Credits",
+  "creditsDialogContent": "GoEn - 碁縁\n\nPremium adult Go learning platform\n\nBuilt with Flutter, Firebase, and GNU Go\n\nHistorical games sourced from public Go archives\n\nMusic and sound effects by [TBD]\n\nThank you for playing!",
+  "closeButton": "Close",
+
+  "loginRequiredTitle": "Log in to access settings",
+  "goBackButton": "Go Back",
+
+  "displayNameEmptyError": "Display name cannot be empty",
+  "profileUpdatedMessage": "Profile updated!",
+  "profileUpdateFailedMessage": "Failed to update profile: {error}",
+  "@profileUpdateFailedMessage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "profileSharedMessage": "Profile shared via {platform}!",
+  "@profileSharedMessage": {
+    "placeholders": { "platform": { "type": "String" } }
+  }
+}

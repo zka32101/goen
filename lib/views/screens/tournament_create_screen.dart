@@ -7,6 +7,21 @@ import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
 
+/// 大会名の候補。自由入力の手間を減らすためのタップ選択用で、
+/// 選んだ後も自由に編集できる（TextFieldにそのまま入る）。
+const _presetTournamentTitles = [
+  '週末杯',
+  '新春杯',
+  '感謝祭杯',
+  '初心者杯',
+  '有段者杯',
+  '記念杯',
+  '招待杯',
+  'チャンピオンシップ',
+  'リーグ戦',
+  '納涼杯',
+];
+
 /// トーナメント作成/編集画面。[editing]を渡すと編集モードになり、既存の
 /// 大会情報を編集する（形式は編集不可 - 参加者がその形式を見て参加登録
 /// しているため。編集はTournamentService.updateTournamentが「開催予定」
@@ -58,10 +73,25 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildLabel('大会名'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _presetTournamentTitles.map((title) {
+                return ChoiceChip(
+                  label: Text(title),
+                  selected: _nameController.text == title,
+                  onSelected: (_) => setState(() => _nameController.text = title),
+                  selectedColor: AppColors.kin,
+                  backgroundColor: AppColors.sumiCard,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: _nameController,
               style: const TextStyle(color: AppColors.washi),
-              decoration: _inputDecoration('例: 週末杯'),
+              decoration: _inputDecoration('候補から選ぶか、自由に入力'),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
             _buildLabel('説明'),

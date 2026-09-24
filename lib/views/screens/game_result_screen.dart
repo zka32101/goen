@@ -54,6 +54,7 @@ class GameResultScreen extends ConsumerWidget {
     final aiLevel = ref.watch(aiLevelProvider);
     final movesCount = ref.watch(movesCountProvider);
     final currentUser = ref.watch(currentUserProvider);
+    final savedGameId = ref.watch(currentGameSavedIdProvider);
 
     // Determine winner
     final winner = _determineWinner(
@@ -62,26 +63,47 @@ class GameResultScreen extends ConsumerWidget {
       whiteScore ?? 0,
     );
 
-    // Prepare game share data
-    final gameShareData = GameShareData(
-      gameId: '${DateTime.now().millisecondsSinceEpoch}',
-      result: winner == 'player' ? 'win' : winner == 'ai' ? 'loss' : 'draw',
-      blackScore: blackScore ?? 0,
-      whiteScore: whiteScore ?? 0,
-      boardSize: boardState.boardSize,
-      aiLevel: aiLevel,
-    );
-
-    return Scaffold(
-      backgroundColor: AppColors.sumi,
-      floatingActionButton: GameShareButton(
+    // 保存済みの実際のgame IDが無いと、共有した相手が開くdeepLinkが
+    // 存在しない対局を指してしまう(過去のバグ)。未保存の間はシェア
+    // ボタンをタップすると先に保存してから共有ダイアログを出す。
+    Widget shareFab;
+    if (savedGameId != null) {
+      final gameShareData = GameShareData(
+        gameId: savedGameId,
+        result: winner == 'player' ? 'win' : winner == 'ai' ? 'loss' : 'draw',
+        blackScore: blackScore ?? 0,
+        whiteScore: whiteScore ?? 0,
+        boardSize: boardState.boardSize,
+        aiLevel: aiLevel,
+      );
+      shareFab = GameShareButton(
         gameData: gameShareData,
         onShared: () {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Game shared successfully!')),
           );
         },
-      ),
+      );
+    } else {
+      shareFab = FloatingActionButton.extended(
+        onPressed: () async {
+          await _handleSaveGame(context, ref, currentUser);
+          if (!context.mounted) return;
+          if (ref.read(currentGameSavedIdProvider) != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('対局を保存しました。もう一度タップして共有できます')),
+            );
+          }
+        },
+        icon: const Icon(Icons.share),
+        label: const Text('シェア'),
+        backgroundColor: AppColors.kin,
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.sumi,
+      floatingActionButton: shareFab,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Column(
@@ -492,6 +514,7 @@ class GameResultScreen extends ConsumerWidget {
         whiteScore: whiteScore,
       );
       _logger.i('✅ Game saved: $gameId');
+      ref.read(currentGameSavedIdProvider.notifier).state = gameId;
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

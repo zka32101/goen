@@ -83,5 +83,10 @@ lib/generated_plugin_registrant.dart
 **/*.freezed.dart
 **/*.g.dart
 
+# l10n output - regenerated from lib/l10n/*.arb by `flutter gen-l10n`
+# (run automatically before build/run since flutter: generate: true).
+lib/l10n/app_localizations.dart
+lib/l10n/app_localizations_*.dart
+
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages

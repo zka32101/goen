@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
+
+const _prefShareStatistics = 'privacy_share_statistics';
+const _prefAnonymousMode = 'privacy_anonymous_mode';
 
 /// SettingsScreen - User preferences and account management
 ///
@@ -29,6 +34,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _displayNameController;
   int _selectedBoardSize = 9;
   int _selectedAiLevel = 5;
+  bool _shareStatistics = true;
+  bool _anonymousMode = false;
 
   @override
   void initState() {
@@ -47,6 +54,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         });
       }
     });
+
+    _loadPrivacyPreferences();
+  }
+
+  Future<void> _loadPrivacyPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _shareStatistics = prefs.getBool(_prefShareStatistics) ?? true;
+      _anonymousMode = prefs.getBool(_prefAnonymousMode) ?? false;
+    });
   }
 
   @override
@@ -57,11 +75,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final isSubscriptionActive = ref.watch(isSubscriptionActiveProvider);
 
     if (currentUser == null) {
-      return _buildAuthRequiredState(context);
+      return _buildAuthRequiredState(context, l10n);
     }
 
     // Initialize name controller with current user name
@@ -72,7 +91,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settingsTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -83,56 +102,88 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             // Profile section
             _buildSection(
               context,
-              'Profile',
-              _buildProfileSettings(context, currentUser),
+              l10n.sectionProfile,
+              _buildProfileSettings(context, l10n, currentUser),
             ),
 
             // Subscription section
             _buildSection(
               context,
-              'Subscription',
-              _buildSubscriptionSettings(context, isSubscriptionActive),
+              l10n.sectionSubscription,
+              _buildSubscriptionSettings(context, l10n, isSubscriptionActive),
             ),
 
             // Preferences section
             _buildSection(
               context,
-              'Preferences',
-              _buildPreferenceSettings(context),
+              l10n.sectionPreferences,
+              _buildPreferenceSettings(context, l10n),
+            ),
+
+            // Language section
+            _buildSection(
+              context,
+              l10n.sectionLanguage,
+              _buildLanguageSettings(context, l10n),
             ),
 
             // Privacy section
             _buildSection(
               context,
-              'Privacy & Data',
-              _buildPrivacySettings(context),
+              l10n.sectionPrivacy,
+              _buildPrivacySettings(context, l10n),
             ),
 
             // Account section
             _buildSection(
               context,
-              'Account',
-              _buildAccountSettings(context, ref),
+              l10n.sectionAccount,
+              _buildAccountSettings(context, l10n, ref),
             ),
 
             // Connections / creator features section
             _buildSection(
               context,
-              '連携・共有',
-              _buildConnectionsSettings(context),
+              l10n.sectionConnections,
+              _buildConnectionsSettings(context, l10n),
             ),
 
             // App info section
             _buildSection(
               context,
-              'About',
-              _buildAppInfo(context),
+              l10n.sectionAbout,
+              _buildAppInfo(context, l10n),
             ),
 
             const SizedBox(height: 24),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLanguageSettings(BuildContext context, AppLocalizations l10n) {
+    final currentLocale = ref.watch(localeProvider);
+    return Wrap(
+      spacing: 8,
+      children: [
+        ChoiceChip(
+          label: Text(l10n.languageJapanese),
+          selected: currentLocale.languageCode == 'ja',
+          onSelected: (_) =>
+              ref.read(localeProvider.notifier).setLocale(const Locale('ja')),
+          selectedColor: AppColors.kin,
+          backgroundColor: AppColors.sumiCard,
+        ),
+        ChoiceChip(
+          label: Text(l10n.languageEnglish),
+          selected: currentLocale.languageCode == 'en',
+          onSelected: (_) =>
+              ref.read(localeProvider.notifier).setLocale(const Locale('en')),
+          selectedColor: AppColors.kin,
+          backgroundColor: AppColors.sumiCard,
+        ),
+      ],
     );
   }
 
@@ -166,12 +217,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildProfileSettings(BuildContext context, User user) {
+  Widget _buildProfileSettings(BuildContext context, AppLocalizations l10n, User user) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Display Name',
+          l10n.displayNameLabel,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: AppColors.washiDim,
           ),
@@ -183,7 +234,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             color: AppColors.washi,
           ),
           decoration: InputDecoration(
-            hintText: 'Enter your name',
+            hintText: l10n.displayNameHint,
             hintStyle: TextStyle(color: AppColors.grey500),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
@@ -204,7 +255,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         const SizedBox(height: 16),
         Text(
-          'Email',
+          l10n.emailLabel,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: AppColors.washiDim,
           ),
@@ -227,23 +278,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: () => _handleShareProfile(context, user),
-            child: const Text('Share Profile'),
+            onPressed: () => _handleShareProfile(context, l10n, user),
+            child: Text(l10n.shareProfileButton),
           ),
         ),
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () => _handleSaveProfile(context),
-            child: const Text('Save Changes'),
+            onPressed: () => _handleSaveProfile(context, l10n),
+            child: Text(l10n.saveChangesButton),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSubscriptionSettings(BuildContext context, bool isActive) {
+  Widget _buildSubscriptionSettings(BuildContext context, AppLocalizations l10n, bool isActive) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -254,7 +305,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Premium Subscription',
+                  l10n.premiumSubscriptionTitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.washi,
                     fontWeight: FontWeight.bold,
@@ -262,7 +313,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  isActive ? 'Active' : 'Inactive',
+                  isActive ? l10n.statusActive : l10n.statusInactive,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: isActive ? AppColors.wakatake : AppColors.washiDim,
                   ),
@@ -278,9 +329,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          isActive
-              ? 'You have access to all premium features including unlimited games, historical kifu library, and advanced statistics.'
-              : 'Upgrade to premium to unlock unlimited games, historical kifu library, and advanced statistics.',
+          isActive ? l10n.premiumActiveDescription : l10n.premiumInactiveDescription,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: AppColors.washiDim,
           ),
@@ -295,7 +344,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 backgroundColor: AppColors.kin,
               ),
               child: Text(
-                'Upgrade to Premium',
+                l10n.upgradeButton,
                 style: TextStyle(
                   color: AppColors.sumi,
                   fontWeight: FontWeight.bold,
@@ -307,12 +356,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildPreferenceSettings(BuildContext context) {
+  Widget _buildPreferenceSettings(BuildContext context, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Preferred Board Size',
+          l10n.preferredBoardSizeLabel,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: AppColors.washiDim,
           ),
@@ -336,7 +385,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Default AI Difficulty',
+          l10n.defaultAiDifficultyLabel,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: AppColors.washiDim,
           ),
@@ -350,7 +399,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               min: 1,
               max: 10,
               divisions: 9,
-              label: 'Level $_selectedAiLevel',
+              label: l10n.levelLabel(_selectedAiLevel),
               activeColor: AppColors.kin,
               onChanged: (value) {
                 setState(() => _selectedAiLevel = value.toInt());
@@ -364,20 +413,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Beginner',
+                    l10n.beginnerLabel,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: AppColors.washiDim,
                     ),
                   ),
                   Text(
-                    'Level $_selectedAiLevel',
+                    l10n.levelLabel(_selectedAiLevel),
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppColors.kin,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'Expert',
+                    l10n.expertLabel,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: AppColors.washiDim,
                     ),
@@ -391,35 +440,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildPrivacySettings(BuildContext context) {
+  Widget _buildPrivacySettings(BuildContext context, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSettingSwitch(
           context,
-          'Share game statistics',
-          'Allow your win rate to be visible in leaderboards',
-          true,
-          (value) => _logger.i('Statistics sharing: $value'),
+          l10n.shareStatsTitle,
+          l10n.shareStatsSubtitle,
+          _shareStatistics,
+          (value) async {
+            setState(() => _shareStatistics = value);
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool(_prefShareStatistics, value);
+            _logger.i('Statistics sharing: $value');
+          },
         ),
         const SizedBox(height: 16),
         _buildSettingSwitch(
           context,
-          'Anonymous mode',
-          'Hide your profile name in replays',
-          false,
-          (value) => _logger.i('Anonymous mode: $value'),
+          l10n.anonymousModeTitle,
+          l10n.anonymousModeSubtitle,
+          _anonymousMode,
+          (value) async {
+            setState(() => _anonymousMode = value);
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool(_prefAnonymousMode, value);
+            _logger.i('Anonymous mode: $value');
+          },
         ),
         const SizedBox(height: 16),
         Text(
-          'Data & Privacy',
+          l10n.dataPrivacyLabel,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: AppColors.washiDim,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          'We respect your privacy. Your game data is stored securely and never sold to third parties. Read our privacy policy for more details.',
+          l10n.privacyDescription,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: AppColors.washiDim,
             height: 1.6,
@@ -428,7 +487,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const SizedBox(height: 12),
         TextButton(
           onPressed: () => _handleOpenPrivacyPolicy(context),
-          child: const Text('Read Privacy Policy'),
+          child: Text(l10n.readPrivacyPolicyButton),
         ),
       ],
     );
@@ -438,76 +497,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     BuildContext context,
     String title,
     String subtitle,
-    bool initialValue,
+    bool value,
     Function(bool) onChanged,
   ) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.washi,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.washiDim,
-                    ),
-                  ),
-                ],
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.washi,
+                ),
               ),
-            ),
-            Switch(
-              value: initialValue,
-              onChanged: (value) {
-                setState(() {});
-                onChanged(value);
-              },
-              activeColor: AppColors.kin,
-            ),
-          ],
-        );
-      },
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppColors.washiDim,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.kin,
+        ),
+      ],
     );
   }
 
-  Widget _buildAccountSettings(BuildContext context, WidgetRef ref) {
+  Widget _buildAccountSettings(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: () => _handleSignOut(context, ref),
-            child: const Text('Sign Out'),
+            onPressed: () => _handleSignOut(context, l10n, ref),
+            child: Text(l10n.signOutButton),
           ),
         ),
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
-            onPressed: () => _handleDeleteAccount(context, ref),
+            onPressed: () => _handleDeleteAccount(context, l10n, ref),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.shuLight),
             ),
             child: Text(
-              'Delete Account',
+              l10n.deleteAccountButton,
               style: TextStyle(color: AppColors.shuLight),
             ),
           ),
         ),
         const SizedBox(height: 12),
         Text(
-          'Permanently delete your account and all associated data.',
+          l10n.deleteAccountDescription,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: AppColors.shuLight,
           ),
@@ -516,28 +568,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildConnectionsSettings(BuildContext context) {
+  Widget _buildConnectionsSettings(BuildContext context, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildConnectionRow(
           context,
           icon: Icons.favorite,
-          label: 'スポンサーシップ',
+          label: l10n.sponsorshipLabel,
           onTap: () => Navigator.of(context).pushNamed('/sponsorship'),
         ),
         const Divider(color: Colors.white10, height: 24),
         _buildConnectionRow(
           context,
           icon: Icons.live_tv,
-          label: 'Twitch 配信',
+          label: l10n.twitchStreamLabel,
           onTap: () => Navigator.of(context).pushNamed('/twitch-stream'),
         ),
         const Divider(color: Colors.white10, height: 24),
         _buildConnectionRow(
           context,
           icon: Icons.video_library,
-          label: 'YouTube 共有',
+          label: l10n.youtubeShareLabel,
           onTap: () => Navigator.of(context).pushNamed('/youtube-share'),
         ),
       ],
@@ -568,29 +620,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildAppInfo(BuildContext context) {
+  Widget _buildAppInfo(BuildContext context, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildInfoRow(context, 'App Name', 'GoEn - 碁縁'),
+        _buildInfoRow(context, l10n.appNameFieldLabel, 'GoEn - 碁縁'),
         const SizedBox(height: 12),
-        _buildInfoRow(context, 'Version', '1.0.0'),
+        _buildInfoRow(context, l10n.versionFieldLabel, '1.0.0'),
         const SizedBox(height: 12),
-        _buildInfoRow(context, 'Build', '2026.09.01'),
+        _buildInfoRow(context, l10n.buildFieldLabel, '2026.09.01'),
         const SizedBox(height: 16),
         TextButton(
           onPressed: () => _handleOpenTerms(context),
-          child: const Text('Terms of Service'),
+          child: Text(l10n.termsOfServiceButton),
         ),
         const SizedBox(height: 8),
         TextButton(
           onPressed: () => _handleOpenPrivacyPolicy(context),
-          child: const Text('Privacy Policy'),
+          child: Text(l10n.privacyPolicyButton),
         ),
         const SizedBox(height: 8),
         TextButton(
-          onPressed: () => _handleOpenCredits(context),
-          child: const Text('Credits & Attribution'),
+          onPressed: () => _handleOpenCredits(context, l10n),
+          child: Text(l10n.creditsButton),
         ),
       ],
     );
@@ -617,7 +669,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildAuthRequiredState(BuildContext context) {
+  Widget _buildAuthRequiredState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -629,7 +681,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Log in to access settings',
+            l10n.loginRequiredTitle,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
@@ -637,19 +689,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),
     );
   }
 
-  void _handleSaveProfile(BuildContext context) async {
+  void _handleSaveProfile(BuildContext context, AppLocalizations l10n) async {
     _logger.i('Saving profile changes');
 
     if (_displayNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Display name cannot be empty')),
+        SnackBar(content: Text(l10n.displayNameEmptyError)),
       );
       return;
     }
@@ -658,20 +710,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await ref.read(updateDisplayNameProvider(_displayNameController.text));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated!')),
+          SnackBar(content: Text(l10n.profileUpdatedMessage)),
         );
       }
     } catch (e) {
       _logger.e('Failed to save profile: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update profile: $e')),
+          SnackBar(content: Text(l10n.profileUpdateFailedMessage('$e'))),
         );
       }
     }
   }
 
-  Future<void> _handleShareProfile(BuildContext context, User user) async {
+  Future<void> _handleShareProfile(BuildContext context, AppLocalizations l10n, User user) async {
     _logger.i('Opening share dialog for user profile');
 
     // 対局/パズルの実績はレーティング用・パズル用で別々のリーダーボード
@@ -717,7 +769,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _logger.i('Sharing profile via $platform');
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Profile shared via $platform!')),
+            SnackBar(content: Text(l10n.profileSharedMessage('$platform'))),
           );
         },
       ),
@@ -750,17 +802,17 @@ AI解説で碁を上達しよう！''';
     Navigator.of(context).pushNamed('/paywall');
   }
 
-  void _handleSignOut(BuildContext context, WidgetRef ref) {
+  void _handleSignOut(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('Sign Out?'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: Text(l10n.signOutDialogTitle),
+        content: Text(l10n.signOutDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancelButton),
           ),
           TextButton(
             onPressed: () async {
@@ -778,26 +830,24 @@ AI解説で碁を上達しよう！''';
                 );
               }
             },
-            child: const Text('Sign Out'),
+            child: Text(l10n.signOutButton),
           ),
         ],
       ),
     );
   }
 
-  void _handleDeleteAccount(BuildContext context, WidgetRef ref) {
+  void _handleDeleteAccount(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('Delete Account?'),
-        content: const Text(
-          'This will permanently delete your account and all associated data. This action cannot be undone.',
-        ),
+        title: Text(l10n.deleteAccountDialogTitle),
+        content: Text(l10n.deleteAccountDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancelButton),
           ),
           TextButton(
             onPressed: () async {
@@ -816,7 +866,7 @@ AI解説で碁を上達しよう！''';
               }
             },
             child: Text(
-              'Delete',
+              l10n.deleteButton,
               style: TextStyle(color: AppColors.shuLight),
             ),
           ),
@@ -835,27 +885,20 @@ AI解説で碁を上達しよう！''';
     Navigator.of(context).pushNamed('/privacy-policy');
   }
 
-  void _handleOpenCredits(BuildContext context) {
+  void _handleOpenCredits(BuildContext context, AppLocalizations l10n) {
     _logger.i('Opening credits');
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('Credits'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'GoEn - 碁縁\n\n'
-            'Premium adult Go learning platform\n\n'
-            'Built with Flutter, Firebase, and GNU Go\n\n'
-            'Historical games sourced from public Go archives\n\n'
-            'Music and sound effects by [TBD]\n\n'
-            'Thank you for playing!',
-          ),
+        title: Text(l10n.creditsDialogTitle),
+        content: SingleChildScrollView(
+          child: Text(l10n.creditsDialogContent),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(l10n.closeButton),
           ),
         ],
       ),
