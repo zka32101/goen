@@ -49,7 +49,7 @@ void main() {
       );
 
       expect(find.byType(AppBar), findsOneWidget);
-      expect(find.text('Puzzle Rush'), findsWidgets);
+      expect(find.text('詰碁ラッシュ'), findsWidgets);
     });
 
     testWidgets('戻るボタンが表示される', (WidgetTester tester) async {

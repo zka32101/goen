@@ -732,5 +732,78 @@
   "sessionInfoTitle": "Session Info",
   "fiveMinuteSessionLabel": "5-minute session",
   "comboSystemLabel": "Combo system included",
-  "globalLeaderboardLabel": "Global leaderboard"
+  "globalLeaderboardLabel": "Global leaderboard",
+  "blitzGameTitle": "Blitz Game",
+  "timeExpiredMessage": "Time's up",
+  "timeRemainingLabel": "Time Remaining",
+  "gameEndedResultLabel": "Game Ended: {result}",
+  "@gameEndedResultLabel": {
+    "placeholders": {
+      "result": {"type": "String"}
+    }
+  },
+  "moveHistoryLabel": "Move History",
+  "noMovesYetMessage": "No moves yet",
+  "submitMoveButton": "Submit Move",
+  "endGameButton": "End Game",
+  "moveRecordedMessage": "Move {move} recorded",
+  "@moveRecordedMessage": {
+    "placeholders": {
+      "move": {"type": "String"}
+    }
+  },
+  "gameEndedMessage": "Game ended",
+  "preparingGameMessage": "Preparing game...",
+  "correspondenceGameTitle": "Correspondence Game",
+  "pendingMovesLabel": "Pending moves: {count}",
+  "@pendingMovesLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "gamesListLabel": "Games List",
+  "gameIdLabel": "Game ID",
+  "activeStatusLabel": "Active",
+  "completedStatusLabel": "Completed",
+  "turnNumberLabel": "Turn Number",
+  "yourTurnMessage": "Your turn",
+  "waitingOpponentTurnMessage": "Waiting for opponent's turn",
+  "lastMoveLabel": "Last Move",
+  "moveButtonLabel": "Move",
+  "abandonButtonLabel": "Abandon",
+  "abandonConfirmTitle": "Abandon this game?",
+  "abandonConfirmMessage": "This action cannot be undone.",
+  "gameAbandonedMessage": "Game abandoned",
+  "noCorrespondenceGamesMessage": "No correspondence games",
+  "startNewGameButton": "Start New Game",
+  "loadingGamesListMessage": "Loading games list...",
+  "teamGameTitle": "Team Game",
+  "team1WhiteLabel": "Team 1 (White)",
+  "team2BlackLabel": "Team 2 (Black)",
+  "gameStatusLabel": "Game Status",
+  "inProgressLabel": "In Progress",
+  "moveCountLabel": "Move Count",
+  "team1MovesLabel": "Team 1's Moves",
+  "team2MovesLabel": "Team 2's Moves",
+  "noMovesRecordedMessage": "No moves yet",
+  "difficultyLabel": "Difficulty",
+  "scoreLabel": "Score",
+  "comboLabel": "Combo",
+  "solvedCountLabel": "Solved",
+  "accuracyRateLabel": "Accuracy: {rate}%",
+  "@accuracyRateLabel": {
+    "placeholders": {
+      "rate": {"type": "String"}
+    }
+  },
+  "solvedPuzzlesLabel": "Solved Puzzles",
+  "noPuzzlesSolvedMessage": "No puzzles solved yet",
+  "leaderboardLabel": "Leaderboard",
+  "noRankingDataMessage": "No ranking data",
+  "leaderboardLoadErrorMessage": "Failed to load leaderboard",
+  "endSessionButton": "End Session",
+  "sessionEndedMessage": "Session ended",
+  "sessionTimeoutMessage": "Session has ended",
+  "preparingSessionMessage": "Preparing session...",
+  "puzzleRushGameTitle": "Puzzle Rush"
 }

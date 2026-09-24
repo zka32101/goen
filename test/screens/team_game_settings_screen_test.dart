@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/views/screens/team_game_settings_screen.dart';
 
 void main() {
@@ -16,6 +17,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: TeamGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -33,6 +37,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: TeamGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -48,6 +55,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: TeamGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );

@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -50,6 +51,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
   @override
   Widget build(BuildContext context) {
     _logger.i('Building TeamGameScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     final gameAsync = ref.watch(
       startTeamGameProvider(
@@ -64,7 +66,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('Team ゲーム'),
+        title: Text(l10n.teamGameTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -74,9 +76,10 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
         ),
       ),
       body: gameAsync.when(
-        data: (game) => _buildGameBoard(context, ref, game),
-        loading: () => _buildLoadingState(context),
-        error: (error, stackTrace) => _buildErrorState(context, error.toString()),
+        data: (game) => _buildGameBoard(context, ref, l10n, game),
+        loading: () => _buildLoadingState(context, l10n),
+        error: (error, stackTrace) =>
+            _buildErrorState(context, l10n, error.toString()),
       ),
     );
   }
@@ -84,6 +87,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
   Widget _buildGameBoard(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     TeamGameRecord game,
   ) {
     return SingleChildScrollView(
@@ -98,7 +102,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                 // Team 1 (White)
                 _buildTeamInfo(
                   context,
-                  'チーム1 (白)',
+                  l10n.team1WhiteLabel,
                   widget.team1Players,
                   AppColors.washi,
                 ),
@@ -108,7 +112,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                 // Team 2 (Black)
                 _buildTeamInfo(
                   context,
-                  'チーム2 (黒)',
+                  l10n.team2BlackLabel,
                   widget.team2Players,
                   AppColors.sumi,
                 ),
@@ -134,14 +138,16 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'ゲーム状態',
+                        l10n.gameStatusLabel,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.washiDim,
                         ),
                       ),
                       Chip(
                         label: Text(
-                          game.result == 'draw' ? '進行中' : game.result,
+                          game.result == 'draw'
+                              ? l10n.inProgressLabel
+                              : game.result,
                           style: const TextStyle(
                             color: AppColors.washi,
                             fontSize: 12,
@@ -161,7 +167,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'ボードサイズ',
+                            l10n.boardSizeLabel,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.washiDim,
                             ),
@@ -178,7 +184,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '着手数',
+                            l10n.moveCountLabel,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.washiDim,
                             ),
@@ -207,7 +213,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'チーム1の着手',
+                  l10n.team1MovesLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: AppColors.washi,
                   ),
@@ -222,7 +228,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                   ),
                   child: game.team1Moves.isEmpty
                       ? Text(
-                          'まだ着手なし',
+                          l10n.noMovesRecordedMessage,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.washiDim,
                           ),
@@ -246,7 +252,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'チーム2の着手',
+                  l10n.team2MovesLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: AppColors.washi,
                   ),
@@ -261,7 +267,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                   ),
                   child: game.team2Moves.isEmpty
                       ? Text(
-                          'まだ着手なし',
+                          l10n.noMovesRecordedMessage,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.washiDim,
                           ),
@@ -286,9 +292,9 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => _handleAddMove(context, ref, game),
+                  onPressed: () => _handleAddMove(context, ref, l10n, game),
                   icon: const Icon(Icons.touch_app),
-                  label: const Text('着手を提出'),
+                  label: Text(l10n.submitMoveButton),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor: Colors.blue.shade600,
@@ -296,9 +302,9 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
-                  onPressed: () => _handleEndGame(context, ref, game),
+                  onPressed: () => _handleEndGame(context, ref, l10n, game),
                   icon: const Icon(Icons.stop_circle),
-                  label: const Text('ゲーム終了'),
+                  label: Text(l10n.endGameButton),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     backgroundColor: Colors.red.shade600,
@@ -363,6 +369,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
   void _handleAddMove(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     TeamGameRecord game,
   ) async {
     _logger.i('Adding move to Team game: ${game.id}');
@@ -383,13 +390,13 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
 
       _logger.i('Move added successfully');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('着手 $move を記録しました')),
+        SnackBar(content: Text(l10n.moveRecordedMessage(move))),
       );
     } catch (e) {
       _logger.e('Error adding move: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('エラー: ${e.toString()}'),
+          content: Text(l10n.errorPrefix(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -399,6 +406,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
   void _handleEndGame(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     TeamGameRecord game,
   ) async {
     _logger.i('Ending Team game: ${game.id}');
@@ -419,7 +427,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
       _logger.i('Game ended successfully');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ゲームを終了しました')),
+          SnackBar(content: Text(l10n.gameEndedMessage)),
         );
         Navigator.of(context).pop();
       }
@@ -427,14 +435,14 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
       _logger.e('Error ending game: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('エラー: ${e.toString()}'),
+          content: Text(l10n.errorPrefix(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  Widget _buildLoadingState(BuildContext context) {
+  Widget _buildLoadingState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -442,7 +450,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
           Text(
-            'ゲームを準備中...',
+            l10n.preparingGameMessage,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -452,7 +460,11 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, String error) {
+  Widget _buildErrorState(
+    BuildContext context,
+    AppLocalizations l10n,
+    String error,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -460,7 +472,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
           Icon(Icons.error_outline, color: Colors.red.shade600, size: 48),
           const SizedBox(height: 16),
           Text(
-            'エラーが発生しました',
+            l10n.genericErrorMessage,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: AppColors.washi,
             ),
@@ -476,7 +488,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('戻る'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),

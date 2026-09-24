@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/views/screens/blitz_game_settings_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 
@@ -17,6 +18,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: BlitzGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -24,7 +28,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('ブリッツゲーム設定'), findsOneWidget);
-      expect(find.text('ボードサイズ'), findsOneWidget);
+      expect(find.text('碁盤サイズ'), findsOneWidget);
       expect(find.text('AI難易度'), findsOneWidget);
     });
 
@@ -34,6 +38,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: BlitzGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -51,14 +58,17 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: BlitzGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('初級'), findsWidgets);
-      expect(find.text('上級'), findsWidgets);
+      expect(find.text('初心者'), findsWidgets);
+      expect(find.text('エキスパート'), findsWidgets);
       expect(find.byType(Slider), findsOneWidget);
     });
 
@@ -68,6 +78,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: BlitzGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -84,6 +97,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: BlitzGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );
@@ -99,6 +115,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(body: BlitzGameSettingsScreen()),
             theme: ThemeData.dark(),
+            locale: const Locale('ja'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ),
       );

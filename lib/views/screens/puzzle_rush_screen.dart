@@ -7,6 +7,7 @@ import 'package:goen/models/index.dart';
 import 'package:goen/services/index.dart' show PuzzleRushLeaderboardEntry;
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -67,8 +68,9 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
   }
 
   void _handleSessionTimeout() {
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('セッションが終了しました')),
+      SnackBar(content: Text(l10n.sessionTimeoutMessage)),
     );
     if (Navigator.canPop(context)) {
       Navigator.of(context).pop();
@@ -84,6 +86,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
   @override
   Widget build(BuildContext context) {
     _logger.i('Building PuzzleRushScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     final sessionAsync = ref.watch(
       startPuzzleRushProvider(
@@ -98,7 +101,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('Puzzle Rush'),
+        title: Text(l10n.puzzleRushGameTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -108,9 +111,11 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
         ),
       ),
       body: sessionAsync.when(
-        data: (session) => _buildSession(context, ref, session, leaderboardAsync),
-        loading: () => _buildLoadingState(context),
-        error: (error, stackTrace) => _buildErrorState(context, error.toString()),
+        data: (session) =>
+            _buildSession(context, ref, l10n, session, leaderboardAsync),
+        loading: () => _buildLoadingState(context, l10n),
+        error: (error, stackTrace) =>
+            _buildErrorState(context, l10n, error.toString()),
       ),
     );
   }
@@ -118,6 +123,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
   Widget _buildSession(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     PuzzleRushRecord session,
     AsyncValue<List<PuzzleRushLeaderboardEntry>> leaderboardAsync,
   ) {
@@ -138,7 +144,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '難易度',
+                          l10n.difficultyLabel,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.washiDim,
                           ),
@@ -156,7 +162,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '残り時間',
+                          l10n.timeRemainingLabel,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.washiDim,
                           ),
@@ -200,7 +206,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                       Column(
                         children: [
                           Text(
-                            'スコア',
+                            l10n.scoreLabel,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.washiDim,
                             ),
@@ -217,7 +223,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                       Column(
                         children: [
                           Text(
-                            'コンボ',
+                            l10n.comboLabel,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.washiDim,
                             ),
@@ -234,7 +240,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                       Column(
                         children: [
                           Text(
-                            '解答数',
+                            l10n.solvedCountLabel,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.washiDim,
                             ),
@@ -262,7 +268,10 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '正答率: ${session.solvedCount > 0 ? ((session.correctCount / session.solvedCount) * 100).toStringAsFixed(1) : '0.0'}%',
+                    l10n.accuracyRateLabel(session.solvedCount > 0
+                        ? ((session.correctCount / session.solvedCount) * 100)
+                            .toStringAsFixed(1)
+                        : '0.0'),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.washiDim,
                     ),
@@ -280,7 +289,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '解答したパズル',
+                  l10n.solvedPuzzlesLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: AppColors.washi,
                   ),
@@ -295,7 +304,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'まだパズルを解答していません',
+                      l10n.noPuzzlesSolvedMessage,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.washiDim,
                       ),
@@ -341,7 +350,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'リーダーボード',
+                  l10n.leaderboardLabel,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: AppColors.washi,
                   ),
@@ -358,7 +367,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'ランキングデータがありません',
+                          l10n.noRankingDataMessage,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.washiDim,
                           ),
@@ -421,7 +430,8 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                                         ),
                                       ),
                                       Text(
-                                        '正答率: ${entry.accuracy}%',
+                                        l10n.accuracyRateLabel(
+                                            entry.accuracy.toString()),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall
@@ -453,7 +463,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
                   error: (error, _) {
                     _logger.e('Error loading leaderboard: $error');
                     return Text(
-                      'リーダーボード読み込みエラー',
+                      l10n.leaderboardLoadErrorMessage,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.red,
                       ),
@@ -471,9 +481,9 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => _handleEndSession(context, ref, session),
+                onPressed: () => _handleEndSession(context, ref, l10n, session),
                 icon: const Icon(Icons.stop_circle),
-                label: const Text('セッションを終了'),
+                label: Text(l10n.endSessionButton),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   backgroundColor: Colors.red.shade600,
@@ -490,6 +500,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
   void _handleEndSession(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     PuzzleRushRecord session,
   ) async {
     _logger.i('Ending Puzzle Rush session: ${session.id}');
@@ -502,7 +513,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
       _logger.i('Session ended successfully');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('セッションを終了しました')),
+          SnackBar(content: Text(l10n.sessionEndedMessage)),
         );
         Navigator.of(context).pop();
       }
@@ -510,14 +521,14 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
       _logger.e('Error ending session: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('エラー: ${e.toString()}'),
+          content: Text(l10n.errorPrefix(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  Widget _buildLoadingState(BuildContext context) {
+  Widget _buildLoadingState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -525,7 +536,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
           Text(
-            'セッションを準備中...',
+            l10n.preparingSessionMessage,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -535,7 +546,11 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
     );
   }
 
-  Widget _buildErrorState(BuildContext context, String error) {
+  Widget _buildErrorState(
+    BuildContext context,
+    AppLocalizations l10n,
+    String error,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -543,7 +558,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
           Icon(Icons.error_outline, color: Colors.red.shade600, size: 48),
           const SizedBox(height: 16),
           Text(
-            'エラーが発生しました',
+            l10n.genericErrorMessage,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: AppColors.washi,
             ),
@@ -559,7 +574,7 @@ class _PuzzleRushScreenState extends ConsumerState<PuzzleRushScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('戻る'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),

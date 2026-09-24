@@ -732,5 +732,78 @@
   "sessionInfoTitle": "セッション情報",
   "fiveMinuteSessionLabel": "5分間のセッション",
   "comboSystemLabel": "コンボシステム搭載",
-  "globalLeaderboardLabel": "グローバルリーダーボード"
+  "globalLeaderboardLabel": "グローバルリーダーボード",
+  "blitzGameTitle": "Blitz ゲーム",
+  "timeExpiredMessage": "時間切れです",
+  "timeRemainingLabel": "残り時間",
+  "gameEndedResultLabel": "ゲーム終了: {result}",
+  "@gameEndedResultLabel": {
+    "placeholders": {
+      "result": {"type": "String"}
+    }
+  },
+  "moveHistoryLabel": "着手履歴",
+  "noMovesYetMessage": "まだ手はありません",
+  "submitMoveButton": "着手を提出",
+  "endGameButton": "ゲーム終了",
+  "moveRecordedMessage": "着手 {move} を記録しました",
+  "@moveRecordedMessage": {
+    "placeholders": {
+      "move": {"type": "String"}
+    }
+  },
+  "gameEndedMessage": "ゲームを終了しました",
+  "preparingGameMessage": "ゲームを準備中...",
+  "correspondenceGameTitle": "手紙型対局",
+  "pendingMovesLabel": "待機中の着手: {count}",
+  "@pendingMovesLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "gamesListLabel": "ゲーム一覧",
+  "gameIdLabel": "ゲーム ID",
+  "activeStatusLabel": "アクティブ",
+  "completedStatusLabel": "完了",
+  "turnNumberLabel": "ターン数",
+  "yourTurnMessage": "あなたの番です",
+  "waitingOpponentTurnMessage": "相手の番を待機中",
+  "lastMoveLabel": "最後の着手",
+  "moveButtonLabel": "着手",
+  "abandonButtonLabel": "放棄",
+  "abandonConfirmTitle": "ゲームを放棄しますか？",
+  "abandonConfirmMessage": "この操作は取り消せません。",
+  "gameAbandonedMessage": "ゲームを放棄しました",
+  "noCorrespondenceGamesMessage": "手紙型対局がありません",
+  "startNewGameButton": "新しいゲームを開始",
+  "loadingGamesListMessage": "ゲーム一覧を読み込み中...",
+  "teamGameTitle": "Team ゲーム",
+  "team1WhiteLabel": "チーム1 (白)",
+  "team2BlackLabel": "チーム2 (黒)",
+  "gameStatusLabel": "ゲーム状態",
+  "inProgressLabel": "進行中",
+  "moveCountLabel": "着手数",
+  "team1MovesLabel": "チーム1の着手",
+  "team2MovesLabel": "チーム2の着手",
+  "noMovesRecordedMessage": "まだ着手なし",
+  "difficultyLabel": "難易度",
+  "scoreLabel": "スコア",
+  "comboLabel": "コンボ",
+  "solvedCountLabel": "解答数",
+  "accuracyRateLabel": "正答率: {rate}%",
+  "@accuracyRateLabel": {
+    "placeholders": {
+      "rate": {"type": "String"}
+    }
+  },
+  "solvedPuzzlesLabel": "解答したパズル",
+  "noPuzzlesSolvedMessage": "まだパズルを解答していません",
+  "leaderboardLabel": "リーダーボード",
+  "noRankingDataMessage": "ランキングデータがありません",
+  "leaderboardLoadErrorMessage": "リーダーボード読み込みエラー",
+  "endSessionButton": "セッションを終了",
+  "sessionEndedMessage": "セッションを終了しました",
+  "sessionTimeoutMessage": "セッションが終了しました",
+  "preparingSessionMessage": "セッションを準備中...",
+  "puzzleRushGameTitle": "詰碁ラッシュ"
 }
