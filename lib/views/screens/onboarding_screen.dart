@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -41,6 +42,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.sumi,
       body: Column(
@@ -52,7 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Learn Go',
+                  l10n.onboardingHeaderTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: AppColors.washi,
                     fontWeight: FontWeight.bold,
@@ -61,7 +63,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 TextButton(
                   onPressed: _handleSkipTutorial,
                   child: Text(
-                    'Skip',
+                    l10n.skipButton,
                     style: TextStyle(
                       color: AppColors.kin,
                       fontWeight: FontWeight.w600,
@@ -82,9 +84,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 });
               },
               children: [
-                _buildCard1_Welcome(context),
-                _buildCard2_YourMove(context),
-                _buildCard3_Capture(context),
+                _buildCard1_Welcome(context, l10n),
+                _buildCard2_YourMove(context, l10n),
+                _buildCard3_Capture(context, l10n),
               ],
             ),
           ),
@@ -125,7 +127,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           curve: Curves.easeInOut,
                         );
                       },
-                      child: const Text('Back'),
+                      child: Text(l10n.backButton),
                     ),
                   ),
                 if (_currentPage > 0) const SizedBox(width: 16),
@@ -140,7 +142,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           }
                         : _handleCompleteTutorial,
                     child: Text(
-                      _currentPage < 2 ? 'Next' : 'Start Playing',
+                      _currentPage < 2 ? l10n.nextButton : l10n.startPlayingButton,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -157,7 +159,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   /// Card 1: Welcome & motivation
-  Widget _buildCard1_Welcome(BuildContext context) {
+  Widget _buildCard1_Welcome(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: SingleChildScrollView(
@@ -167,7 +169,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Icon(Icons.pets, size: 120, color: AppColors.kin),
             const SizedBox(height: 32),
             Text(
-              'Welcome to 碁縁',
+              l10n.onboardingWelcomeTitle,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: AppColors.washi,
                 fontWeight: FontWeight.bold,
@@ -176,7 +178,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Learn Go at your own pace. No time pressure, just pure strategy.',
+              l10n.onboardingWelcomeSubtitle,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppColors.washiDim,
                 height: 1.6,
@@ -191,7 +193,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'We\'ll teach you the basics in 3 simple steps',
+                l10n.onboardingWelcomeSteps,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.kin,
                   fontWeight: FontWeight.w600,
@@ -206,7 +208,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   /// Card 2: Your first move
-  Widget _buildCard2_YourMove(BuildContext context) {
+  Widget _buildCard2_YourMove(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: SingleChildScrollView(
@@ -214,7 +216,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Tap 1: Your Move',
+              l10n.onboardingCard2Title,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: AppColors.washi,
                 fontWeight: FontWeight.bold,
@@ -275,7 +277,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const SizedBox(height: 32),
 
             Text(
-              'Place your first black stone anywhere on the board.',
+              l10n.onboardingCard2Description,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppColors.washiDim,
                 height: 1.6,
@@ -289,7 +291,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   /// Card 3: Capture the stone
-  Widget _buildCard3_Capture(BuildContext context) {
+  Widget _buildCard3_Capture(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: SingleChildScrollView(
@@ -297,7 +299,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Tap 3: Capture!',
+              l10n.onboardingCard3Title,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: AppColors.washi,
                 fontWeight: FontWeight.bold,
@@ -306,7 +308,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'The Aha Moment',
+              l10n.onboardingCard3Subtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.kin,
                 fontWeight: FontWeight.w600,
@@ -398,7 +400,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const SizedBox(height: 32),
 
             Text(
-              'AI plays white. Now place your second black stone to surround and capture the white stone. This is the fundamental tactic in Go!',
+              l10n.onboardingCard3Description,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppColors.washiDim,
                 height: 1.6,

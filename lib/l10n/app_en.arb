@@ -173,5 +173,19 @@
   "purchaseFailedMessage": "Purchase failed: {error}",
   "@purchaseFailedMessage": {
     "placeholders": { "error": { "type": "String" } }
-  }
+  },
+
+  "onboardingHeaderTitle": "Learn Go",
+  "skipButton": "Skip",
+  "backButton": "Back",
+  "nextButton": "Next",
+  "startPlayingButton": "Start Playing",
+  "onboardingWelcomeTitle": "Welcome to 碁縁",
+  "onboardingWelcomeSubtitle": "Learn Go at your own pace. No time pressure, just pure strategy.",
+  "onboardingWelcomeSteps": "We'll teach you the basics in 3 simple steps",
+  "onboardingCard2Title": "Tap 1: Your Move",
+  "onboardingCard2Description": "Place your first black stone anywhere on the board.",
+  "onboardingCard3Title": "Tap 3: Capture!",
+  "onboardingCard3Subtitle": "The Aha Moment",
+  "onboardingCard3Description": "AI plays white. Now place your second black stone to surround and capture the white stone. This is the fundamental tactic in Go!"
 }

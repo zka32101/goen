@@ -173,5 +173,19 @@
   "purchaseFailedMessage": "購入に失敗しました: {error}",
   "@purchaseFailedMessage": {
     "placeholders": { "error": { "type": "String" } }
-  }
+  },
+
+  "onboardingHeaderTitle": "囲碁を学ぶ",
+  "skipButton": "スキップ",
+  "backButton": "戻る",
+  "nextButton": "次へ",
+  "startPlayingButton": "対局を始める",
+  "onboardingWelcomeTitle": "碁縁へようこそ",
+  "onboardingWelcomeSubtitle": "自分のペースで囲碁を学ぼう。時間制限はなく、純粋な戦略だけ。",
+  "onboardingWelcomeSteps": "3つの簡単なステップで基本を教えます",
+  "onboardingCard2Title": "タップ1: あなたの番",
+  "onboardingCard2Description": "最初の黒石を盤上の好きな場所に置きましょう。",
+  "onboardingCard3Title": "タップ3: 石を取ろう！",
+  "onboardingCard3Subtitle": "「わかった！」の瞬間",
+  "onboardingCard3Description": "AIが白石を置きます。2つ目の黒石を置いて白石を囲んで取りましょう。これが囲碁の基本戦術です！"
 }
