@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'firebase_options.dart';
 import 'config/theme.dart';
 import 'l10n/app_localizations.dart';
 import 'models/index.dart';
+import 'services/ad_service.dart';
 import 'services/push_notification_service.dart';
 import 'viewmodels/index.dart';
 import 'views/screens/index.dart';
@@ -25,6 +27,10 @@ void main() async {
   );
 
   _logger.i('Firebase initialized');
+
+  // Best-effort: ads simply won't show if this fails, no need to block
+  // startup on it.
+  unawaited(AdService.initialize());
 
   // Must be registered before runApp: the platform can deliver a push
   // while the app is fully terminated, invoking this handler in its own

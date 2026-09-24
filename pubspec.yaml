@@ -30,6 +30,7 @@ dependencies:
 
   # Monetization
   in_app_purchase: ^3.3.0
+  google_mobile_ads: ^9.1.0
 
   # UI & Animation
   lottie: ^2.7.0

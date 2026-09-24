@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/views/widgets/ad_banner.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/l10n/app_localizations.dart';
 
@@ -90,6 +91,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
+      bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
         title: Text(l10n.settingsTitle),
         centerTitle: true,

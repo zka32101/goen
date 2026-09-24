@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/shoji_transition.dart';
+import 'package:goen/views/widgets/ad_banner.dart';
 import 'ai_game_screen.dart';
 import 'game_mode_selector_screen.dart';
 import 'package:goen/config/theme.dart';
@@ -30,6 +31,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
+      bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
         title: const Text('碁縁'),
         centerTitle: true,

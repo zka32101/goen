@@ -50,6 +50,18 @@ class GameResultScreen extends ConsumerWidget {
       ref.read(newlyUnlockedAchievementsProvider.notifier).state = [];
     });
 
+    // 対局終了時のインタースティシャル広告。何度も再ビルドされる画面
+    // なので、フラグで一度だけに制限する（プレミアム会員には出さない
+    // 判定はshowGameEndInterstitialProvider側で行う）。フラグの読み書き
+    // はbuild中ではなくpostFrameCallback内で行う（Riverpodはbuild中の
+    // プロバイダー変更を許可しないため）。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!ref.read(hasShownGameEndAdProvider)) {
+        ref.read(hasShownGameEndAdProvider.notifier).state = true;
+        ref.read(showGameEndInterstitialProvider)();
+      }
+    });
+
     final boardState = ref.watch(gameBoardStateProvider);
     final aiLevel = ref.watch(aiLevelProvider);
     final movesCount = ref.watch(movesCountProvider);
