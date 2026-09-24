@@ -1,82 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 /// 遊び方説明 - オンボーディングと違い、いつでも開けるルールリファレンス。
 /// 対局中に「これどうだったっけ」となったときに参照できることを意図している。
 class HowToPlayScreen extends StatelessWidget {
   const HowToPlayScreen({Key? key}) : super(key: key);
 
-  static const _sections = <_RuleSection>[
-    _RuleSection(
-      icon: Icons.dashboard_outlined,
-      title: '盤の各部の名称',
-      body: '碁盤の線が交わる点を「交点」といい、石はここに置きます。'
-          '盤の端を「辺」、四隅を「隅」、盤の中心を「天元」と呼びます。'
-          '9路盤・13路盤・19路盤には、目印として少し大きめの黒い点が打たれている交点があり、'
-          'これを「星」と呼びます(中心の星は特に「天元」)。対局中に位置を伝えるときによく使う言葉です。',
-      diagram: _BoardAnatomyDiagram(),
-    ),
-    _RuleSection(
-      icon: Icons.grid_on,
-      title: '石を打つ',
-      body: '黒番から交互に、盤の線と線が交わる「交点」に石を置いていきます。'
-          '一度置いた石は、自分では動かせません。',
-    ),
-    _RuleSection(
-      icon: Icons.hub_outlined,
-      title: '呼吸点とアタリ',
-      body: '石(または繋がった石の塊)の上下左右にある空いた交点を「呼吸点」と呼びます。'
-          '呼吸点が1つだけになった状態を「アタリ」といい、次に相手が打つとその石は取られてしまいます。'
-          '下の図では、左の石には呼吸点が4つありますが、右の石は3方向を囲まれてアタリ(呼吸点1つ)になっています。',
-      diagram: _LibertyComparisonDiagram(),
-    ),
-    _RuleSection(
-      icon: Icons.remove_circle_outline,
-      title: '石を取る（アゲハマ）',
-      body: '呼吸点が0になった石(の塊)は盤上から取り除かれます。'
-          '取った石は「アゲハマ」として最後の計算に使います。',
-    ),
-    _RuleSection(
-      icon: Icons.block_outlined,
-      title: '禁止手：自殺手',
-      body: '打った後に自分の石(の塊)の呼吸点が0になってしまう手は、原則として打てません(自殺手の禁止)。'
-          'ただし、その手で相手の石を取れて結果的に呼吸点ができる場合は例外として打つことができます。',
-      diagram: _SuicideMoveDiagram(),
-    ),
-    _RuleSection(
-      icon: Icons.map_outlined,
-      title: '陣地（中国ルール）',
-      body: '碁縁は中国ルールを採用しています。最終的な得点は「自分の石の数 + 自分が囲んだ陣地の数」で計算し、'
-          '数の多い方が勝ちです。日本ルールと違い、盤上に残っている自分の石もそのまま点数に数えます。',
-    ),
-    _RuleSection(
-      icon: Icons.replay,
-      title: '禁止手：コウ',
-      body: '1手前の局面に戻すだけの取り返しは禁止されています(コウ)。'
-          '一度他の場所に打ってからでないと、同じ場所を取り返すことはできません。',
-    ),
-    _RuleSection(
-      icon: Icons.flag_outlined,
-      title: '終局',
-      body: '両者が続けてパスすると対局が終了し、陣地を数えて勝敗を決めます。'
-          '碁縁にはタイマーがないので、納得いくまでじっくり考えて大丈夫です。',
-    ),
-  ];
+  List<_RuleSection> _buildSections(AppLocalizations l10n) => [
+        _RuleSection(
+          icon: Icons.dashboard_outlined,
+          title: l10n.boardPartsTitle,
+          body: l10n.boardPartsBody,
+          diagram: _BoardAnatomyDiagram(l10n: l10n),
+        ),
+        _RuleSection(
+          icon: Icons.grid_on,
+          title: l10n.placingStonesTitle,
+          body: l10n.placingStonesBody,
+        ),
+        _RuleSection(
+          icon: Icons.hub_outlined,
+          title: l10n.libertyAtariTitle,
+          body: l10n.libertyAtariBody,
+          diagram: _LibertyComparisonDiagram(l10n: l10n),
+        ),
+        _RuleSection(
+          icon: Icons.remove_circle_outline,
+          title: l10n.captureTitle,
+          body: l10n.captureBody,
+        ),
+        _RuleSection(
+          icon: Icons.block_outlined,
+          title: l10n.suicideMoveTitle,
+          body: l10n.suicideMoveBody,
+          diagram: _SuicideMoveDiagram(l10n: l10n),
+        ),
+        _RuleSection(
+          icon: Icons.map_outlined,
+          title: l10n.territoryTitle,
+          body: l10n.territoryBody,
+        ),
+        _RuleSection(
+          icon: Icons.replay,
+          title: l10n.koRuleTitle,
+          body: l10n.koRuleBody,
+        ),
+        _RuleSection(
+          icon: Icons.flag_outlined,
+          title: l10n.endGameTitle,
+          body: l10n.endGameBody,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sections = _buildSections(l10n);
+
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('遊び方'),
+        title: Text(l10n.howToPlayTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
-        itemCount: _sections.length,
+        itemCount: sections.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) => _buildSectionCard(_sections[index]),
+        itemBuilder: (context, index) => _buildSectionCard(sections[index]),
       ),
     );
   }
@@ -142,20 +135,25 @@ class _RuleSection {
 
 /// 盤の各部の名称（交点・辺・隅・天元・星）を示す簡易図。
 class _BoardAnatomyDiagram extends StatelessWidget {
-  const _BoardAnatomyDiagram();
+  final AppLocalizations l10n;
+
+  const _BoardAnatomyDiagram({required this.l10n});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 260,
       height: 260,
-      child: CustomPaint(painter: _BoardAnatomyPainter()),
+      child: CustomPaint(painter: _BoardAnatomyPainter(l10n: l10n)),
     );
   }
 }
 
 class _BoardAnatomyPainter extends CustomPainter {
   static const _lines = 7;
+  final AppLocalizations l10n;
+
+  const _BoardAnatomyPainter({required this.l10n});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -195,26 +193,26 @@ class _BoardAnatomyPainter extends CustomPainter {
     // 隅 (corner)
     final corner = pointAt(0, 0);
     canvas.drawCircle(corner, 3, Paint()..color = AppColors.wakatake);
-    drawLabel('隅', corner, const Offset(-22, -18));
+    drawLabel(l10n.diagramCornerLabel, corner, const Offset(-22, -18));
 
     // 辺 (side, middle of the top edge)
     final side = pointAt((_lines - 1) ~/ 2, 0);
     canvas.drawCircle(side, 3, Paint()..color = AppColors.aiLight);
-    drawLabel('辺', side, const Offset(0, -22));
+    drawLabel(l10n.diagramSideLabel, side, const Offset(0, -22));
 
     // 天元 (center) - drawn as a hoshi point
     final center = pointAt((_lines - 1) ~/ 2, (_lines - 1) ~/ 2);
     drawHoshi(center);
-    drawLabel('天元(星)', center, const Offset(0, 26));
+    drawLabel(l10n.diagramCenterStarLabel, center, const Offset(0, 26));
 
     // 星 (corner-ish star point, offset from the true corner)
     final hoshi = pointAt(2, 2);
     drawHoshi(hoshi);
-    drawLabel('星', hoshi, const Offset(-26, 8));
+    drawLabel(l10n.diagramStarLabel, hoshi, const Offset(-26, 8));
 
     // 交点 (a plain, unremarkable intersection)
     final plainPoint = pointAt(4, 5);
-    drawLabel('交点', plainPoint, const Offset(28, 10));
+    drawLabel(l10n.diagramIntersectionLabel, plainPoint, const Offset(28, 10));
   }
 
   @override
@@ -223,7 +221,9 @@ class _BoardAnatomyPainter extends CustomPainter {
 
 /// 呼吸点4つの通常の石と、呼吸点1つ(アタリ)の石を並べて見せる図。
 class _LibertyComparisonDiagram extends StatelessWidget {
-  const _LibertyComparisonDiagram();
+  final AppLocalizations l10n;
+
+  const _LibertyComparisonDiagram({required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +239,7 @@ class _LibertyComparisonDiagram extends StatelessWidget {
               child: CustomPaint(painter: _LibertyPainter(surroundedSides: const {})),
             ),
             const SizedBox(height: 4),
-            Text('呼吸点 4つ', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+            Text(l10n.fourLibertiesLabel, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
           ],
         ),
         const SizedBox(width: 24),
@@ -257,7 +257,7 @@ class _LibertyComparisonDiagram extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text('アタリ（呼吸点1つ）', style: TextStyle(color: AppColors.shuLight, fontSize: 12)),
+            Text(l10n.atariOneLibertyLabel, style: TextStyle(color: AppColors.shuLight, fontSize: 12)),
           ],
         ),
       ],
@@ -328,7 +328,9 @@ class _LibertyPainter extends CustomPainter {
 
 /// 自殺手（呼吸点0になる着手）が禁止であることを示す図。
 class _SuicideMoveDiagram extends StatelessWidget {
-  const _SuicideMoveDiagram();
+  final AppLocalizations l10n;
+
+  const _SuicideMoveDiagram({required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +343,7 @@ class _SuicideMoveDiagram extends StatelessWidget {
           child: CustomPaint(painter: _LibertyPainter(surroundedSides: _Side.values.toSet())),
         ),
         const SizedBox(height: 4),
-        Text('この位置は打てません（呼吸点0）', style: TextStyle(color: AppColors.shuLight, fontSize: 12)),
+        Text(l10n.suicideMoveDiagramCaption, style: TextStyle(color: AppColors.shuLight, fontSize: 12)),
       ],
     );
   }
