@@ -5,7 +5,9 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/sgf_parser.dart';
+import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/views/widgets/index.dart';
 
 final _logger = Logger();
 
@@ -398,7 +400,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
 
   Widget _buildReplayBoard(BuildContext context, int boardSize, List<SgfMove> moves) {
     final stones = replaySgfMoves(moves, boardSize, _currentMoveIndex);
-    final cellSize = 300 / boardSize;
+    final geometry = GoBoardGeometry(size: 300, boardSize: boardSize);
 
     return Container(
       width: 300,
@@ -413,28 +415,29 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
       child: Stack(
         children: [
           CustomPaint(
-            painter: _GoGridPainter(boardSize: boardSize),
+            painter: GoBoardGridPainter(boardSize: boardSize),
             size: const Size(300, 300),
           ),
-          ..._buildReplayStones(boardSize, cellSize, stones),
+          ..._buildReplayStones(geometry, stones),
         ],
       ),
     );
   }
 
-  List<Widget> _buildReplayStones(int boardSize, double cellSize, List<List<int>> stones) {
+  List<Widget> _buildReplayStones(GoBoardGeometry geometry, List<List<int>> stones) {
     final stoneWidgets = <Widget>[];
-    final stoneRadius = cellSize * 0.4;
+    final stoneRadius = geometry.pitch * 0.4;
 
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
+    for (int row = 0; row < geometry.boardSize; row++) {
+      for (int col = 0; col < geometry.boardSize; col++) {
         final stone = stones[row][col];
         if (stone == 0) continue;
         final isBlack = stone == 1;
+        final center = geometry.intersectionOffset(row, col);
         stoneWidgets.add(
           Positioned(
-            left: col * cellSize + cellSize / 2 - stoneRadius,
-            top: row * cellSize + cellSize / 2 - stoneRadius,
+            left: center.dx - stoneRadius,
+            top: center.dy - stoneRadius,
             child: Container(
               width: stoneRadius * 2,
               height: stoneRadius * 2,
@@ -663,63 +666,4 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     _autoplayTimer = null;
     if (mounted) setState(() {});
   }
-}
-
-/// Custom painter for Go board grid
-class _GoGridPainter extends CustomPainter {
-  final int boardSize;
-
-  _GoGridPainter({required this.boardSize});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.grey500
-      ..strokeWidth = 1;
-
-    final step = size.width / boardSize;
-
-    // Horizontal lines
-    for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(
-        Offset(0, i * step),
-        Offset(size.width, i * step),
-        paint,
-      );
-    }
-
-    // Vertical lines
-    for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(
-        Offset(i * step, 0),
-        Offset(i * step, size.height),
-        paint,
-      );
-    }
-
-    // Star points (hoshi) for larger boards
-    if (boardSize == 19) {
-      final starPaint = Paint()
-        ..color = Colors.white60
-        ..strokeWidth = 0;
-
-      final starPositions = [
-        (3, 3), (3, 9), (3, 15),
-        (9, 3), (9, 9), (9, 15),
-        (15, 3), (15, 9), (15, 15),
-      ];
-
-      for (final (row, col) in starPositions) {
-        canvas.drawCircle(
-          Offset(col * step + step / 2, row * step + step / 2),
-          3,
-          starPaint,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GoGridPainter oldDelegate) =>
-      oldDelegate.boardSize != boardSize;
 }

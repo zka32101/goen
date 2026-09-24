@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/spectator.dart';
 import 'package:goen/viewmodels/index.dart';
+import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/views/widgets/index.dart';
 
 final _logger = Logger();
 
@@ -237,7 +239,7 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
     final boardSize = session.boardSize;
     final stones = session.stones ?? List.generate(boardSize, (_) => List.filled(boardSize, 0));
     const boardPixelSize = 300.0;
-    final cellSize = boardPixelSize / boardSize;
+    final geometry = GoBoardGeometry(size: boardPixelSize, boardSize: boardSize);
 
     return Container(
       width: boardPixelSize,
@@ -249,17 +251,25 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
       child: Stack(
         children: [
           CustomPaint(
-            painter: _ReadOnlyGoGridPainter(boardSize: boardSize),
+            painter: GoBoardGridPainter(
+              boardSize: boardSize,
+              lineColor: AppColors.sumi,
+              starPointColor: null,
+            ),
             size: const Size(boardPixelSize, boardPixelSize),
           ),
-          ..._buildStones(boardSize, cellSize, stones),
+          ..._buildStones(geometry, stones),
           if (session.lastMoveRow != null && session.lastMoveCol != null)
             Positioned(
-              left: session.lastMoveCol! * cellSize + cellSize / 2 - cellSize * 0.12,
-              top: session.lastMoveRow! * cellSize + cellSize / 2 - cellSize * 0.12,
+              left:
+                  geometry.intersectionOffset(session.lastMoveRow!, session.lastMoveCol!).dx -
+                  geometry.pitch * 0.12,
+              top:
+                  geometry.intersectionOffset(session.lastMoveRow!, session.lastMoveCol!).dy -
+                  geometry.pitch * 0.12,
               child: Container(
-                width: cellSize * 0.24,
-                height: cellSize * 0.24,
+                width: geometry.pitch * 0.24,
+                height: geometry.pitch * 0.24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.redAccent, width: 2),
@@ -271,21 +281,22 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
     );
   }
 
-  List<Widget> _buildStones(int boardSize, double cellSize, List<List<int>> stones) {
+  List<Widget> _buildStones(GoBoardGeometry geometry, List<List<int>> stones) {
     final stoneWidgets = <Widget>[];
-    final stoneRadius = cellSize * 0.4;
+    final stoneRadius = geometry.pitch * 0.4;
 
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
+    for (int row = 0; row < geometry.boardSize; row++) {
+      for (int col = 0; col < geometry.boardSize; col++) {
         final stone = stones[row][col];
         if (stone != 0) {
           final color = stone == 1 ? AppColors.sumi : AppColors.washi;
           final border = stone == 1 ? null : Border.all(color: AppColors.sumi, width: 1);
+          final center = geometry.intersectionOffset(row, col);
 
           stoneWidgets.add(
             Positioned(
-              left: col * cellSize + cellSize / 2 - stoneRadius,
-              top: row * cellSize + cellSize / 2 - stoneRadius,
+              left: center.dx - stoneRadius,
+              top: center.dy - stoneRadius,
               child: Container(
                 width: stoneRadius * 2,
                 height: stoneRadius * 2,
@@ -317,29 +328,4 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
       ],
     );
   }
-}
-
-/// 観戦画面専用の読み取り専用グリッド描画（AIGameScreenの_GoGridPainterと同等）
-class _ReadOnlyGoGridPainter extends CustomPainter {
-  final int boardSize;
-
-  _ReadOnlyGoGridPainter({required this.boardSize});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.sumi
-      ..strokeWidth = 1;
-
-    final cellSize = size.width / boardSize;
-
-    for (int i = 0; i < boardSize; i++) {
-      final offset = cellSize * i + cellSize / 2;
-      canvas.drawLine(Offset(offset, cellSize / 2), Offset(offset, size.height - cellSize / 2), paint);
-      canvas.drawLine(Offset(cellSize / 2, offset), Offset(size.width - cellSize / 2, offset), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ReadOnlyGoGridPainter oldDelegate) => oldDelegate.boardSize != boardSize;
 }

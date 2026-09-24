@@ -8,7 +8,9 @@ import 'package:goen/services/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/stone_feedback.dart';
 import 'package:goen/utils/wa_decorations.dart';
+import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/views/widgets/index.dart';
 
 final _logger = Logger();
 
@@ -304,137 +306,148 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     ({int row, int col, String player})? lastMove,
   ) {
     final boardSize = boardState.boardSize;
-    final cellSize = 300 / boardSize;
 
-    return GestureDetector(
-      onTapDown: (details) {
-        if (!ref.read(isGameActiveProvider)) return;
-        // Human always plays black; ignore taps while the AI is thinking.
-        if (!ref.read(gameBoardStateProvider).isBlackTurn) return;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final boardPixelSize = constraints.biggest.shortestSide;
+        final geometry = GoBoardGeometry(
+          size: boardPixelSize,
+          boardSize: boardSize,
+        );
 
-        // Convert tap position to board coordinates
-        final localPosition = details.localPosition;
-        final row = (localPosition.dy / cellSize).floor();
-        final col = (localPosition.dx / cellSize).floor();
+        return GestureDetector(
+          onTapDown: (details) {
+            if (!ref.read(isGameActiveProvider)) return;
+            // Human always plays black; ignore taps while the AI is thinking.
+            if (!ref.read(gameBoardStateProvider).isBlackTurn) return;
 
-        // Validate position
-        if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
-          _handleBoardTap(context, ref, row, col);
-        }
-      },
-      child: Container(
-        width: 300,
-        height: 300,
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primaryDark, width: 3),
-          borderRadius: BorderRadius.circular(4),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFC79A5C), // 榧(かや)材の明るい木目色
-              Color(0xFFA87C45),
-              Color(0xFFC79A5C),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.sumi.withOpacity(0.5),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // 木目
-            Positioned.fill(
-              child: IgnorePointer(
-                child: CustomPaint(
-                  painter: WoodGrainPainter(
-                    color: AppColors.sumi.withOpacity(0.08),
-                  ),
-                ),
+            final nearest = geometry.nearestIntersection(details.localPosition);
+            _handleBoardTap(context, ref, nearest.row, nearest.col);
+          },
+          child: Container(
+            width: boardPixelSize,
+            height: boardPixelSize,
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.primaryDark, width: 3),
+              borderRadius: BorderRadius.circular(4),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFC79A5C), // 榧(かや)材の明るい木目色
+                  Color(0xFFA87C45),
+                  Color(0xFFC79A5C),
+                ],
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.sumi.withOpacity(0.5),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
-
-            // Grid lines
-            CustomPaint(
-              painter: _GoGridPainter(boardSize: boardSize),
-              size: const Size(300, 300),
-            ),
-
-            // Stones
-            ..._buildStones(boardSize, cellSize, boardState.stones),
-
-            // 直前の一手を示す朱の印
-            if (lastMove != null)
-              Positioned(
-                left: lastMove.col * cellSize + cellSize / 2 - cellSize * 0.12,
-                top: lastMove.row * cellSize + cellSize / 2 - cellSize * 0.12,
-                child: IgnorePointer(
-                  child: Container(
-                    width: cellSize * 0.24,
-                    height: cellSize * 0.24,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: lastMove.player == 'black'
-                            ? AppColors.washi
-                            : AppColors.sumi,
-                        width: 1.5,
+            child: Stack(
+              children: [
+                // 木目
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: WoodGrainPainter(
+                        color: AppColors.sumi.withOpacity(0.08),
                       ),
                     ),
                   ),
                 ),
-              ),
 
-            // Legal move indicator
-            if (_selectedRow >= 0 && _selectedCol >= 0)
-              Positioned(
-                left: _selectedCol * cellSize + cellSize / 2 - cellSize * 0.15,
-                top: _selectedRow * cellSize + cellSize / 2 - cellSize * 0.15,
-                child: Container(
-                  width: cellSize * 0.3,
-                  height: cellSize * 0.3,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.accent.withOpacity(0.5),
-                    border: Border.all(color: AppColors.accent, width: 2),
-                  ),
+                // Grid lines
+                CustomPaint(
+                  painter: GoBoardGridPainter(boardSize: boardSize),
+                  size: Size(boardPixelSize, boardPixelSize),
                 ),
-              ),
 
-            // Capture celebration flash
-            if (_captureFlashCount != null)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: _CaptureFlash(
-                    key: ValueKey(_captureEventId),
-                    count: _captureFlashCount!,
-                    onDone: () {
-                      if (mounted) setState(() => _captureFlashCount = null);
-                    },
+                // Stones
+                ..._buildStones(geometry, boardState.stones),
+
+                // 直前の一手を示す朱の印
+                if (lastMove != null)
+                  Positioned(
+                    left:
+                        geometry.intersectionOffset(lastMove.row, lastMove.col).dx -
+                        geometry.pitch * 0.12,
+                    top:
+                        geometry.intersectionOffset(lastMove.row, lastMove.col).dy -
+                        geometry.pitch * 0.12,
+                    child: IgnorePointer(
+                      child: Container(
+                        width: geometry.pitch * 0.24,
+                        height: geometry.pitch * 0.24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: lastMove.player == 'black'
+                                ? AppColors.washi
+                                : AppColors.sumi,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-          ],
-        ),
-      ),
+
+                // Legal move indicator
+                if (_selectedRow >= 0 && _selectedCol >= 0)
+                  Positioned(
+                    left:
+                        geometry.intersectionOffset(_selectedRow, _selectedCol).dx -
+                        geometry.pitch * 0.15,
+                    top:
+                        geometry.intersectionOffset(_selectedRow, _selectedCol).dy -
+                        geometry.pitch * 0.15,
+                    child: Container(
+                      width: geometry.pitch * 0.3,
+                      height: geometry.pitch * 0.3,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.accent.withOpacity(0.5),
+                        border: Border.all(color: AppColors.accent, width: 2),
+                      ),
+                    ),
+                  ),
+
+                // Capture celebration flash
+                if (_captureFlashCount != null)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: _CaptureFlash(
+                        key: ValueKey(_captureEventId),
+                        count: _captureFlashCount!,
+                        onDone: () {
+                          if (mounted) {
+                            setState(() => _captureFlashCount = null);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   /// Build stone widgets
   List<Widget> _buildStones(
-    int boardSize,
-    double cellSize,
+    GoBoardGeometry geometry,
     List<List<int>> stones,
   ) {
     final stoneWidgets = <Widget>[];
-    final stoneRadius = cellSize * 0.4;
+    final stoneRadius = geometry.pitch * 0.4;
 
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
+    for (int row = 0; row < geometry.boardSize; row++) {
+      for (int col = 0; col < geometry.boardSize; col++) {
         final stone = stones[row][col];
         if (stone != 0) {
           // 0 = empty, 1 = black, 2 = white
@@ -442,11 +455,12 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           final border = isBlack
               ? null
               : Border.all(color: AppColors.washiDim, width: 0.5);
+          final center = geometry.intersectionOffset(row, col);
 
           stoneWidgets.add(
             Positioned(
-              left: col * cellSize + cellSize / 2 - stoneRadius,
-              top: row * cellSize + cellSize / 2 - stoneRadius,
+              left: center.dx - stoneRadius,
+              top: center.dy - stoneRadius,
               child: Container(
                 width: stoneRadius * 2,
                 height: stoneRadius * 2,
@@ -862,7 +876,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     int index,
   ) {
     final stones = _replayHistoryUpTo(history, boardSize, index);
-    final cellSize = 240 / boardSize;
+    const previewSize = 240.0;
+    final geometry = GoBoardGeometry(size: previewSize, boardSize: boardSize);
 
     showDialog(
       context: context,
@@ -873,8 +888,8 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           style: const TextStyle(color: AppColors.washi),
         ),
         content: SizedBox(
-          width: 240,
-          height: 240,
+          width: previewSize,
+          height: previewSize,
           child: Stack(
             children: [
               Container(
@@ -884,10 +899,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 ),
               ),
               CustomPaint(
-                painter: _GoGridPainter(boardSize: boardSize),
-                size: const Size(240, 240),
+                painter: GoBoardGridPainter(boardSize: boardSize),
+                size: const Size(previewSize, previewSize),
               ),
-              ..._buildPreviewStones(boardSize, cellSize, stones),
+              ..._buildPreviewStones(geometry, stones),
             ],
           ),
         ),
@@ -902,21 +917,21 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
   }
 
   List<Widget> _buildPreviewStones(
-    int boardSize,
-    double cellSize,
+    GoBoardGeometry geometry,
     List<List<int>> stones,
   ) {
     final widgets = <Widget>[];
-    final radius = cellSize * 0.4;
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
+    final radius = geometry.pitch * 0.4;
+    for (int row = 0; row < geometry.boardSize; row++) {
+      for (int col = 0; col < geometry.boardSize; col++) {
         final stone = stones[row][col];
         if (stone == 0) continue;
         final isBlack = stone == 1;
+        final center = geometry.intersectionOffset(row, col);
         widgets.add(
           Positioned(
-            left: col * cellSize + cellSize / 2 - radius,
-            top: row * cellSize + cellSize / 2 - radius,
+            left: center.dx - radius,
+            top: center.dy - radius,
             child: Container(
               width: radius * 2,
               height: radius * 2,
@@ -1009,70 +1024,6 @@ class _AiThinkingIndicatorState extends State<_AiThinkingIndicator>
   }
 }
 
-/// Custom painter for Go board grid
-class _GoGridPainter extends CustomPainter {
-  final int boardSize;
-
-  _GoGridPainter({required this.boardSize});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.grey500
-      ..strokeWidth = 1;
-
-    final step = size.width / boardSize;
-
-    // Lines run through the center of each cell (i*step + step/2), the same
-    // convention _buildStones/star points below already use for placing a
-    // stone at row/col — drawing them from the raw cell boundary (i*step)
-    // instead put every grid intersection half a cell above-left of where
-    // its stone actually renders. _PvpGridPainter (pvp_game_screen.dart)
-    // already gets this right; mirrored here.
-    for (int i = 0; i < boardSize; i++) {
-      final offset = i * step + step / 2;
-      canvas.drawLine(Offset(offset, step / 2), Offset(offset, size.height - step / 2), paint);
-      canvas.drawLine(Offset(step / 2, offset), Offset(size.width - step / 2, offset), paint);
-    }
-
-    // Star points (hoshi) - standard positions per board size, matching
-    // real Go boards instead of only having them on 9x9.
-    final starPositions = switch (boardSize) {
-      9 => const [(2, 2), (2, 6), (4, 4), (6, 2), (6, 6)],
-      13 => const [(3, 3), (3, 9), (6, 6), (9, 3), (9, 9)],
-      19 => const [
-        (3, 3),
-        (3, 9),
-        (3, 15),
-        (9, 3),
-        (9, 9),
-        (9, 15),
-        (15, 3),
-        (15, 9),
-        (15, 15),
-      ],
-      _ => const <(int, int)>[],
-    };
-
-    if (starPositions.isNotEmpty) {
-      final starPaint = Paint()
-        ..color = Colors.white60
-        ..strokeWidth = 0;
-
-      for (final (row, col) in starPositions) {
-        canvas.drawCircle(
-          Offset(col * step + step / 2, row * step + step / 2),
-          3,
-          starPaint,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GoGridPainter oldDelegate) =>
-      oldDelegate.boardSize != boardSize;
-}
 
 /// 捕獲時の演出。「アゲハマができた瞬間」を気持ちよく見せるための、
 /// フェードイン→少し留まる→フェードアウトするだけの軽量な演出。

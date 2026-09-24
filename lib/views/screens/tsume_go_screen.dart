@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
@@ -394,17 +395,13 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
   ) {
     final boardState = ref.watch(currentPuzzleBoardProvider);
     final boardSize = boardState.boardSize;
-    final cellSize = 300 / boardSize;
+    final geometry = GoBoardGeometry(size: 300, boardSize: boardSize);
 
     return GestureDetector(
       onTapDown: (details) {
         if (isPuzzleSolved) return;
-        final localPosition = details.localPosition;
-        final row = (localPosition.dy / cellSize).floor();
-        final col = (localPosition.dx / cellSize).floor();
-        if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
-          ref.read(applyPuzzleMoveProvider)(row, col);
-        }
+        final nearest = geometry.nearestIntersection(details.localPosition);
+        ref.read(applyPuzzleMoveProvider)(nearest.row, nearest.col);
       },
       child: Container(
         width: 300,
@@ -419,10 +416,13 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
         child: Stack(
           children: [
             CustomPaint(
-              painter: _GoGridPainter(boardSize: boardSize),
+              painter: GoBoardGridPainter(
+                boardSize: boardSize,
+                starPointColor: null,
+              ),
               size: const Size(300, 300),
             ),
-            ..._buildStones(boardSize, cellSize, boardState.stones),
+            ..._buildStones(geometry, boardState.stones),
           ],
         ),
       ),
@@ -430,26 +430,26 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
   }
 
   List<Widget> _buildStones(
-    int boardSize,
-    double cellSize,
+    GoBoardGeometry geometry,
     List<List<int>> stones,
   ) {
     final stoneWidgets = <Widget>[];
-    final stoneRadius = cellSize * 0.4;
+    final stoneRadius = geometry.pitch * 0.4;
 
-    for (int row = 0; row < boardSize; row++) {
-      for (int col = 0; col < boardSize; col++) {
+    for (int row = 0; row < geometry.boardSize; row++) {
+      for (int col = 0; col < geometry.boardSize; col++) {
         final stone = stones[row][col];
         if (stone != 0) {
           final color = stone == 1 ? AppColors.sumi : AppColors.washi;
           final border = stone == 1
               ? null
               : Border.all(color: AppColors.sumi, width: 1);
+          final center = geometry.intersectionOffset(row, col);
 
           stoneWidgets.add(
             Positioned(
-              left: col * cellSize + cellSize / 2 - stoneRadius,
-              top: row * cellSize + cellSize / 2 - stoneRadius,
+              left: center.dx - stoneRadius,
+              top: center.dy - stoneRadius,
               child: Container(
                 width: stoneRadius * 2,
                 height: stoneRadius * 2,
@@ -626,42 +626,4 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
         return 'medium';
     }
   }
-}
-
-/// Custom painter for Go board grid
-class _GoGridPainter extends CustomPainter {
-  final int boardSize;
-
-  _GoGridPainter({required this.boardSize});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.grey500
-      ..strokeWidth = 1;
-
-    final step = size.width / boardSize;
-
-    // Horizontal lines
-    for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(
-        Offset(0, i * step),
-        Offset(size.width, i * step),
-        paint,
-      );
-    }
-
-    // Vertical lines
-    for (int i = 0; i < boardSize; i++) {
-      canvas.drawLine(
-        Offset(i * step, 0),
-        Offset(i * step, size.height),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GoGridPainter oldDelegate) =>
-      oldDelegate.boardSize != boardSize;
 }
