@@ -698,5 +698,39 @@
   "vsOpponentLabel": "vs {name}",
   "@vsOpponentLabel": { "placeholders": { "name": { "type": "String" } } },
   "yourTurnLabel": "あなたの番",
-  "opponentTurnLabel": "相手の番"
+  "opponentTurnLabel": "相手の番",
+
+  "loadingSettingsMessage": "設定を読み込み中...",
+  "settingsLoadFallbackMessage": "前回の設定が見つからないため、デフォルト設定を使用します",
+  "startGameButton": "ゲーム開始",
+  "playerColorLabel": "手番",
+  "randomColorOption": "ランダム",
+
+  "blitzSettingsTitle": "ブリッツゲーム設定",
+  "aiDifficultyLabel": "AI難易度",
+
+  "correspondenceSettingsTitle": "ターンベース対局設定",
+  "considerationTimeLabel": "考慮時間",
+  "considerationTimeInfoMessage": "1手につき24時間の考慮時間があります",
+
+  "teamSettingsTitle": "チーム戦設定",
+  "team1Label": "チーム1 (白石)",
+  "team2Label": "チーム2 (黒石)",
+  "playersOfTwoLabel": "{count}/2 プレイヤー",
+  "@playersOfTwoLabel": { "placeholders": { "count": { "type": "int" } } },
+  "noPlayersSelectedMessage": "プレイヤー未選択",
+
+  "handicapSettingsTitle": "ハンディキャップ戦",
+  "handicapIntroMessage": "ハンディキャップ石を先に盤上に置いた状態で、白番（AI）から対局を始めます。",
+  "handicapStonesCountLabel": "置き石の数",
+  "stonesCountShortLabel": "{count} 子",
+  "@stonesCountShortLabel": { "placeholders": { "count": { "type": "int" } } },
+
+  "puzzleRushSettingsTitle": "詰碁ラッシュ設定",
+  "selectDifficultyLabel": "難易度を選択",
+  "difficultyExpertLabel": "最高級",
+  "sessionInfoTitle": "セッション情報",
+  "fiveMinuteSessionLabel": "5分間のセッション",
+  "comboSystemLabel": "コンボシステム搭載",
+  "globalLeaderboardLabel": "グローバルリーダーボード"
 }

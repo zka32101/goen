@@ -698,5 +698,39 @@
   "vsOpponentLabel": "vs {name}",
   "@vsOpponentLabel": { "placeholders": { "name": { "type": "String" } } },
   "yourTurnLabel": "Your Turn",
-  "opponentTurnLabel": "Opponent's Turn"
+  "opponentTurnLabel": "Opponent's Turn",
+
+  "loadingSettingsMessage": "Loading settings...",
+  "settingsLoadFallbackMessage": "Previous settings not found, using defaults",
+  "startGameButton": "Start Game",
+  "playerColorLabel": "Player Color",
+  "randomColorOption": "Random",
+
+  "blitzSettingsTitle": "Blitz Game Settings",
+  "aiDifficultyLabel": "AI Difficulty",
+
+  "correspondenceSettingsTitle": "Correspondence Game Settings",
+  "considerationTimeLabel": "Time per Move",
+  "considerationTimeInfoMessage": "You have 24 hours to consider each move",
+
+  "teamSettingsTitle": "Team Game Settings",
+  "team1Label": "Team 1 (White)",
+  "team2Label": "Team 2 (Black)",
+  "playersOfTwoLabel": "{count}/2 Players",
+  "@playersOfTwoLabel": { "placeholders": { "count": { "type": "int" } } },
+  "noPlayersSelectedMessage": "No players selected",
+
+  "handicapSettingsTitle": "Handicap Game",
+  "handicapIntroMessage": "The handicap stones are placed on the board first, then the game starts with White (the AI) to move.",
+  "handicapStonesCountLabel": "Number of Handicap Stones",
+  "stonesCountShortLabel": "{count} stones",
+  "@stonesCountShortLabel": { "placeholders": { "count": { "type": "int" } } },
+
+  "puzzleRushSettingsTitle": "Puzzle Rush Settings",
+  "selectDifficultyLabel": "Select Difficulty",
+  "difficultyExpertLabel": "Expert",
+  "sessionInfoTitle": "Session Info",
+  "fiveMinuteSessionLabel": "5-minute session",
+  "comboSystemLabel": "Combo system included",
+  "globalLeaderboardLabel": "Global leaderboard"
 }

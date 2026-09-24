@@ -4,6 +4,7 @@ import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import '../widgets/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 /// Analytics dashboard screen
 class AnalyticsDashboardScreen extends ConsumerWidget {
@@ -11,38 +12,39 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     // currentUserProvider is a plain Provider<User?> (not an AsyncValue).
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ゲーム統計'),
+        title: Text(l10n.analyticsDashboardTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
       body: currentUser == null
-          ? const Center(child: Text('ログインしてください'))
+          ? Center(child: Text(l10n.loginRequiredMessage))
           : SingleChildScrollView(
               child: Column(
                 children: [
                   // Summary cards
-                  _buildSummarySection(ref, currentUser.uid),
+                  _buildSummarySection(l10n, ref, currentUser.uid),
 
                   const SizedBox(height: 24),
 
                   // Win rate by board size
-                  _buildWinRateByBoardSize(ref, currentUser.uid),
+                  _buildWinRateByBoardSize(l10n, ref, currentUser.uid),
 
                   const SizedBox(height: 24),
 
                   // Win rate by AI level
-                  _buildWinRateByAiLevel(ref, currentUser.uid),
+                  _buildWinRateByAiLevel(l10n, ref, currentUser.uid),
 
                   const SizedBox(height: 24),
 
                   // Achievements
-                  _buildAchievementsSection(ref, currentUser.uid),
+                  _buildAchievementsSection(l10n, ref, currentUser.uid),
 
                   const SizedBox(height: 24),
                 ],
@@ -51,7 +53,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummarySection(WidgetRef ref, String userId) {
+  Widget _buildSummarySection(AppLocalizations l10n, WidgetRef ref, String userId) {
     final statsAsync = ref.watch(userStatisticsProvider(userId));
 
     return Padding(
@@ -60,7 +62,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
         data: (stats) {
           if (stats == null) {
             return Center(
-              child: Text('統計データはまだありません',
+              child: Text(l10n.noStatsDataMessage,
                   style: TextStyle(color: AppColors.washiDim)),
             );
           }
@@ -77,22 +79,22 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                 children: [
                   _buildStatCard(
                     '${stats.totalGamesPlayed}',
-                    'ゲーム数',
+                    l10n.gamesCountStatLabel,
                     AppColors.aiLight,
                   ),
                   _buildStatCard(
                     '${stats.totalWins}',
-                    '勝利',
+                    l10n.winsStatLabel,
                     AppColors.wakatake,
                   ),
                   _buildStatCard(
                     '${stats.winRate.toStringAsFixed(1)}%',
-                    '勝率',
+                    l10n.winRateStatLabel,
                     AppColors.kin,
                   ),
                   _buildStatCard(
-                    '${stats.averageGameDuration.toStringAsFixed(0)}分',
-                    '平均時間',
+                    l10n.avgDurationMinutesValue(stats.averageGameDuration.toStringAsFixed(0)),
+                    l10n.avgTimeStatLabel,
                     AppColors.fuji,
                   ),
                 ],
@@ -109,7 +111,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                     children: [
                       Column(
                         children: [
-                          Text('好みのモード',
+                          Text(l10n.favoriteModeLabel,
                               style: TextStyle(color: AppColors.washiDim,
                                   fontSize: 12)),
                           const SizedBox(height: 4),
@@ -122,7 +124,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                       ),
                       Column(
                         children: [
-                          Text('好みのレベル',
+                          Text(l10n.favoriteLevelLabel,
                               style: TextStyle(color: AppColors.washiDim,
                                   fontSize: 12)),
                           const SizedBox(height: 4),
@@ -135,7 +137,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                       ),
                       Column(
                         children: [
-                          Text('好みのサイズ',
+                          Text(l10n.favoriteSizeLabel,
                               style: TextStyle(color: AppColors.washiDim,
                                   fontSize: 12)),
                           const SizedBox(height: 4),
@@ -154,7 +156,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('エラー: $err')),
+        error: (err, stack) => Center(child: Text(l10n.errorPrefix('$err'))),
       ),
     );
   }
@@ -186,7 +188,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWinRateByBoardSize(WidgetRef ref, String userId) {
+  Widget _buildWinRateByBoardSize(AppLocalizations l10n, WidgetRef ref, String userId) {
     final winRateAsync = ref.watch(winRateByBoardSizeProvider(userId));
 
     return Padding(
@@ -195,9 +197,9 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
         data: (winRates) {
           return WinRateBarChartWidget(
             data: winRates,
-            title: 'ボードサイズ別勝率',
-            xAxisLabel: 'ボードサイズ',
-            yAxisLabel: '勝率（%）',
+            title: l10n.winRateByBoardSizeTitle,
+            xAxisLabel: l10n.boardSizeAxisLabel,
+            yAxisLabel: l10n.winRatePercentAxisLabel,
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -205,7 +207,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
           color: AppColors.sumiSurface,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Text('エラー: $err',
+            child: Text(l10n.errorPrefix('$err'),
                 style: TextStyle(color: AppColors.shuLight)),
           ),
         ),
@@ -213,7 +215,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWinRateByAiLevel(WidgetRef ref, String userId) {
+  Widget _buildWinRateByAiLevel(AppLocalizations l10n, WidgetRef ref, String userId) {
     final winRateAsync = ref.watch(winRateByAiLevelProvider(userId));
 
     return Padding(
@@ -227,9 +229,9 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
 
           return WinRateBarChartWidget(
             data: chartData,
-            title: 'AI レベル別勝率',
-            xAxisLabel: 'AIレベル',
-            yAxisLabel: '勝率（%）',
+            title: l10n.winRateByAiLevelTitle,
+            xAxisLabel: l10n.aiLevelAxisLabel,
+            yAxisLabel: l10n.winRatePercentAxisLabel,
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -237,7 +239,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
           color: AppColors.sumiSurface,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Text('エラー: $err',
+            child: Text(l10n.errorPrefix('$err'),
                 style: TextStyle(color: AppColors.shuLight)),
           ),
         ),
@@ -245,7 +247,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAchievementsSection(WidgetRef ref, String userId) {
+  Widget _buildAchievementsSection(AppLocalizations l10n, WidgetRef ref, String userId) {
     final achievementsAsync = ref.watch(unlockedAchievementsProvider(userId));
 
     return Padding(
@@ -254,7 +256,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'アチーブメント',
+            l10n.achievementsTitle,
             style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
@@ -265,7 +267,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
                   color: AppColors.sumiSurface,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text('アチーブメントを獲得してください',
+                    child: Text(l10n.noAchievementsMessage,
                         style: TextStyle(color: AppColors.washiDim)),
                   ),
                 );
@@ -281,7 +283,7 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
             },
             loading: () =>
                 const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Text('エラー: $err'),
+            error: (err, stack) => Text(l10n.errorPrefix('$err')),
           ),
         ],
       ),
