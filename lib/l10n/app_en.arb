@@ -614,5 +614,20 @@
   },
   "watchButton": "Watch",
   "spectateFailedMessage": "Could not start spectating: {error}",
-  "@spectateFailedMessage": { "placeholders": { "error": { "type": "String" } } }
+  "@spectateFailedMessage": { "placeholders": { "error": { "type": "String" } } },
+
+  "noFatefulMovesMessage": "Big captures and won ko fights will be recorded here",
+  "moveNumberStonesCapturedLabel": "Move {moveNumber} / {stones} stones captured",
+  "@moveNumberStonesCapturedLabel": {
+    "placeholders": { "moveNumber": { "type": "int" }, "stones": { "type": "int" } }
+  },
+
+  "concurrentPlayersCountLabel": "{count} people playing right now",
+  "@concurrentPlayersCountLabel": { "placeholders": { "count": { "type": "int" } } },
+  "notAloneMessage": "You're not alone",
+  "noOneCurrentlyPlayingMessage": "No one is playing right now",
+  "gameTypeBoardSizeLabel": "{gameType} / {boardSize}-line board",
+  "@gameTypeBoardSizeLabel": {
+    "placeholders": { "gameType": { "type": "String" }, "boardSize": { "type": "int" } }
+  }
 }

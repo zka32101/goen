@@ -614,5 +614,20 @@
   },
   "watchButton": "観戦する",
   "spectateFailedMessage": "観戦を開始できませんでした: {error}",
-  "@spectateFailedMessage": { "placeholders": { "error": { "type": "String" } } }
+  "@spectateFailedMessage": { "placeholders": { "error": { "type": "String" } } },
+
+  "noFatefulMovesMessage": "大石を仕留めたり劫を制したりすると、ここに記録されます",
+  "moveNumberStonesCapturedLabel": "{moveNumber}手目 / {stones}子捕獲",
+  "@moveNumberStonesCapturedLabel": {
+    "placeholders": { "moveNumber": { "type": "int" }, "stones": { "type": "int" } }
+  },
+
+  "concurrentPlayersCountLabel": "いま {count} 人が対局中",
+  "@concurrentPlayersCountLabel": { "placeholders": { "count": { "type": "int" } } },
+  "notAloneMessage": "あなたは一人ではありません",
+  "noOneCurrentlyPlayingMessage": "いま対局中の人はいません",
+  "gameTypeBoardSizeLabel": "{gameType} / {boardSize}路盤",
+  "@gameTypeBoardSizeLabel": {
+    "placeholders": { "gameType": { "type": "String" }, "boardSize": { "type": "int" } }
+  }
 }
