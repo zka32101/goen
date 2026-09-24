@@ -629,5 +629,43 @@
   "gameTypeBoardSizeLabel": "{gameType} / {boardSize}路盤",
   "@gameTypeBoardSizeLabel": {
     "placeholders": { "gameType": { "type": "String" }, "boardSize": { "type": "int" } }
-  }
+  },
+
+  "positionEchoIntro": "対局中に名局(秀策の碁など)と同じ局面へ辿り着くと、ここに記録されます",
+  "noEchoesMessage": "まだ名局との縁は記録されていません",
+  "famousGameDefaultLabel": "名局",
+  "moveNumberBoardSizeLabel": "{moveNumber}手目 / {boardSize}路盤",
+  "@moveNumberBoardSizeLabel": {
+    "placeholders": { "moveNumber": { "type": "int" }, "boardSize": { "type": "int" } }
+  },
+
+  "gamePresetsTitle": "ゲームプリセット",
+  "modeBlitzChip": "ブリッツ",
+  "modeCorrespondenceChip": "対局",
+  "modeTeamChip": "チーム",
+  "modePuzzleChip": "パズル",
+  "noPresetsForModeMessage": "このモードのプリセットはありません",
+  "presetPlayMenuItem": "このプリセットでゲーム開始",
+  "presetDuplicateMenuItem": "複製",
+  "handicapStonesBadgeLabel": "置碁{stones}",
+  "@handicapStonesBadgeLabel": { "placeholders": { "stones": { "type": "int" } } },
+  "usageCountLabel": "使用回数: {count}",
+  "@usageCountLabel": { "placeholders": { "count": { "type": "int" } } },
+  "presetDuplicatedMessage": "プリセットを複製しました",
+  "modeNotSupportedForDirectStartMessage": "このモードのプリセットからの開始には対応していません",
+  "deletePresetDialogTitle": "プリセットを削除しますか？",
+  "deletedMessage": "削除しました",
+  "newPresetDialogTitle": "新しいプリセットを作成",
+  "editPresetDialogTitle": "プリセットを編集",
+  "presetNameHint": "プリセット名",
+  "aiLevelColonLabel": "AIレベル: {level}",
+  "@aiLevelColonLabel": { "placeholders": { "level": { "type": "int" } } },
+  "handicapSectionLabel": "置き碁（ハンディキャップ）",
+  "evenGameLabel": "互先",
+  "stonesLabel": "{stones}子",
+  "@stonesLabel": { "placeholders": { "stones": { "type": "int" } } },
+  "presetCreatedMessage": "プリセットを作成しました",
+  "presetUpdatedMessage": "プリセットを更新しました",
+  "copyOfPresetName": "{name}のコピー",
+  "@copyOfPresetName": { "placeholders": { "name": { "type": "String" } } }
 }

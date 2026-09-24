@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -12,6 +13,7 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final uid = currentUser?.uid;
     final playersAsync = ref.watch(concurrentPlayersProvider(uid));
@@ -19,7 +21,7 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('同時刻の碁盤'),
+        title: Text(l10n.concurrentPlayersCardTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
         actions: [
@@ -48,7 +50,7 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
                       Icon(Icons.groups, color: AppColors.wakatake, size: 32),
                       const SizedBox(height: 8),
                       Text(
-                        'いま ${players.length} 人が対局中',
+                        l10n.concurrentPlayersCountLabel(players.length),
                         style: const TextStyle(
                           color: AppColors.washi,
                           fontWeight: FontWeight.bold,
@@ -57,7 +59,7 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'あなたは一人ではありません',
+                        l10n.notAloneMessage,
                         style: TextStyle(color: AppColors.washiDim, fontSize: 12),
                       ),
                     ],
@@ -68,7 +70,7 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
                 child: players.isEmpty
                     ? Center(
                         child: Text(
-                          'いま対局中の人はいません',
+                          l10n.noOneCurrentlyPlayingMessage,
                           style: TextStyle(color: AppColors.washiDim),
                         ),
                       )
@@ -82,7 +84,7 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
                             leading: const Icon(Icons.circle, color: Colors.greenAccent, size: 12),
                             title: Text(player.displayName, style: const TextStyle(color: AppColors.washi)),
                             subtitle: Text(
-                              '${player.gameType} / ${player.boardSize}路盤',
+                              l10n.gameTypeBoardSizeLabel(player.gameType, player.boardSize),
                               style: TextStyle(color: AppColors.washiDim),
                             ),
                           );
@@ -96,7 +98,7 @@ class ConcurrentPlayersScreen extends ConsumerWidget {
         error: (err, _) {
           _logger.e('Concurrent players error: $err');
           return Center(
-            child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)),
+            child: Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent)),
           );
         },
       ),

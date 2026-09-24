@@ -629,5 +629,43 @@
   "gameTypeBoardSizeLabel": "{gameType} / {boardSize}-line board",
   "@gameTypeBoardSizeLabel": {
     "placeholders": { "gameType": { "type": "String" }, "boardSize": { "type": "int" } }
-  }
+  },
+
+  "positionEchoIntro": "When your game reaches the same position as a famous game (e.g. Shusaku's games), it will be recorded here",
+  "noEchoesMessage": "No connections with famous games recorded yet",
+  "famousGameDefaultLabel": "Famous Game",
+  "moveNumberBoardSizeLabel": "Move {moveNumber} / {boardSize}-line board",
+  "@moveNumberBoardSizeLabel": {
+    "placeholders": { "moveNumber": { "type": "int" }, "boardSize": { "type": "int" } }
+  },
+
+  "gamePresetsTitle": "Game Presets",
+  "modeBlitzChip": "Blitz",
+  "modeCorrespondenceChip": "Correspondence",
+  "modeTeamChip": "Team",
+  "modePuzzleChip": "Puzzle",
+  "noPresetsForModeMessage": "No presets for this mode",
+  "presetPlayMenuItem": "Start Game with This Preset",
+  "presetDuplicateMenuItem": "Duplicate",
+  "handicapStonesBadgeLabel": "Handicap {stones}",
+  "@handicapStonesBadgeLabel": { "placeholders": { "stones": { "type": "int" } } },
+  "usageCountLabel": "Used {count} times",
+  "@usageCountLabel": { "placeholders": { "count": { "type": "int" } } },
+  "presetDuplicatedMessage": "Preset duplicated",
+  "modeNotSupportedForDirectStartMessage": "Starting directly from this mode's preset is not supported",
+  "deletePresetDialogTitle": "Delete this preset?",
+  "deletedMessage": "Deleted",
+  "newPresetDialogTitle": "Create New Preset",
+  "editPresetDialogTitle": "Edit Preset",
+  "presetNameHint": "Preset name",
+  "aiLevelColonLabel": "AI Level: {level}",
+  "@aiLevelColonLabel": { "placeholders": { "level": { "type": "int" } } },
+  "handicapSectionLabel": "Handicap",
+  "evenGameLabel": "Even game",
+  "stonesLabel": "{stones} stones",
+  "@stonesLabel": { "placeholders": { "stones": { "type": "int" } } },
+  "presetCreatedMessage": "Preset created",
+  "presetUpdatedMessage": "Preset updated",
+  "copyOfPresetName": "Copy of {name}",
+  "@copyOfPresetName": { "placeholders": { "name": { "type": "String" } } }
 }
