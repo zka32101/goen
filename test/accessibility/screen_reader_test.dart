@@ -30,10 +30,10 @@ void main() {
       // Each card's title Text merges with its sibling subtitle Text into
       // one combined semantics label, so match by substring rather than
       // exact equality.
-      expect(find.bySemanticsLabel(RegExp('Play AI Game')), findsWidgets);
-      expect(find.bySemanticsLabel(RegExp("Today's Puzzle")), findsWidgets);
-      expect(find.bySemanticsLabel(RegExp('Watch & Learn')), findsWidgets);
-      expect(find.bySemanticsLabel(RegExp('Settings')), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp('AI対局')), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp('今日の詰碁')), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp('観戦・学習')), findsWidgets);
+      expect(find.bySemanticsLabel(RegExp('設定')), findsWidgets);
 
       print('✓ Home screen has complete semantic coverage');
     });

@@ -187,5 +187,56 @@
   "onboardingCard2Description": "最初の黒石を盤上の好きな場所に置きましょう。",
   "onboardingCard3Title": "タップ3: 石を取ろう！",
   "onboardingCard3Subtitle": "「わかった！」の瞬間",
-  "onboardingCard3Description": "AIが白石を置きます。2つ目の黒石を置いて白石を囲んで取りましょう。これが囲碁の基本戦術です！"
+  "onboardingCard3Description": "AIが白石を置きます。2つ目の黒石を置いて白石を囲んで取りましょう。これが囲碁の基本戦術です！",
+
+  "gameSharedSuccessMessage": "共有しました！",
+  "savedPromptShareAgainMessage": "対局を保存しました。もう一度タップして共有できます",
+  "shareButton": "シェア",
+  "gameResultVictoryTitle": "勝利！",
+  "gameResultDefeatTitle": "敗北",
+  "gameResultGameOverTitle": "対局終了",
+  "gameResultResignSubtitle": "投了しました",
+  "gameResultDrawSubtitle": "引き分けで終了しました",
+  "gameResultDefaultSubtitle": "対局が終了しました",
+  "gameResignedMessage": "投了しました。最終スコアは計算されません。",
+  "finalScoreTitle": "最終スコア（中国ルール）",
+  "blackYouLabel": "黒\n(あなた)",
+  "whiteAiLabel": "白\n(AI)",
+  "gameStatsTitle": "対局統計",
+  "boardLabel": "碁盤",
+  "aiLevelLabel": "AIレベル",
+  "movesLabel": "手数",
+  "saveGameButton": "対局を保存",
+  "playAgainButton": "もう一度対局",
+  "backToHomeButton": "ホームに戻る",
+  "pleaseLoginToSaveMessage": "対局を保存するにはログインが必要です",
+  "gameSavedMessage": "対局を保存しました！",
+  "failedToSaveGameMessage": "対局の保存に失敗しました: {error}",
+  "@failedToSaveGameMessage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "achievementUnlockedLabel": "実績解除！",
+  "aiReviewTitle": "AI振り返り",
+  "aiReviewPrompt": "AIが対局を振り返り、良かった手・改善点を解説します。",
+  "aiReviewButton": "AIで振り返る",
+  "aiReviewFailedMessage": "AI振り返りの生成に失敗しました: {error}",
+  "@aiReviewFailedMessage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "turningPointLabel": "転換点: {point}",
+  "@turningPointLabel": {
+    "placeholders": { "point": { "type": "String" } }
+  },
+  "colorBlackLabel": "黒",
+  "colorWhiteLabel": "白",
+  "moveExplanationLine": "{moveNumber}手目 ({color} [{row},{col}]): {explanation}",
+  "@moveExplanationLine": {
+    "placeholders": {
+      "moveNumber": { "type": "int" },
+      "color": { "type": "String" },
+      "row": { "type": "int" },
+      "col": { "type": "int" },
+      "explanation": { "type": "String" }
+    }
+  }
 }

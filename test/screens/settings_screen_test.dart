@@ -43,7 +43,7 @@ void main() {
       );
 
       // Verify title
-      expect(find.text('Settings'), findsWidgets);
+      expect(find.text('設定'), findsWidgets);
     });
 
     testWidgets('shows profile section', (WidgetTester tester) async {
@@ -55,7 +55,7 @@ void main() {
       );
 
       // Profile section header
-      expect(find.text('Profile'), findsWidgets);
+      expect(find.text('プロフィール'), findsWidgets);
     });
 
     testWidgets('displays display name field', (WidgetTester tester) async {
@@ -67,7 +67,7 @@ void main() {
       );
 
       // Display name field
-      expect(find.text('Display Name'), findsWidgets);
+      expect(find.text('表示名'), findsWidgets);
       expect(find.byType(TextField), findsWidgets);
     });
 
@@ -80,7 +80,7 @@ void main() {
       );
 
       // Email should be displayed
-      expect(find.text('Email'), findsWidgets);
+      expect(find.text('メールアドレス'), findsWidgets);
       expect(find.text(TestData.testUser.email), findsWidgets);
     });
 
@@ -93,7 +93,7 @@ void main() {
       );
 
       // Save button
-      expect(find.text('Save Changes'), findsWidgets);
+      expect(find.text('変更を保存'), findsWidgets);
     });
 
     testWidgets('shows subscription section', (WidgetTester tester) async {
@@ -105,8 +105,8 @@ void main() {
       );
 
       // Subscription section
-      expect(find.text('Subscription'), findsWidgets);
-      expect(find.text('Premium Subscription'), findsWidgets);
+      expect(find.text('サブスクリプション'), findsWidgets);
+      expect(find.text('プレミアムサブスクリプション'), findsWidgets);
     });
 
     testWidgets('displays subscription status', (WidgetTester tester) async {
@@ -118,7 +118,7 @@ void main() {
       );
 
       // Status should be shown
-      expect(find.text('Inactive'), findsWidgets);
+      expect(find.text('無効'), findsWidgets);
     });
 
     testWidgets('shows upgrade button when inactive', (WidgetTester tester) async {
@@ -130,7 +130,7 @@ void main() {
       );
 
       // Upgrade button
-      expect(find.text('Upgrade to Premium'), findsWidgets);
+      expect(find.text('プレミアムにアップグレード'), findsWidgets);
     });
 
     testWidgets('preferences section visible', (WidgetTester tester) async {
@@ -142,7 +142,7 @@ void main() {
       );
 
       // Preferences section
-      expect(find.text('Preferences'), findsWidgets);
+      expect(find.text('ゲーム設定'), findsWidgets);
     });
 
     testWidgets('shows board size options', (WidgetTester tester) async {
@@ -154,7 +154,7 @@ void main() {
       );
 
       // Board size preference
-      expect(find.text('Preferred Board Size'), findsWidgets);
+      expect(find.text('碁盤サイズの初期設定'), findsWidgets);
       expect(find.byType(ChoiceChip), findsWidgets);
     });
 
@@ -182,7 +182,7 @@ void main() {
       );
 
       // AI difficulty section
-      expect(find.text('Default AI Difficulty'), findsWidgets);
+      expect(find.text('AI難易度の初期設定'), findsWidgets);
       expect(find.byType(Slider), findsWidgets);
     });
 
@@ -198,7 +198,7 @@ void main() {
       // dragged, not as static text - check the widget's label property
       // instead.
       final slider = tester.widget<Slider>(find.byType(Slider).first);
-      expect(slider.label, contains('Level'));
+      expect(slider.label, contains('レベル'));
     });
 
     testWidgets('shows difficulty labels (Beginner/Expert)', (WidgetTester tester) async {
@@ -210,8 +210,8 @@ void main() {
       );
 
       // Labels
-      expect(find.text('Beginner'), findsWidgets);
-      expect(find.text('Expert'), findsWidgets);
+      expect(find.text('初心者'), findsWidgets);
+      expect(find.text('エキスパート'), findsWidgets);
     });
 
     testWidgets('privacy section visible', (WidgetTester tester) async {
@@ -223,7 +223,7 @@ void main() {
       );
 
       // Privacy section
-      expect(find.text('Privacy & Data'), findsWidgets);
+      expect(find.text('プライバシーとデータ'), findsWidgets);
     });
 
     testWidgets('shows privacy toggle switches', (WidgetTester tester) async {
@@ -235,8 +235,8 @@ void main() {
       );
 
       // Privacy toggles
-      expect(find.text('Share game statistics'), findsWidgets);
-      expect(find.text('Anonymous mode'), findsWidgets);
+      expect(find.text('対局統計を共有'), findsWidgets);
+      expect(find.text('匿名モード'), findsWidgets);
       expect(find.byType(Switch), findsWidgets);
     });
 
@@ -249,7 +249,7 @@ void main() {
       );
 
       // Privacy policy link
-      expect(find.text('Read Privacy Policy'), findsWidgets);
+      expect(find.text('プライバシーポリシーを読む'), findsWidgets);
     });
 
     testWidgets('account section visible', (WidgetTester tester) async {
@@ -261,7 +261,7 @@ void main() {
       );
 
       // Account section
-      expect(find.text('Account'), findsWidgets);
+      expect(find.text('アカウント'), findsWidgets);
     });
 
     testWidgets('shows sign out button', (WidgetTester tester) async {
@@ -273,7 +273,7 @@ void main() {
       );
 
       // Sign out button
-      expect(find.text('Sign Out'), findsWidgets);
+      expect(find.text('サインアウト'), findsWidgets);
     });
 
     testWidgets('shows delete account button', (WidgetTester tester) async {
@@ -285,7 +285,7 @@ void main() {
       );
 
       // Delete account button
-      expect(find.text('Delete Account'), findsWidgets);
+      expect(find.text('アカウントを削除'), findsWidgets);
     });
 
     testWidgets('shows about section', (WidgetTester tester) async {
@@ -297,7 +297,7 @@ void main() {
       );
 
       // About section
-      expect(find.text('About'), findsWidgets);
+      expect(find.text('このアプリについて'), findsWidgets);
     });
 
     testWidgets('displays app version information', (WidgetTester tester) async {
@@ -309,7 +309,7 @@ void main() {
       );
 
       // Version info
-      expect(find.text('Version'), findsWidgets);
+      expect(find.text('バージョン'), findsWidgets);
       expect(find.text('1.0.0'), findsWidgets);
     });
 
@@ -322,7 +322,7 @@ void main() {
       );
 
       // App name
-      expect(find.text('App Name'), findsWidgets);
+      expect(find.text('アプリ名'), findsWidgets);
       expect(find.text('GoEn - 碁縁'), findsWidgets);
     });
 
@@ -335,7 +335,7 @@ void main() {
       );
 
       // Terms link
-      expect(find.text('Terms of Service'), findsWidgets);
+      expect(find.text('利用規約'), findsWidgets);
     });
 
     testWidgets('displays credits link', (WidgetTester tester) async {
@@ -347,7 +347,7 @@ void main() {
       );
 
       // Credits link
-      expect(find.text('Credits & Attribution'), findsWidgets);
+      expect(find.text('クレジット・謝辞'), findsWidgets);
     });
 
     testWidgets('shows auth required state when no user', (WidgetTester tester) async {
@@ -363,7 +363,7 @@ void main() {
       );
 
       // Auth required message
-      expect(find.text('Log in to access settings'), findsWidgets);
+      expect(find.text('設定を利用するにはログインしてください'), findsWidgets);
     });
 
     testWidgets('dark theme styling applied', (WidgetTester tester) async {
@@ -405,8 +405,8 @@ void main() {
       );
 
       // Section headers should be visible
-      expect(find.text('Profile'), findsWidgets);
-      expect(find.text('Subscription'), findsWidgets);
+      expect(find.text('プロフィール'), findsWidgets);
+      expect(find.text('サブスクリプション'), findsWidgets);
     });
 
     testWidgets('scrollable content', (WidgetTester tester) async {
@@ -451,7 +451,7 @@ void main() {
       );
 
       // Should show active status
-      expect(find.text('Active'), findsWidgets);
+      expect(find.text('有効'), findsWidgets);
     });
 
     testWidgets('premium features description shown', (WidgetTester tester) async {
@@ -490,7 +490,7 @@ void main() {
       );
 
       // Build number
-      expect(find.text('Build'), findsWidgets);
+      expect(find.text('ビルド'), findsWidgets);
       expect(find.text('2026.09.01'), findsWidgets);
     });
   });

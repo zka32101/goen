@@ -61,6 +61,10 @@ class TestUtils {
         home: child,
         theme: ThemeData.dark(),
         navigatorObservers: [],
+        // Matches GoEnApp's actual default (localeProvider starts at 'ja')
+        // so widget tests see the same strings production users do by
+        // default, instead of falling back to the test harness's 'en'.
+        locale: const Locale('ja'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),

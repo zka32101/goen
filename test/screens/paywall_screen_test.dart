@@ -53,7 +53,7 @@ void main() {
       );
 
       // Verify title
-      expect(find.text('Premium Membership'), findsWidgets);
+      expect(find.text('プレミアム会員'), findsWidgets);
     });
 
     testWidgets('shows close button', (WidgetTester tester) async {
@@ -89,7 +89,7 @@ void main() {
       );
 
       // Headline
-      expect(find.text('Unlock Premium Features'), findsWidgets);
+      expect(find.text('プレミアム機能を解放'), findsWidgets);
     });
 
     testWidgets('displays tagline', (WidgetTester tester) async {
@@ -102,7 +102,7 @@ void main() {
 
       // Tagline
       expect(
-        find.text('Join premium adults learning Go at their own pace'),
+        find.text('自分のペースで囲碁を学ぶ大人たちの仲間入りを'),
         findsWidgets,
       );
     });
@@ -116,7 +116,7 @@ void main() {
       );
 
       // Benefits header
-      expect(find.text('What You Get'), findsWidgets);
+      expect(find.text('得られるもの'), findsWidgets);
     });
 
     testWidgets('displays all 6 benefits', (WidgetTester tester) async {
@@ -128,12 +128,12 @@ void main() {
       );
 
       // All benefits should be visible
-      expect(find.text('Unlimited Games'), findsWidgets);
-      expect(find.text('Kifu Library'), findsWidgets);
-      expect(find.text('Advanced Stats'), findsWidgets);
-      expect(find.text('No Ads'), findsWidgets);
-      expect(find.text('Early Access'), findsWidgets);
-      expect(find.text('Premium Support'), findsWidgets);
+      expect(find.text('対局数無制限'), findsWidgets);
+      expect(find.text('棋譜ライブラリ'), findsWidgets);
+      expect(find.text('詳細統計'), findsWidgets);
+      expect(find.text('広告なし'), findsWidgets);
+      expect(find.text('早期アクセス'), findsWidgets);
+      expect(find.text('優先サポート'), findsWidgets);
     });
 
     testWidgets('benefits have checkmark icons', (WidgetTester tester) async {
@@ -157,8 +157,8 @@ void main() {
       );
 
       // Descriptions should be visible
-      expect(find.text('Play as many AI games as you want'), findsWidgets);
-      expect(find.text('Learn from 1000+ historical games'), findsWidgets);
+      expect(find.text('AI対局を好きなだけプレイ'), findsWidgets);
+      expect(find.text('1000局以上の過去対局から学ぶ'), findsWidgets);
     });
 
     testWidgets('pricing section visible', (WidgetTester tester) async {
@@ -171,7 +171,7 @@ void main() {
 
       // Should show pricing (monthly tab should be selected by default)
       await tester.pumpAndSettle();
-      expect(find.text('Monthly'), findsWidgets);
+      expect(find.text('月額'), findsWidgets);
     });
 
     testWidgets('shows monthly and annual toggle', (WidgetTester tester) async {
@@ -183,8 +183,8 @@ void main() {
       );
 
       // Toggle buttons
-      expect(find.text('Monthly'), findsWidgets);
-      expect(find.text('Annual'), findsWidgets);
+      expect(find.text('月額'), findsWidgets);
+      expect(find.text('年額'), findsWidgets);
     });
 
     testWidgets('monthly plan shows pricing', (WidgetTester tester) async {
@@ -212,8 +212,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap annual toggle
-      await tester.ensureVisible(find.text('Annual'));
-      await tester.tap(find.text('Annual'));
+      await tester.ensureVisible(find.text('年額'));
+      await tester.tap(find.text('年額'));
       await tester.pumpAndSettle();
 
       // Annual pricing should be visible
@@ -231,7 +231,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Descriptions
-      expect(find.text('Perfect for trying premium features'), findsWidgets);
+      expect(find.text('プレミアム機能をお試しいただくのに最適'), findsWidgets);
     });
 
     testWidgets('annual plan marked as best value', (
@@ -247,12 +247,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to annual
-      await tester.ensureVisible(find.text('Annual'));
-      await tester.tap(find.text('Annual'));
+      await tester.ensureVisible(find.text('年額'));
+      await tester.tap(find.text('年額'));
       await tester.pumpAndSettle();
 
       // Best value badge
-      expect(find.text('BEST VALUE'), findsWidgets);
+      expect(find.text('お得プラン'), findsWidgets);
     });
 
     testWidgets('shows cancel anytime disclaimer', (WidgetTester tester) async {
@@ -266,7 +266,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Disclaimer
-      expect(find.text('Cancel anytime. No hidden fees.'), findsWidgets);
+      expect(find.text('いつでも解約可能。隠れた費用はありません。'), findsWidgets);
     });
 
     testWidgets('displays CTA button', (WidgetTester tester) async {
@@ -280,7 +280,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // CTA button
-      expect(find.text('Continue with Monthly'), findsWidgets);
+      expect(find.text('月額で続ける'), findsWidgets);
     });
 
     testWidgets('CTA button changes with plan selection', (
@@ -296,12 +296,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to annual
-      await tester.ensureVisible(find.text('Annual'));
-      await tester.tap(find.text('Annual'));
+      await tester.ensureVisible(find.text('年額'));
+      await tester.tap(find.text('年額'));
       await tester.pumpAndSettle();
 
       // Button text should change
-      expect(find.text('Continue with Annual'), findsWidgets);
+      expect(find.text('年額で続ける'), findsWidgets);
     });
 
     testWidgets('shows FAQ section', (WidgetTester tester) async {
@@ -315,7 +315,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // FAQ header
-      expect(find.text('FAQ'), findsWidgets);
+      expect(find.text('よくある質問'), findsWidgets);
     });
 
     testWidgets('displays FAQ questions', (WidgetTester tester) async {
@@ -329,9 +329,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // FAQ questions
-      expect(find.text('Can I cancel anytime?'), findsWidgets);
-      expect(find.text('What payment methods are accepted?'), findsWidgets);
-      expect(find.text('Is there a free trial?'), findsWidgets);
+      expect(find.text('いつでも解約できますか？'), findsWidgets);
+      expect(find.text('どの支払い方法が使えますか？'), findsWidgets);
+      expect(find.text('無料トライアルはありますか？'), findsWidgets);
     });
 
     testWidgets('displays FAQ answers', (WidgetTester tester) async {
@@ -364,7 +364,7 @@ void main() {
       );
 
       // Success message
-      expect(find.text('You\'re Premium!'), findsWidgets);
+      expect(find.text('プレミアム会員です！'), findsWidgets);
     });
 
     testWidgets('success state shows checkmark icon', (
@@ -499,12 +499,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to annual
-      await tester.ensureVisible(find.text('Annual'));
-      await tester.tap(find.text('Annual'));
+      await tester.ensureVisible(find.text('年額'));
+      await tester.tap(find.text('年額'));
       await tester.pumpAndSettle();
 
       // Savings message
-      expect(find.text('Save 17% with annual billing'), findsWidgets);
+      expect(find.text('年払いで17%お得'), findsWidgets);
     });
 
     testWidgets('close button closes screen', (WidgetTester tester) async {
@@ -513,6 +513,7 @@ void main() {
           child: MaterialApp(
             home: const PaywallScreen(),
             navigatorObservers: [],
+            locale: const Locale('ja'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
           ),

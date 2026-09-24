@@ -42,7 +42,7 @@ void main() {
       );
 
       // Verify title
-      expect(find.text('Learn Go'), findsWidgets);
+      expect(find.text('囲碁を学ぶ'), findsWidgets);
     });
 
     testWidgets('shows skip button', (WidgetTester tester) async {
@@ -54,7 +54,7 @@ void main() {
       );
 
       // Verify skip button
-      expect(find.text('Skip'), findsWidgets);
+      expect(find.text('スキップ'), findsWidgets);
     });
 
     testWidgets('displays first card welcome message', (WidgetTester tester) async {
@@ -66,7 +66,7 @@ void main() {
       );
 
       // First card should show welcome
-      expect(find.text('Welcome to 碁縁'), findsWidgets);
+      expect(find.text('碁縁へようこそ'), findsWidgets);
     });
 
     testWidgets('first card shows app name', (WidgetTester tester) async {
@@ -78,7 +78,7 @@ void main() {
       );
 
       // App name with Chinese characters
-      expect(find.text('Learn Go at your own pace. No time pressure, just pure strategy.'),
+      expect(find.text('自分のペースで囲碁を学ぼう。時間制限はなく、純粋な戦略だけ。'),
           findsWidgets);
     });
 
@@ -91,7 +91,7 @@ void main() {
       );
 
       // Hint about 3 steps
-      expect(find.text('We\'ll teach you the basics in 3 simple steps'), findsWidgets);
+      expect(find.text('3つの簡単なステップで基本を教えます'), findsWidgets);
     });
 
     testWidgets('displays page indicators', (WidgetTester tester) async {
@@ -115,7 +115,7 @@ void main() {
       );
 
       // Next button on first page
-      expect(find.text('Next'), findsWidgets);
+      expect(find.text('次へ'), findsWidgets);
     });
 
     testWidgets('back button not shown on first page', (WidgetTester tester) async {
@@ -128,7 +128,7 @@ void main() {
 
       // Back button should not be visible on first page
       // (only Next button shown)
-      final backButtons = find.text('Back');
+      final backButtons = find.text('戻る');
       expect(backButtons, findsNothing);
     });
 
@@ -141,11 +141,11 @@ void main() {
       );
 
       // Tap next
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Should show second card content
-      expect(find.text('Tap 1: Your Move'), findsWidgets);
+      expect(find.text('タップ1: あなたの番'), findsWidgets);
     });
 
     testWidgets('second card displays board visualization', (WidgetTester tester) async {
@@ -157,7 +157,7 @@ void main() {
       );
 
       // Navigate to second card
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Board visualization should be present
@@ -173,7 +173,7 @@ void main() {
       );
 
       // Navigate to second card
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Black stone container should exist
@@ -189,13 +189,13 @@ void main() {
       );
 
       // Tap next twice
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Should show third card content
-      expect(find.text('Tap 3: Capture!'), findsWidgets);
+      expect(find.text('タップ3: 石を取ろう！'), findsWidgets);
     });
 
     testWidgets('third card shows aha moment label', (WidgetTester tester) async {
@@ -207,13 +207,13 @@ void main() {
       );
 
       // Navigate to third card
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Should show aha moment text
-      expect(find.text('The Aha Moment'), findsWidgets);
+      expect(find.text('「わかった！」の瞬間'), findsWidgets);
     });
 
     testWidgets('final button changes to start playing on last card',
@@ -226,13 +226,13 @@ void main() {
       );
 
       // Navigate to third card
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Button should now say "Start Playing"
-      expect(find.text('Start Playing'), findsWidgets);
+      expect(find.text('対局を始める'), findsWidgets);
     });
 
     testWidgets('can navigate back from second card', (WidgetTester tester) async {
@@ -244,18 +244,18 @@ void main() {
       );
 
       // Navigate to second card
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Back button should now be visible
-      expect(find.text('Back'), findsWidgets);
+      expect(find.text('戻る'), findsWidgets);
 
       // Tap back
-      await tester.tap(find.text('Back'));
+      await tester.tap(find.text('戻る'));
       await tester.pumpAndSettle();
 
       // Should be back on first card
-      expect(find.text('Welcome to 碁縁'), findsWidgets);
+      expect(find.text('碁縁へようこそ'), findsWidgets);
     });
 
     testWidgets('page indicator shows current page', (WidgetTester tester) async {
@@ -268,7 +268,7 @@ void main() {
 
       // Initially on page 0 - first indicator should be highlighted
       // After navigating, indicator should change
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Page indicator should reflect current page
@@ -322,7 +322,7 @@ void main() {
       );
 
       // Navigate to second card to see stone
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Container with shadow should exist
@@ -338,9 +338,9 @@ void main() {
       );
 
       // Navigate to third card
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
       // Multiple positioned elements for stones

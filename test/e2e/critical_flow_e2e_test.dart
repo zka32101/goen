@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/main.dart' show GameResultScreenRouter;
 import 'package:goen/models/index.dart';
 import 'package:goen/services/fuego_engine_service.dart';
@@ -112,6 +113,9 @@ Widget _buildTestableApp({
     child: MaterialApp(
       home: child,
       theme: ThemeData.dark(),
+      locale: const Locale('ja'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routes: {
         '/onboarding': (_) => const OnboardingScreen(),
         '/home': (_) => const HomeScreen(),
@@ -189,7 +193,7 @@ void main() {
       expect(find.text('碁縁'), findsWidgets);
 
       // Find and tap "Play AI Game" card
-      await TestUtils.tap(tester, find.text('Play AI Game'));
+      await TestUtils.tap(tester, find.text('AI対局'));
       await tester.pumpAndSettle();
 
       // Should show AI game screen
@@ -239,8 +243,8 @@ void main() {
       // Verify home screen
       expect(find.text('碁縁'), findsWidgets);
 
-      // Tap puzzle action (real card title is "Today's Puzzle")
-      final puzzleButton = find.text("Today's Puzzle");
+      // Tap puzzle action (real card title is '今日の詰碁')
+      final puzzleButton = find.text('今日の詰碁');
       if (puzzleButton.evaluate().isNotEmpty) {
         await TestUtils.tap(tester, puzzleButton);
         await tester.pumpAndSettle();
@@ -263,7 +267,7 @@ void main() {
       expect(find.text('碁縁'), findsWidgets);
 
       // Tap watch & learn action
-      final watchButton = find.text('Watch & Learn');
+      final watchButton = find.text('観戦・学習');
       if (watchButton.evaluate().isNotEmpty) {
         await TestUtils.tap(tester, watchButton);
         await tester.pumpAndSettle();
@@ -285,10 +289,10 @@ void main() {
 
       // Navigate to different screens (real card titles)
       final screens = [
-        'Play AI Game',
-        "Today's Puzzle",
-        'Watch & Learn',
-        'My Games',
+        'AI対局',
+        '今日の詰碁',
+        '観戦・学習',
+        '対局履歴',
       ];
 
       for (final screenName in screens) {
@@ -317,7 +321,7 @@ void main() {
       );
 
       // Navigate to a game
-      await TestUtils.tap(tester, find.text('Play AI Game'));
+      await TestUtils.tap(tester, find.text('AI対局'));
       await tester.pumpAndSettle();
 
       // Make a move
@@ -332,7 +336,7 @@ void main() {
       }
 
       // Navigate to game again
-      await TestUtils.tap(tester, find.text('Play AI Game'));
+      await TestUtils.tap(tester, find.text('AI対局'));
       await tester.pumpAndSettle();
 
       // Game state should be preserved (or new game started)
@@ -348,7 +352,7 @@ void main() {
       // Rapidly navigate between screens
       for (int i = 0; i < 3; i++) {
         // Go to game
-        await TestUtils.tap(tester, find.text('Play AI Game'));
+        await TestUtils.tap(tester, find.text('AI対局'));
         await tester.pumpAndSettle();
 
         // Go back
@@ -393,7 +397,7 @@ void main() {
       );
 
       // Navigate to history
-      final historyButton = find.text('My Games');
+      final historyButton = find.text('対局履歴');
       if (historyButton.evaluate().isNotEmpty) {
         await TestUtils.tap(tester, historyButton);
         await tester.pumpAndSettle();
@@ -422,7 +426,7 @@ void main() {
 
       // After 3 games, paywall should be triggered
       // For this test, we'll manually navigate to paywall
-      final upgradeButton = find.text('Upgrade to Premium');
+      final upgradeButton = find.text('プレミアムにアップグレード');
       if (upgradeButton.evaluate().isNotEmpty) {
         await TestUtils.tap(tester, upgradeButton);
         await tester.pumpAndSettle();
@@ -431,8 +435,8 @@ void main() {
         expect(find.byType(Scaffold), findsWidgets);
 
         // Verify pricing options are shown
-        expect(find.text('Monthly'), findsWidgets);
-        expect(find.text('Annual'), findsWidgets);
+        expect(find.text('月額'), findsWidgets);
+        expect(find.text('年額'), findsWidgets);
       }
     });
 
@@ -460,7 +464,7 @@ void main() {
       expect(find.byType(HomeScreen), findsWidgets);
 
       // Tap play
-      await TestUtils.tap(tester, find.text('Play AI Game'));
+      await TestUtils.tap(tester, find.text('AI対局'));
       await tester.pumpAndSettle();
 
       // Should show game
@@ -481,7 +485,7 @@ void main() {
       );
 
       // Navigate to game
-      await TestUtils.tap(tester, find.text('Play AI Game'));
+      await TestUtils.tap(tester, find.text('AI対局'));
       await tester.pumpAndSettle();
 
       // Simulate an error scenario by navigating back and forth
@@ -493,7 +497,7 @@ void main() {
         }
 
         // Retry
-        final playButton = find.text('Play AI Game');
+        final playButton = find.text('AI対局');
         if (playButton.evaluate().isNotEmpty) {
           await TestUtils.tap(tester, playButton);
           await tester.pumpAndSettle();
@@ -525,7 +529,7 @@ void main() {
       expect(find.byType(SingleChildScrollView), findsWidgets);
 
       // Navigate through screens
-      await TestUtils.tap(tester, find.text('Play AI Game'));
+      await TestUtils.tap(tester, find.text('AI対局'));
       await tester.pumpAndSettle();
 
       // Verify game layout is responsive

@@ -187,5 +187,56 @@
   "onboardingCard2Description": "Place your first black stone anywhere on the board.",
   "onboardingCard3Title": "Tap 3: Capture!",
   "onboardingCard3Subtitle": "The Aha Moment",
-  "onboardingCard3Description": "AI plays white. Now place your second black stone to surround and capture the white stone. This is the fundamental tactic in Go!"
+  "onboardingCard3Description": "AI plays white. Now place your second black stone to surround and capture the white stone. This is the fundamental tactic in Go!",
+
+  "gameSharedSuccessMessage": "Game shared successfully!",
+  "savedPromptShareAgainMessage": "Game saved. Tap share again to share it",
+  "shareButton": "Share",
+  "gameResultVictoryTitle": "Victory!",
+  "gameResultDefeatTitle": "Defeat",
+  "gameResultGameOverTitle": "Game Over",
+  "gameResultResignSubtitle": "You resigned the game",
+  "gameResultDrawSubtitle": "The game ended in a draw",
+  "gameResultDefaultSubtitle": "The game has ended",
+  "gameResignedMessage": "Game resigned. No final score calculated.",
+  "finalScoreTitle": "Final Score (Chinese Rules)",
+  "blackYouLabel": "Black\n(You)",
+  "whiteAiLabel": "White\n(AI)",
+  "gameStatsTitle": "Game Stats",
+  "boardLabel": "Board",
+  "aiLevelLabel": "AI Level",
+  "movesLabel": "Moves",
+  "saveGameButton": "Save Game",
+  "playAgainButton": "Play Again",
+  "backToHomeButton": "Back to Home",
+  "pleaseLoginToSaveMessage": "Please log in to save games",
+  "gameSavedMessage": "Game saved!",
+  "failedToSaveGameMessage": "Failed to save game: {error}",
+  "@failedToSaveGameMessage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "achievementUnlockedLabel": "Achievement Unlocked!",
+  "aiReviewTitle": "AI Review",
+  "aiReviewPrompt": "AI will review the game and explain good moves and areas to improve.",
+  "aiReviewButton": "Review with AI",
+  "aiReviewFailedMessage": "Failed to generate AI review: {error}",
+  "@aiReviewFailedMessage": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "turningPointLabel": "Turning point: {point}",
+  "@turningPointLabel": {
+    "placeholders": { "point": { "type": "String" } }
+  },
+  "colorBlackLabel": "Black",
+  "colorWhiteLabel": "White",
+  "moveExplanationLine": "Move {moveNumber} ({color} [{row},{col}]): {explanation}",
+  "@moveExplanationLine": {
+    "placeholders": {
+      "moveNumber": { "type": "int" },
+      "color": { "type": "String" },
+      "row": { "type": "int" },
+      "col": { "type": "int" },
+      "explanation": { "type": "String" }
+    }
+  }
 }
