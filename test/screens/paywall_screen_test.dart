@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/views/screens/paywall_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
@@ -512,6 +513,8 @@ void main() {
           child: MaterialApp(
             home: const PaywallScreen(),
             navigatorObservers: [],
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
           container: container,
         ),

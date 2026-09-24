@@ -5,6 +5,7 @@ import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/utils/wa_decorations.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -22,6 +23,7 @@ class SplashScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building SplashScreen');
 
+    final l10n = AppLocalizations.of(context)!;
     // Watch authentication state
     final authState = ref.watch(authStateProvider);
 
@@ -33,7 +35,7 @@ class SplashScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildLogo(context),
+              _buildLogo(context, l10n),
               const SizedBox(height: 60),
               SizedBox(
                 width: 40,
@@ -45,7 +47,7 @@ class SplashScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                '開いています...',
+                l10n.splashLoadingLabel,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.grey300,
                 ),
@@ -69,7 +71,7 @@ class SplashScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Initialization Error',
+                l10n.splashInitErrorTitle,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: AppColors.washi,
                 ),
@@ -91,7 +93,7 @@ class SplashScreen extends ConsumerWidget {
                   // Retry by refreshing auth state
                   ref.refresh(authStateProvider);
                 },
-                child: const Text('Retry'),
+                child: Text(l10n.retryButton),
               ),
             ],
           ),
@@ -117,7 +119,7 @@ class SplashScreen extends ConsumerWidget {
 
         // Show loading screen while navigation happens
         return _buildBackground(
-          child: _buildLogo(context),
+          child: _buildLogo(context, l10n),
         );
       },
     );
@@ -141,7 +143,7 @@ class SplashScreen extends ConsumerWidget {
 
   /// 円相（一筆書きの円）を背景に、アプリ名を筆文字風の大きな明朝体で
   /// 重ねたロゴ。以前の汎用的な肉球アイコンから、和のモチーフに差し替えた。
-  Widget _buildLogo(BuildContext context) {
+  Widget _buildLogo(BuildContext context, AppLocalizations l10n) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -176,7 +178,7 @@ class SplashScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          '碁を通じて、人と人とを結ぶ',
+          l10n.splashTagline,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: AppColors.accent,
             fontStyle: FontStyle.italic,

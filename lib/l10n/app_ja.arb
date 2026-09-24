@@ -80,5 +80,98 @@
   "profileSharedMessage": "{platform}で共有しました",
   "@profileSharedMessage": {
     "placeholders": { "platform": { "type": "String" } }
+  },
+
+  "homeGreeting": "おかえりなさい",
+  "homeDefaultPlayerName": "プレイヤー",
+  "homePremiumBadge": "プレミアム",
+  "homeGameModesTitle": "対局モード",
+  "homeGameModesSubtitle": "対局スタイルを選ぶ",
+  "homePlayAiGameTitle": "AI対局",
+  "homePlayAiGameSubtitle": "碁エンジンに挑戦する",
+  "homeTodaysPuzzleTitle": "今日の詰碁",
+  "homeTodaysPuzzleSubtitle": "毎日の詰碁を解く",
+  "homeWatchLearnTitle": "観戦・学習",
+  "homeWatchLearnSubtitle": "過去の棋譜を学ぶ",
+  "homeMyGamesTitle": "対局履歴",
+  "homeMyGamesSubtitle": "過去の対局を振り返る",
+  "homeEnHubTitle": "縁",
+  "homeEnHubSubtitle": "碁を通じたつながりを見る",
+  "homeTournamentTitle": "トーナメント",
+  "homeTournamentSubtitle": "大会に参加して腕を試そう",
+  "homePvpGamesTitle": "対局中の対局",
+  "homePvpGamesSubtitle": "進行中のPvP対局に戻る",
+  "homeHowToPlayTitle": "遊び方",
+  "homeHowToPlaySubtitle": "ルールをいつでも確認できます",
+  "homeJosekiTitle": "戦法（定石）",
+  "homeJosekiSubtitle": "代表的な定石と狙いを学ぶ",
+
+  "statsGamesPlayedLabel": "対局数",
+  "statsMemberSinceLabel": "登録日",
+
+  "notificationsTooltip": "通知",
+
+  "gameSettingsSectionTitle": "ゲーム設定",
+  "resetSettingsDescription": "碁盤サイズや難易度などのゲーム設定を初期値に戻します。",
+  "resetSettingsButton": "設定をリセット",
+
+  "unlockPremiumTitle": "プレミアムを解放",
+  "unlockPremiumDescription": "対局数無制限、詳細なAI分析、エキスパートによる棋譜解説をご利用いただけます。",
+  "upgradeNowButton": "今すぐアップグレード",
+
+  "resetSettingsDialogTitle": "設定をリセットしますか？",
+  "resetSettingsDialogContent": "碁盤サイズ、難易度、手番の色などのゲーム設定がすべて初期値に戻ります。\n\nこの操作は元に戻せません。",
+  "resetConfirmButton": "リセット",
+  "resettingProgressMessage": "設定をリセット中...",
+  "resetSuccessMessage": "すべての設定を初期値に戻しました",
+  "resetErrorMessage": "設定のリセットに失敗しました",
+
+  "splashLoadingLabel": "開いています...",
+  "splashTagline": "碁を通じて、人と人とを結ぶ",
+  "splashInitErrorTitle": "初期化エラー",
+  "retryButton": "再試行",
+
+  "paywallTitle": "プレミアム会員",
+  "paywallHeroTitle": "プレミアム機能を解放",
+  "paywallHeroSubtitle": "自分のペースで囲碁を学ぶ大人たちの仲間入りを",
+  "whatYouGetTitle": "得られるもの",
+  "benefitUnlimitedGamesTitle": "対局数無制限",
+  "benefitUnlimitedGamesDesc": "AI対局を好きなだけプレイ",
+  "benefitKifuLibraryTitle": "棋譜ライブラリ",
+  "benefitKifuLibraryDesc": "1000局以上の過去対局から学ぶ",
+  "benefitAdvancedStatsTitle": "詳細統計",
+  "benefitAdvancedStatsDesc": "詳細な分析で上達を可視化",
+  "benefitNoAdsTitle": "広告なし",
+  "benefitNoAdsDesc": "広告に邪魔されず学習に集中",
+  "benefitEarlyAccessTitle": "早期アクセス",
+  "benefitEarlyAccessDesc": "新機能をいち早く試せる",
+  "benefitPremiumSupportTitle": "優先サポート",
+  "benefitPremiumSupportDesc": "優先的なカスタマーサポート",
+  "monthlyLabel": "月額",
+  "annualLabel": "年額",
+  "monthlyPlanDescription": "プレミアム機能をお試しいただくのに最適",
+  "annualPlanDescription": "年払いで17%お得",
+  "cancelAnytimeNote": "いつでも解約可能。隠れた費用はありません。",
+  "continueWithPlanButton": "{plan}で続ける",
+  "@continueWithPlanButton": {
+    "placeholders": { "plan": { "type": "String" } }
+  },
+  "bestValueBadge": "お得プラン",
+  "faqTitle": "よくある質問",
+  "faqCancelQuestion": "いつでも解約できますか？",
+  "faqCancelAnswer": "はい！サブスクリプションは請求期間の終了まで有効です。アプリの設定からいつでも解約できます。",
+  "faqPaymentQuestion": "どの支払い方法が使えますか？",
+  "faqPaymentAnswer": "安全な決済代行サービス経由で主要なクレジットカードをご利用いただけます。",
+  "faqTrialQuestion": "無料トライアルはありますか？",
+  "faqTrialAnswer": "現在はありませんが、無料プランでもAI対局を3局までお試しいただけます。",
+  "subscribedTitle": "プレミアム会員です！",
+  "subscribedDescription": "すべてのプレミアム機能を無制限にお楽しみください",
+  "subscriptionActivatedMessage": "サブスクリプションが有効になりました！{plan}プラン",
+  "@subscriptionActivatedMessage": {
+    "placeholders": { "plan": { "type": "String" } }
+  },
+  "purchaseFailedMessage": "購入に失敗しました: {error}",
+  "@purchaseFailedMessage": {
+    "placeholders": { "error": { "type": "String" } }
   }
 }

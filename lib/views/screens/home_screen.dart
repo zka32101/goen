@@ -8,6 +8,7 @@ import 'package:goen/views/widgets/ad_banner.dart';
 import 'ai_game_screen.dart';
 import 'game_mode_selector_screen.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -26,6 +27,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building HomeScreen');
 
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
     final isSubscriptionActive = ref.watch(isSubscriptionActiveProvider);
 
@@ -38,11 +40,11 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: AppColors.sumi,
         elevation: 0,
         actions: [
-          _buildNotificationButton(context, ref, currentUser?.uid),
+          _buildNotificationButton(context, ref, l10n, currentUser?.uid),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => _navigateToSettings(context),
-            tooltip: 'Settings',
+            tooltip: l10n.settingsTitle,
             // Default IconButton constraints render a 40x40 tap target,
             // short of WCAG's 44x44dp minimum.
             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
@@ -59,7 +61,7 @@ class HomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Welcome back',
+                    l10n.homeGreeting,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppColors.washiDim,
                     ),
@@ -69,7 +71,7 @@ class HomeScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        currentUser?.displayName ?? 'Player',
+                        currentUser?.displayName ?? l10n.homeDefaultPlayerName,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: AppColors.washi,
                           fontWeight: FontWeight.bold,
@@ -86,7 +88,7 @@ class HomeScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Premium',
+                            l10n.homePremiumBadge,
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: AppColors.sumi,
                               fontWeight: FontWeight.bold,
@@ -107,8 +109,8 @@ class HomeScreen extends ConsumerWidget {
                   // Game Mode Selection - Primary CTA (Phase 58)
                   _buildActionCard(
                     context,
-                    title: 'Game Modes',
-                    subtitle: 'Choose your game style',
+                    title: l10n.homeGameModesTitle,
+                    subtitle: l10n.homeGameModesSubtitle,
                     icon: Icons.sports_esports,
                     color: AppColors.kin,
                     onTap: () => _navigateToGameModeSelector(context),
@@ -119,8 +121,8 @@ class HomeScreen extends ConsumerWidget {
                   // Classic AI Game option
                   _buildActionCard(
                     context,
-                    title: 'Play AI Game',
-                    subtitle: 'Challenge the Go engine',
+                    title: l10n.homePlayAiGameTitle,
+                    subtitle: l10n.homePlayAiGameSubtitle,
                     icon: Icons.smart_toy,
                     color: AppColors.kin,
                     onTap: () => _navigateToAiGame(context, ref),
@@ -130,8 +132,8 @@ class HomeScreen extends ConsumerWidget {
                   // Daily Tsume-Go puzzle
                   _buildActionCard(
                     context,
-                    title: "Today's Puzzle",
-                    subtitle: 'Solve the daily tsume-go',
+                    title: l10n.homeTodaysPuzzleTitle,
+                    subtitle: l10n.homeTodaysPuzzleSubtitle,
                     icon: Icons.lightbulb,
                     color: AppColors.aiLight,
                     onTap: () => _navigateToTsumeGo(context),
@@ -141,8 +143,8 @@ class HomeScreen extends ConsumerWidget {
                   // Watch Kifu
                   _buildActionCard(
                     context,
-                    title: 'Watch & Learn',
-                    subtitle: 'Study historical games',
+                    title: l10n.homeWatchLearnTitle,
+                    subtitle: l10n.homeWatchLearnSubtitle,
                     icon: Icons.visibility,
                     color: AppColors.wakatake,
                     onTap: () => _navigateToKifuObservation(context),
@@ -152,8 +154,8 @@ class HomeScreen extends ConsumerWidget {
                   // Game History
                   _buildActionCard(
                     context,
-                    title: 'My Games',
-                    subtitle: 'Review your past games',
+                    title: l10n.homeMyGamesTitle,
+                    subtitle: l10n.homeMyGamesSubtitle,
                     icon: Icons.history,
                     color: AppColors.fuji,
                     onTap: () => _navigateToGameHistory(context),
@@ -163,8 +165,8 @@ class HomeScreen extends ConsumerWidget {
                   // 縁 (En) hub
                   _buildActionCard(
                     context,
-                    title: '縁',
-                    subtitle: '碁を通じたつながりを見る',
+                    title: l10n.homeEnHubTitle,
+                    subtitle: l10n.homeEnHubSubtitle,
                     icon: Icons.favorite,
                     color: Colors.pink[300]!,
                     onTap: () => _navigateToEnHub(context),
@@ -174,8 +176,8 @@ class HomeScreen extends ConsumerWidget {
                   // Tournament
                   _buildActionCard(
                     context,
-                    title: 'トーナメント',
-                    subtitle: '大会に参加して腕を試そう',
+                    title: l10n.homeTournamentTitle,
+                    subtitle: l10n.homeTournamentSubtitle,
                     icon: Icons.emoji_events,
                     color: AppColors.kin,
                     onTap: () => _navigateToTournament(context),
@@ -185,8 +187,8 @@ class HomeScreen extends ConsumerWidget {
                   // Active PvP games (マッチング/トーナメント経由で始めた対局に戻る)
                   _buildActionCard(
                     context,
-                    title: '対局中の対局',
-                    subtitle: '進行中のPvP対局に戻る',
+                    title: l10n.homePvpGamesTitle,
+                    subtitle: l10n.homePvpGamesSubtitle,
                     icon: Icons.people_alt,
                     color: AppColors.shuLight,
                     onTap: () => _navigateToPvpGames(context),
@@ -196,8 +198,8 @@ class HomeScreen extends ConsumerWidget {
                   // How to Play (persistent reference, unlike onboarding)
                   _buildActionCard(
                     context,
-                    title: '遊び方',
-                    subtitle: 'ルールをいつでも確認できます',
+                    title: l10n.homeHowToPlayTitle,
+                    subtitle: l10n.homeHowToPlaySubtitle,
                     icon: Icons.menu_book,
                     color: Colors.teal[300]!,
                     onTap: () => _navigateToHowToPlay(context),
@@ -207,8 +209,8 @@ class HomeScreen extends ConsumerWidget {
                   // Joseki (strategy) library
                   _buildActionCard(
                     context,
-                    title: '戦法（定石）',
-                    subtitle: '代表的な定石と狙いを学ぶ',
+                    title: l10n.homeJosekiTitle,
+                    subtitle: l10n.homeJosekiSubtitle,
                     icon: Icons.auto_stories,
                     color: Colors.indigo[300]!,
                     onTap: () => _navigateToJoseki(context),
@@ -223,7 +225,7 @@ class HomeScreen extends ConsumerWidget {
             if (currentUser != null)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _buildStatsSection(context, currentUser),
+                child: _buildStatsSection(context, l10n, currentUser),
               ),
 
             const SizedBox(height: 32),
@@ -232,7 +234,7 @@ class HomeScreen extends ConsumerWidget {
             if (!isSubscriptionActive)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _buildPaywallTeaser(context, ref),
+                child: _buildPaywallTeaser(context, l10n, ref),
               ),
 
             const SizedBox(height: 32),
@@ -240,7 +242,7 @@ class HomeScreen extends ConsumerWidget {
             // Settings Reset Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildSettingsResetButton(context, ref),
+              child: _buildSettingsResetButton(context, l10n, ref),
             ),
 
             const SizedBox(height: 32),
@@ -319,7 +321,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   /// Stats section showing game counts
-  Widget _buildStatsSection(BuildContext context, User user) {
+  Widget _buildStatsSection(BuildContext context, AppLocalizations l10n, User user) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -333,7 +335,7 @@ class HomeScreen extends ConsumerWidget {
           Expanded(
             child: _buildStatItem(
               context,
-              label: 'Games Played',
+              label: l10n.statsGamesPlayedLabel,
               value: '${user.gamesPlayedCount}',
             ),
           ),
@@ -345,7 +347,7 @@ class HomeScreen extends ConsumerWidget {
           Expanded(
             child: _buildStatItem(
               context,
-              label: 'Member Since',
+              label: l10n.statsMemberSinceLabel,
               value: _formatDate(user.createdAt),
             ),
           ),
@@ -381,7 +383,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   /// Settings reset button
-  Widget _buildSettingsResetButton(BuildContext context, WidgetRef ref) {
+  Widget _buildSettingsResetButton(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -401,7 +403,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Game Settings',
+                l10n.gameSettingsSectionTitle,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.washi,
                   fontWeight: FontWeight.bold,
@@ -411,7 +413,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Reset all game settings (board size, difficulty, etc.) to defaults.',
+            l10n.resetSettingsDescription,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.washiDim,
               height: 1.5,
@@ -428,9 +430,9 @@ class HomeScreen extends ConsumerWidget {
                 minimumSize: const Size.fromHeight(44),
                 padding: const EdgeInsets.symmetric(vertical: 10),
               ),
-              onPressed: () => _showResetConfirmationDialog(context, ref),
+              onPressed: () => _showResetConfirmationDialog(context, l10n, ref),
               child: Text(
-                'Reset Settings',
+                l10n.resetSettingsButton,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: AppColors.washi,
                   fontWeight: FontWeight.bold,
@@ -444,7 +446,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   /// Paywall teaser for free users
-  Widget _buildPaywallTeaser(BuildContext context, WidgetRef ref) {
+  Widget _buildPaywallTeaser(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -464,7 +466,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Unlock Premium',
+                l10n.unlockPremiumTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.washi,
                   fontWeight: FontWeight.bold,
@@ -474,7 +476,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Play unlimited games, get detailed AI analysis, and watch expert kifu commentary.',
+            l10n.unlockPremiumDescription,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.washiDim,
               height: 1.5,
@@ -490,7 +492,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               onPressed: () => _navigateToPaywall(context, ref),
               child: Text(
-                'Upgrade Now',
+                l10n.upgradeNowButton,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: AppColors.sumi,
                   fontWeight: FontWeight.bold,
@@ -571,7 +573,12 @@ class HomeScreen extends ConsumerWidget {
   }
 
   /// Notification bell with an unread-count badge
-  Widget _buildNotificationButton(BuildContext context, WidgetRef ref, String? uid) {
+  Widget _buildNotificationButton(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    String? uid,
+  ) {
     // Default IconButton constraints render a 40x40 tap target, short of
     // WCAG's 44x44dp minimum.
     const minTapTarget = BoxConstraints(minWidth: 44, minHeight: 44);
@@ -580,7 +587,7 @@ class HomeScreen extends ConsumerWidget {
       return IconButton(
         icon: const Icon(Icons.notifications_none),
         onPressed: () => _navigateToNotifications(context),
-        tooltip: 'Notifications',
+        tooltip: l10n.notificationsTooltip,
         constraints: minTapTarget,
       );
     }
@@ -594,7 +601,7 @@ class HomeScreen extends ConsumerWidget {
         IconButton(
           icon: const Icon(Icons.notifications_none),
           onPressed: () => _navigateToNotifications(context),
-          tooltip: 'Notifications',
+          tooltip: l10n.notificationsTooltip,
           constraints: minTapTarget,
         ),
         if (unreadCount > 0)
@@ -632,7 +639,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   // Settings reset methods
-  void _showResetConfirmationDialog(BuildContext context, WidgetRef ref) {
+  void _showResetConfirmationDialog(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     _logger.i('Showing reset confirmation dialog');
     showDialog(
       context: context,
@@ -641,13 +648,13 @@ class HomeScreen extends ConsumerWidget {
         return AlertDialog(
           backgroundColor: AppColors.sumiSurface,
           title: Text(
-            'Reset Settings?',
+            l10n.resetSettingsDialogTitle,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: AppColors.washi,
             ),
           ),
           content: Text(
-            'This will reset all game settings (board size, difficulty, player color, etc.) to their default values.\n\nThis action cannot be undone.',
+            l10n.resetSettingsDialogContent,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -656,7 +663,7 @@ class HomeScreen extends ConsumerWidget {
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
-                'Cancel',
+                l10n.cancelButton,
                 style: TextStyle(color: AppColors.aiLight),
               ),
             ),
@@ -666,7 +673,7 @@ class HomeScreen extends ConsumerWidget {
                 Navigator.pop(dialogContext);
 
                 // Show loading indicator
-                _showResetProgressDialog(context);
+                _showResetProgressDialog(context, l10n);
 
                 try {
                   // Reset all settings
@@ -678,22 +685,22 @@ class HomeScreen extends ConsumerWidget {
 
                     if (result) {
                       _logger.i('Settings reset successfully');
-                      _showResetSuccessSnackbar(context);
+                      _showResetSuccessSnackbar(context, l10n);
                     } else {
                       _logger.e('Settings reset failed');
-                      _showResetErrorSnackbar(context);
+                      _showResetErrorSnackbar(context, l10n);
                     }
                   }
                 } catch (e) {
                   _logger.e('Error resetting settings: $e');
                   if (context.mounted) {
                     Navigator.pop(context); // Close progress dialog
-                    _showResetErrorSnackbar(context);
+                    _showResetErrorSnackbar(context, l10n);
                   }
                 }
               },
               child: Text(
-                'Reset',
+                l10n.resetConfirmButton,
                 style: TextStyle(color: AppColors.shuLight),
               ),
             ),
@@ -703,7 +710,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showResetProgressDialog(BuildContext context) {
+  void _showResetProgressDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -717,7 +724,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 16),
               Text(
-                'Resetting settings...',
+                l10n.resettingProgressMessage,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.washi,
                 ),
@@ -729,7 +736,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showResetSuccessSnackbar(BuildContext context) {
+  void _showResetSuccessSnackbar(BuildContext context, AppLocalizations l10n) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -738,7 +745,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'All settings have been reset to defaults',
+                l10n.resetSuccessMessage,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.washi,
                 ),
@@ -754,7 +761,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showResetErrorSnackbar(BuildContext context) {
+  void _showResetErrorSnackbar(BuildContext context, AppLocalizations l10n) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -763,7 +770,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Failed to reset settings',
+                l10n.resetErrorMessage,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.washi,
                 ),
