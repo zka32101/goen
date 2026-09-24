@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -14,17 +15,18 @@ class SponsorshipScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     _logger.i('Building SponsorshipScreen');
+    final l10n = AppLocalizations.of(context)!;
 
     final currentUser = ref.watch(currentUserProvider);
     if (currentUser == null) {
       return Scaffold(
         backgroundColor: AppColors.sumi,
         appBar: AppBar(
-          title: const Text('スポンサーシップ'),
+          title: Text(l10n.sponsorshipTitle),
           backgroundColor: AppColors.sumi,
         ),
-        body: const Center(
-          child: Text('ログインが必要です', style: TextStyle(color: AppColors.washiDim)),
+        body: Center(
+          child: Text(l10n.loginRequiredMessage, style: const TextStyle(color: AppColors.washiDim)),
         ),
       );
     }
@@ -37,7 +39,7 @@ class SponsorshipScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('スポンサーシップ'),
+        title: Text(l10n.sponsorshipTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -45,11 +47,12 @@ class SponsorshipScreen extends ConsumerWidget {
       body: sponsorInfo.when(
         data: (info) {
           if (info == null) {
-            return _buildEmptyState(context);
+            return _buildEmptyState(context, l10n);
           }
           return _buildSponsorshipView(
             context,
             ref,
+            l10n,
             uid,
             info,
             incomingSponsors,
@@ -62,14 +65,14 @@ class SponsorshipScreen extends ConsumerWidget {
           ),
         ),
         error: (error, stack) => Center(
-          child: Text('エラー: $error', style: const TextStyle(color: AppColors.washi)),
+          child: Text(l10n.errorPrefix('$error'), style: const TextStyle(color: AppColors.washi)),
         ),
       ),
     );
   }
 
   /// 空状態
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -81,14 +84,14 @@ class SponsorshipScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'スポンサーシップ',
+            l10n.sponsorshipTitle,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            'スポンサーシップが設定されていません',
+            l10n.sponsorshipNotConfiguredMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -103,6 +106,7 @@ class SponsorshipScreen extends ConsumerWidget {
   Widget _buildSponsorshipView(
     BuildContext context,
     WidgetRef ref,
+    AppLocalizations l10n,
     String uid,
     SponsorInfo info,
     AsyncValue<List<SponsorshipRecord>> incomingSponsors,
@@ -124,7 +128,7 @@ class SponsorshipScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'スポンサーシップ統計',
+                  l10n.sponsorshipStatsTitle,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: AppColors.kin,
                     fontWeight: FontWeight.bold,
@@ -137,19 +141,19 @@ class SponsorshipScreen extends ConsumerWidget {
                     _buildStatColumn(
                       context,
                       '${info.totalSponsorshipCount}',
-                      'スポンサー数',
+                      l10n.sponsorCountLabel,
                       AppColors.kin,
                     ),
                     _buildStatColumn(
                       context,
                       '\$${(info.totalMonthlyUSD / 100).toStringAsFixed(2)}',
-                      '月間収入',
+                      l10n.monthlyIncomeLabel,
                       AppColors.wakatake,
                     ),
                     _buildStatColumn(
                       context,
                       '${info.availableTiers.length}',
-                      'ティア',
+                      l10n.tierCountLabel,
                       AppColors.aiLight,
                     ),
                   ],
@@ -165,7 +169,7 @@ class SponsorshipScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'スポンサー一覧',
+                  l10n.sponsorListTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.washi,
                     fontWeight: FontWeight.bold,
@@ -179,7 +183,7 @@ class SponsorshipScreen extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 32),
                           child: Text(
-                            'スポンサーがいません',
+                            l10n.noSponsorsMessage,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.white54,
                             ),
@@ -204,7 +208,7 @@ class SponsorshipScreen extends ConsumerWidget {
                     ),
                   ),
                   error: (error, stack) => Text(
-                    'エラー: $error',
+                    l10n.errorPrefix('$error'),
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
@@ -219,7 +223,7 @@ class SponsorshipScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '最近のスポンサーシップ活動',
+                  l10n.recentActivityTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.washi,
                     fontWeight: FontWeight.bold,
@@ -233,7 +237,7 @@ class SponsorshipScreen extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 32),
                           child: Text(
-                            '活動がありません',
+                            l10n.noActivityMessage,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.white54,
                             ),
@@ -248,7 +252,7 @@ class SponsorshipScreen extends ConsumerWidget {
                       itemCount: notifs.length.clamp(0, 5), // 最新5件
                       itemBuilder: (context, index) {
                         final notif = notifs[index];
-                        return _buildNotificationCard(context, notif);
+                        return _buildNotificationCard(context, l10n, notif);
                       },
                     );
                   },
@@ -258,7 +262,7 @@ class SponsorshipScreen extends ConsumerWidget {
                     ),
                   ),
                   error: (error, stack) => Text(
-                    'エラー: $error',
+                    l10n.errorPrefix('$error'),
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
@@ -271,11 +275,11 @@ class SponsorshipScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: ElevatedButton.icon(
               icon: const Icon(Icons.add),
-              label: const Text('ティアを追加'),
+              label: Text(l10n.addTierButton),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.kin,
               ),
-              onPressed: () => _showCreateTierDialog(context, ref, uid),
+              onPressed: () => _showCreateTierDialog(context, ref, l10n, uid),
             ),
           ),
         ],
@@ -384,11 +388,12 @@ class SponsorshipScreen extends ConsumerWidget {
   /// 通知カード
   Widget _buildNotificationCard(
     BuildContext context,
+    AppLocalizations l10n,
     SponsorshipNotification notif,
   ) {
-    final typeText = notif.type == 'new_sponsor' ? '新しいスポンサー' :
-                     notif.type == 'tier_upgrade' ? 'ティアアップグレード' :
-                     '更新';
+    final typeText = notif.type == 'new_sponsor' ? l10n.newSponsorLabel :
+                     notif.type == 'tier_upgrade' ? l10n.tierUpgradeLabel :
+                     l10n.renewalLabel;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -433,7 +438,12 @@ class SponsorshipScreen extends ConsumerWidget {
 
   // ========== Actions ==========
 
-  void _showCreateTierDialog(BuildContext context, WidgetRef ref, String uid) {
+  void _showCreateTierDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    String uid,
+  ) {
     _logger.i('Creating a sponsorship tier');
     final nameController = TextEditingController();
     final priceController = TextEditingController();
@@ -443,27 +453,27 @@ class SponsorshipScreen extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('新しいティアを追加'),
+        title: Text(l10n.newTierDialogTitle),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(hintText: 'ティア名（例: 応援者）'),
+                decoration: InputDecoration(hintText: l10n.tierNameHint),
                 style: const TextStyle(color: AppColors.washi),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: priceController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(hintText: '月額（USD）'),
+                decoration: InputDecoration(hintText: l10n.monthlyPriceUsdHint),
                 style: const TextStyle(color: AppColors.washi),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: descriptionController,
-                decoration: const InputDecoration(hintText: '説明'),
+                decoration: InputDecoration(hintText: l10n.descriptionHint),
                 style: const TextStyle(color: AppColors.washi),
                 maxLines: 2,
               ),
@@ -473,7 +483,7 @@ class SponsorshipScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('キャンセル'),
+            child: Text(l10n.cancelButton),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -495,11 +505,11 @@ class SponsorshipScreen extends ConsumerWidget {
               );
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(result != null ? 'ティアを作成しました' : 'エラーが発生しました')),
+                SnackBar(content: Text(result != null ? l10n.tierCreatedMessage : l10n.genericErrorMessage)),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.kin),
-            child: const Text('作成'),
+            child: Text(l10n.createButton),
           ),
         ],
       ),
