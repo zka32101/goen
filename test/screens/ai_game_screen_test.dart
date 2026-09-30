@@ -84,11 +84,11 @@ void main() {
         ),
       );
 
-      // Verify control buttons (the "New Game" label only shows once the
-      // game is no longer active - it reads "Playing..." while active).
-      expect(find.text('Pass'), findsWidgets);
-      expect(find.text('Resign'), findsWidgets);
-      expect(find.text('Playing...'), findsWidgets);
+      // Verify control buttons (the "新しい対局" label only shows once the
+      // game is no longer active - it reads "対局中..." while active).
+      expect(find.text('パス'), findsWidgets);
+      expect(find.text('投了'), findsWidgets);
+      expect(find.text('対局中...'), findsWidgets);
     });
 
     testWidgets('pass button enabled when game active',
@@ -113,7 +113,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Resign'), findsWidgets);
+      expect(find.text('投了'), findsWidgets);
     });
 
     testWidgets('new game button disabled when game active',

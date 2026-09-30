@@ -216,13 +216,13 @@ void main() {
       await TestUtils.tap(tester, find.byType(GestureDetector).first);
       await tester.pumpAndSettle();
 
-      // Tap "Resign" to open the confirmation dialog
-      await TestUtils.tap(tester, find.text('Resign'));
+      // Tap "投了" to open the confirmation dialog
+      await TestUtils.tap(tester, find.text('投了'));
       await tester.pumpAndSettle();
 
-      // Confirm resignation inside the dialog (the dialog's own "Resign"
-      // button, now the last match once the original is showing behind it)
-      await TestUtils.tap(tester, find.text('Resign').last);
+      // Confirm resignation inside the dialog (the dialog's own "投了する"
+      // button)
+      await TestUtils.tap(tester, find.text('投了する'));
       await tester.pumpAndSettle();
 
       // Should show game result screen

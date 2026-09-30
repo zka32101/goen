@@ -276,7 +276,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                             onPressed: isGameActive
                                 ? () => _handlePass(context, ref)
                                 : null,
-                            child: const Text('Pass'),
+                            child: const Text('パス'),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -285,7 +285,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                             onPressed: isGameActive
                                 ? () => _handleResign(context, ref)
                                 : null,
-                            child: const Text('Resign'),
+                            child: const Text('投了'),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -297,7 +297,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                isGameActive ? 'Playing...' : 'New Game',
+                                isGameActive ? '対局中...' : '新しい対局',
                                 maxLines: 1,
                               ),
                             ),
@@ -533,7 +533,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       playIllegalMoveFeedback();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('That move is illegal (occupied, suicide, or ko)'),
+          content: Text('その手は禁じ手です（着手禁止点・自殺手・劫のいずれか）'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -596,7 +596,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('You passed. Game will end if AI passes too.'),
+        content: Text('パスしました。AIも連続でパスすると終局します。'),
         duration: Duration(seconds: 2),
       ),
     );
@@ -654,12 +654,12 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.primaryDark,
-        title: const Text('Resign Game?'),
-        content: const Text('Are you sure you want to resign?'),
+        title: const Text('投了しますか？'),
+        content: const Text('この対局を投了します。よろしいですか？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('キャンセル'),
           ),
           TextButton(
             onPressed: () {
@@ -678,7 +678,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 arguments: {'result': 'resign'},
               );
             },
-            child: const Text('Resign'),
+            child: const Text('投了する'),
           ),
         ],
       ),
