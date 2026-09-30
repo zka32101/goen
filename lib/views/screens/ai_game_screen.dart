@@ -32,6 +32,9 @@ class AIGameScreen extends ConsumerStatefulWidget {
 }
 
 class _AIGameScreenState extends ConsumerState<AIGameScreen> {
+  /// Fixed height of the evaluation panel so the board never resizes.
+  static const double _evaluationPanelHeight = 112;
+
   late int _selectedRow;
   late int _selectedCol;
 
@@ -224,15 +227,17 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
               ),
 
               // 指し手リスト（タップで局面をプレビュー表示）
-              if (moveHistory.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _buildMoveList(
-                    context,
-                    moveHistory,
-                    boardState.boardSize,
-                  ),
-                ),
+              // 高さを常に確保し、最初の着手で盤が動かないようにする。
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: moveHistory.isNotEmpty
+                    ? _buildMoveList(
+                        context,
+                        moveHistory,
+                        boardState.boardSize,
+                      )
+                    : const SizedBox(height: 40),
+              ),
 
               // Position evaluation display
               Padding(
@@ -240,7 +245,10 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                   horizontal: 16,
                   vertical: 8,
                 ),
-                child: _buildPositionEvaluation(context, ref),
+                child: SizedBox(
+                  height: _evaluationPanelHeight,
+                  child: _buildPositionEvaluation(context, ref),
+                ),
               ),
 
               // Game controls
@@ -249,11 +257,16 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 child: Column(
                   children: [
                     // AI move status
-                    if (ref.watch(aiMoveProvider).isLoading)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 16),
-                        child: _AiThinkingIndicator(),
+                    // 出入りで盤の高さが変わらないよう、枠は常に確保する。
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: SizedBox(
+                        height: 28,
+                        child: ref.watch(aiMoveProvider).isLoading
+                            ? const _AiThinkingIndicator()
+                            : null,
                       ),
+                    ),
 
                     // Button row
                     Row(
@@ -281,8 +294,12 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                             onPressed: !isGameActive
                                 ? () => _handleNewGame(context, ref)
                                 : null,
-                            child: Text(
-                              isGameActive ? 'Playing...' : 'New Game',
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                isGameActive ? 'Playing...' : 'New Game',
+                                maxLines: 1,
+                              ),
                             ),
                           ),
                         ),
@@ -327,8 +344,14 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           child: Container(
             width: boardPixelSize,
             height: boardPixelSize,
-            decoration: BoxDecoration(
+            // The frame is drawn as a foreground decoration so it does not
+            // inset the child area: grid, stones and taps must all share the
+            // exact same boardPixelSize-wide coordinate space.
+            foregroundDecoration: BoxDecoration(
               border: Border.all(color: AppColors.primaryDark, width: 3),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
@@ -671,7 +694,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
   Widget _buildPositionEvaluation(BuildContext context, WidgetRef ref) {
     final evaluation = ref.watch(positionEvaluationProvider);
 
+    // 再計算中は直前の評価を表示し続け、パネルの中身と高さを変えない。
     return evaluation.when(
+      skipLoadingOnReload: true,
       data: (eval) {
         final scoreDiff = eval.scoreDiff;
         final assessment = eval.assessment;
