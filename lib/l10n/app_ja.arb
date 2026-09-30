@@ -830,5 +830,51 @@
   "diagramIntersectionLabel": "交点",
   "fourLibertiesLabel": "呼吸点 4つ",
   "atariOneLibertyLabel": "アタリ（呼吸点1つ）",
-  "suicideMoveDiagramCaption": "この位置は打てません（呼吸点0）"
+  "suicideMoveDiagramCaption": "この位置は打てません（呼吸点0）",
+  "aiGameScreenTitle": "対局 - レベル {level}",
+  "@aiGameScreenTitle": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "capturesBlackWhiteLabel": "アゲハマ（黒/白）",
+  "passButton": "パス",
+  "resignButton": "投了",
+  "gameInProgressLabel": "対局中...",
+  "newGameButton": "新しい対局",
+  "illegalMoveMessage": "その手は禁じ手です（着手禁止点・自殺手・劫のいずれか）",
+  "passedMessage": "パスしました。AIも連続でパスすると終局します。",
+  "resignConfirmTitle": "投了しますか？",
+  "resignConfirmContent": "この対局を投了します。よろしいですか？",
+  "confirmResignButton": "投了する",
+  "scoreDiffLabel": "差: {value}",
+  "@scoreDiffLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "blackWinRateLabel": "黒勝率: {percent}%",
+  "@blackWinRateLabel": {
+    "placeholders": {
+      "percent": { "type": "String" }
+    }
+  },
+  "calculatingPositionMessage": "形勢を計算中...",
+  "positionEvaluationErrorMessage": "形勢評価エラー",
+  "movePreviewTitle": "{moveNumber}手目の局面",
+  "@movePreviewTitle": {
+    "placeholders": {
+      "moveNumber": { "type": "int" }
+    }
+  },
+  "aiThinkingPhrase1": "思案中…",
+  "aiThinkingPhrase2": "次の一手を練っています…",
+  "aiThinkingPhrase3": "盤面を読んでいます…",
+  "captureFlashSingleMessage": "捕獲！",
+  "captureFlashMultipleMessage": "{count}石 捕獲！",
+  "@captureFlashMultipleMessage": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

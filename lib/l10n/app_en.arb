@@ -830,5 +830,51 @@
   "diagramIntersectionLabel": "Intersection",
   "fourLibertiesLabel": "4 liberties",
   "atariOneLibertyLabel": "Atari (1 liberty)",
-  "suicideMoveDiagramCaption": "This point cannot be played (0 liberties)"
+  "suicideMoveDiagramCaption": "This point cannot be played (0 liberties)",
+  "aiGameScreenTitle": "Game - Level {level}",
+  "@aiGameScreenTitle": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "capturesBlackWhiteLabel": "Captures (Black/White)",
+  "passButton": "Pass",
+  "resignButton": "Resign",
+  "gameInProgressLabel": "Playing...",
+  "newGameButton": "New Game",
+  "illegalMoveMessage": "That move is illegal (occupied, suicide, or ko)",
+  "passedMessage": "You passed. The game will end if the AI passes too.",
+  "resignConfirmTitle": "Resign the game?",
+  "resignConfirmContent": "You are about to resign this game. Are you sure?",
+  "confirmResignButton": "Resign",
+  "scoreDiffLabel": "Score Diff: {value}",
+  "@scoreDiffLabel": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "blackWinRateLabel": "Black Win Rate: {percent}%",
+  "@blackWinRateLabel": {
+    "placeholders": {
+      "percent": { "type": "String" }
+    }
+  },
+  "calculatingPositionMessage": "Calculating position...",
+  "positionEvaluationErrorMessage": "Position evaluation error",
+  "movePreviewTitle": "Position after move {moveNumber}",
+  "@movePreviewTitle": {
+    "placeholders": {
+      "moveNumber": { "type": "int" }
+    }
+  },
+  "aiThinkingPhrase1": "Thinking…",
+  "aiThinkingPhrase2": "Considering the next move…",
+  "aiThinkingPhrase3": "Reading the board…",
+  "captureFlashSingleMessage": "Captured!",
+  "captureFlashMultipleMessage": "{count} stones captured!",
+  "@captureFlashMultipleMessage": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

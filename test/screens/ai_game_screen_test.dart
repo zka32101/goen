@@ -46,7 +46,7 @@ void main() {
       );
 
       // Verify game info text
-      expect(find.text('盤の大きさ'), findsWidgets);
+      expect(find.text('碁盤サイズ'), findsWidgets);
       expect(find.text('9×9'), findsWidgets);
       expect(find.text('手数'), findsWidgets);
       expect(find.text('0'), findsWidgets);
@@ -61,7 +61,7 @@ void main() {
       );
 
       // Verify app bar shows AI level
-      expect(find.text('対局 - Level 5'), findsWidgets);
+      expect(find.text('対局 - レベル 5'), findsWidgets);
     });
 
     testWidgets('displays board grid painter', (WidgetTester tester) async {

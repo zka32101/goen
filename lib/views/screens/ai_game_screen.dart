@@ -11,6 +11,7 @@ import 'package:goen/utils/wa_decorations.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -68,6 +69,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final boardState = ref.watch(gameBoardStateProvider);
     final isGameActive = ref.watch(isGameActiveProvider);
     final aiLevel = ref.watch(aiLevelProvider);
@@ -133,7 +135,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgDark,
       appBar: AppBar(
-        title: Text('対局 - Level $aiLevel'),
+        title: Text(l10n.aiGameScreenTitle(aiLevel)),
         centerTitle: true,
         backgroundColor: AppColors.primaryDark,
         elevation: 0,
@@ -163,7 +165,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '盤の大きさ',
+                          l10n.boardSizeLabel,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppColors.grey500),
                         ),
@@ -180,7 +182,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                     Column(
                       children: [
                         Text(
-                          'アゲハマ（黒/白）',
+                          l10n.capturesBlackWhiteLabel,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppColors.grey500),
                         ),
@@ -198,7 +200,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '手数',
+                          l10n.movesLabel,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: AppColors.grey500),
                         ),
@@ -263,7 +265,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                       child: SizedBox(
                         height: 28,
                         child: ref.watch(aiMoveProvider).isLoading
-                            ? const _AiThinkingIndicator()
+                            ? _AiThinkingIndicator(l10n: l10n)
                             : null,
                       ),
                     ),
@@ -276,7 +278,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                             onPressed: isGameActive
                                 ? () => _handlePass(context, ref)
                                 : null,
-                            child: const Text('パス'),
+                            child: Text(l10n.passButton),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -285,7 +287,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                             onPressed: isGameActive
                                 ? () => _handleResign(context, ref)
                                 : null,
-                            child: const Text('投了'),
+                            child: Text(l10n.resignButton),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -297,7 +299,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                isGameActive ? '対局中...' : '新しい対局',
+                                isGameActive
+                                    ? l10n.gameInProgressLabel
+                                    : l10n.newGameButton,
                                 maxLines: 1,
                               ),
                             ),
@@ -326,6 +330,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final l10n = AppLocalizations.of(context)!;
         final boardPixelSize = constraints.biggest.shortestSide;
         final geometry = GoBoardGeometry(
           size: boardPixelSize,
@@ -445,6 +450,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                       child: _CaptureFlash(
                         key: ValueKey(_captureEventId),
                         count: _captureFlashCount!,
+                        l10n: l10n,
                         onDone: () {
                           if (mounted) {
                             setState(() => _captureFlashCount = null);
@@ -518,6 +524,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
   }
 
   void _handleBoardTap(BuildContext context, WidgetRef ref, int row, int col) {
+    final l10n = AppLocalizations.of(context)!;
     _logger.i('Board tapped: row=$row, col=$col');
 
     // Applies the move (occupancy/suicide/ko checked internally) and, on
@@ -532,9 +539,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       _logger.w('Illegal move attempt: [$row,$col]');
       playIllegalMoveFeedback();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('その手は禁じ手です（着手禁止点・自殺手・劫のいずれか）'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(l10n.illegalMoveMessage),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -581,6 +588,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
   void _handlePass(BuildContext context, WidgetRef ref) {
     if (!ref.read(gameBoardStateProvider).isBlackTurn) return;
 
+    final l10n = AppLocalizations.of(context)!;
     _logger.i('Player passed');
     final gameEnded = ref.read(applyPassProvider)();
 
@@ -595,9 +603,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('パスしました。AIも連続でパスすると終局します。'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(l10n.passedMessage),
+        duration: const Duration(seconds: 2),
       ),
     );
 
@@ -648,18 +656,19 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
   }
 
   void _handleResign(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     _logger.w('Player resigned');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.primaryDark,
-        title: const Text('投了しますか？'),
-        content: const Text('この対局を投了します。よろしいですか？'),
+        title: Text(l10n.resignConfirmTitle),
+        content: Text(l10n.resignConfirmContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('キャンセル'),
+            child: Text(l10n.cancelButton),
           ),
           TextButton(
             onPressed: () {
@@ -678,7 +687,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 arguments: {'result': 'resign'},
               );
             },
-            child: const Text('投了する'),
+            child: Text(l10n.confirmResignButton),
           ),
         ],
       ),
@@ -692,6 +701,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
   /// Build position evaluation widget
   Widget _buildPositionEvaluation(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final evaluation = ref.watch(positionEvaluationProvider);
 
     // 再計算中は直前の評価を表示し続け、パネルの中身と高さを変えない。
@@ -733,13 +743,15 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Score Diff: ${scoreDiff.toStringAsFixed(1)}',
+                    l10n.scoreDiffLabel(scoreDiff.toStringAsFixed(1)),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: AppColors.washiDim),
                   ),
                   Text(
-                    '黒勝率: ${(blackWinProb * 100).toStringAsFixed(1)}%',
+                    l10n.blackWinRateLabel(
+                      (blackWinProb * 100).toStringAsFixed(1),
+                    ),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: AppColors.washiDim),
@@ -782,7 +794,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              '形勢を計算中...',
+              l10n.calculatingPositionMessage,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: AppColors.washiDim),
@@ -798,7 +810,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
           color: AppColors.shuDark.withOpacity(0.2),
         ),
         child: Text(
-          '形勢評価エラー',
+          l10n.positionEvaluationErrorMessage,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: AppColors.shuLight),
@@ -900,6 +912,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     int boardSize,
     int index,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final stones = _replayHistoryUpTo(history, boardSize, index);
     const previewSize = 240.0;
     final geometry = GoBoardGeometry(size: previewSize, boardSize: boardSize);
@@ -909,7 +922,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.primaryDark,
         title: Text(
-          '${index + 1}手目の局面',
+          l10n.movePreviewTitle(index + 1),
           style: const TextStyle(color: AppColors.washi),
         ),
         content: SizedBox(
@@ -934,7 +947,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('閉じる'),
+            child: Text(l10n.closeButton),
           ),
         ],
       ),
@@ -976,7 +989,9 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
 /// AIの「考え中」演出。墨がにじむような、ゆっくり明滅する円で表現する。
 class _AiThinkingIndicator extends StatefulWidget {
-  const _AiThinkingIndicator();
+  final AppLocalizations l10n;
+
+  const _AiThinkingIndicator({required this.l10n});
 
   @override
   State<_AiThinkingIndicator> createState() => _AiThinkingIndicatorState();
@@ -985,13 +1000,18 @@ class _AiThinkingIndicator extends StatefulWidget {
 class _AiThinkingIndicatorState extends State<_AiThinkingIndicator>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  static const _phrases = ['思案中…', '次の一手を練っています…', '盤面を読んでいます…'];
+  late final List<String> _phrases;
   int _phraseIndex = 0;
   Timer? _phraseTimer;
 
   @override
   void initState() {
     super.initState();
+    _phrases = [
+      widget.l10n.aiThinkingPhrase1,
+      widget.l10n.aiThinkingPhrase2,
+      widget.l10n.aiThinkingPhrase3,
+    ];
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1600),
@@ -1056,9 +1076,15 @@ class _AiThinkingIndicatorState extends State<_AiThinkingIndicator>
 /// AnimatedOpacity/AnimatedScaleだけで完結させている。
 class _CaptureFlash extends StatefulWidget {
   final int count;
+  final AppLocalizations l10n;
   final VoidCallback onDone;
 
-  const _CaptureFlash({super.key, required this.count, required this.onDone});
+  const _CaptureFlash({
+    super.key,
+    required this.count,
+    required this.l10n,
+    required this.onDone,
+  });
 
   @override
   State<_CaptureFlash> createState() => _CaptureFlashState();
@@ -1106,7 +1132,9 @@ class _CaptureFlashState extends State<_CaptureFlash> {
               border: Border.all(color: AppColors.accent, width: 2),
             ),
             child: Text(
-              widget.count > 1 ? '${widget.count}石 捕獲！' : '捕獲！',
+              widget.count > 1
+                  ? widget.l10n.captureFlashMultipleMessage(widget.count)
+                  : widget.l10n.captureFlashSingleMessage,
               style: TextStyle(
                 color: AppColors.accent,
                 fontWeight: FontWeight.bold,
