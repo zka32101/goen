@@ -216,7 +216,7 @@ class _BlitzGameSettingsScreenState
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
-                      ?.copyWith(color: Colors.white54)),
+                      ?.copyWith(color: AppColors.washiDim)),
               Text(l10n.levelLabel(level),
                   style: Theme.of(context)
                       .textTheme
@@ -226,7 +226,7 @@ class _BlitzGameSettingsScreenState
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
-                      ?.copyWith(color: Colors.white54)),
+                      ?.copyWith(color: AppColors.washiDim)),
             ],
           ),
         ),

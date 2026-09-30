@@ -201,7 +201,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.white10),
+              border: Border.all(color: AppColors.sumiLine),
               borderRadius: BorderRadius.circular(8),
               color: AppColors.washi.withOpacity(0.03),
             ),
@@ -329,7 +329,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isBestValue ? AppColors.kin : Colors.white10,
+          color: isBestValue ? AppColors.kin : AppColors.sumiLine,
           width: isBestValue ? 2 : 1,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -430,7 +430,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
         color: AppColors.washi.withOpacity(0.03),
       ),

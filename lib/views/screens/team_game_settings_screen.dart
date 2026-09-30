@@ -220,7 +220,7 @@ class _TeamGameSettingsScreenState extends ConsumerState<TeamGameSettingsScreen>
           else
             Text(l10n.noPlayersSelectedMessage,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white54,
+                  color: AppColors.washiDim,
                 )),
         ],
       ),

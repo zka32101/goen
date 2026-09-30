@@ -107,7 +107,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                   AppColors.washi,
                 ),
                 const SizedBox(height: 16),
-                const Divider(color: Colors.white24),
+                const Divider(color: AppColors.sumiLine),
                 const SizedBox(height: 16),
                 // Team 2 (Black)
                 _buildTeamInfo(
@@ -128,7 +128,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.sumi,
-                border: Border.all(color: Colors.white24),
+                border: Border.all(color: AppColors.sumiLine),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -223,7 +223,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.sumi,
-                    border: Border.all(color: Colors.white24),
+                    border: Border.all(color: AppColors.sumiLine),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: game.team1Moves.isEmpty
@@ -262,7 +262,7 @@ class _TeamGameScreenState extends ConsumerState<TeamGameScreen> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.sumi,
-                    border: Border.all(color: Colors.white24),
+                    border: Border.all(color: AppColors.sumiLine),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: game.team2Moves.isEmpty

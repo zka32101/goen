@@ -233,7 +233,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
         color: AppColors.washi.withOpacity(0.03),
       ),
@@ -479,7 +479,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
         color: AppColors.washi.withOpacity(0.03),
       ),
@@ -568,7 +568,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
         color: AppColors.washi.withOpacity(0.03),
       ),

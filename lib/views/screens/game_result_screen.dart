@@ -205,7 +205,7 @@ class GameResultScreen extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white10),
+                      border: Border.all(color: AppColors.sumiLine),
                       borderRadius: BorderRadius.circular(8),
                       color: AppColors.washi.withOpacity(0.03),
                     ),
@@ -321,7 +321,7 @@ class GameResultScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(12),
         color: AppColors.washi.withOpacity(0.03),
       ),
@@ -431,7 +431,7 @@ class GameResultScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
         color: AppColors.washi.withOpacity(0.03),
       ),
@@ -644,7 +644,7 @@ class _AiReviewSectionState extends ConsumerState<_AiReviewSection> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
         color: AppColors.washi.withOpacity(0.03),
       ),

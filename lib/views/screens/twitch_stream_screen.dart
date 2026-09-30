@@ -162,7 +162,7 @@ class TwitchStreamScreen extends ConsumerWidget {
                           child: Text(
                             l10n.noStreamHistoryMessage,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white54,
+                              color: AppColors.washiDim,
                             ),
                           ),
                         ),
@@ -287,7 +287,7 @@ class TwitchStreamScreen extends ConsumerWidget {
           if (stream.category != null)
             Row(
               children: [
-                Icon(Icons.tag, color: Colors.white54, size: 16),
+                Icon(Icons.tag, color: AppColors.washiDim, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   stream.category!,
@@ -338,7 +338,7 @@ class TwitchStreamScreen extends ConsumerWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -346,7 +346,7 @@ class TwitchStreamScreen extends ConsumerWidget {
           Icon(
             Icons.info_outline,
             size: 48,
-            color: Colors.white54,
+            color: AppColors.washiDim,
           ),
           const SizedBox(height: 16),
           Text(
@@ -383,7 +383,7 @@ class TwitchStreamScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -408,21 +408,21 @@ class TwitchStreamScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.visibility, color: Colors.white54, size: 14),
+              Icon(Icons.visibility, color: AppColors.washiDim, size: 14),
               const SizedBox(width: 4),
               Text(
                 l10n.viewersCountShortLabel(stream.viewers),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white54,
+                  color: AppColors.washiDim,
                 ),
               ),
               const SizedBox(width: 16),
-              Icon(Icons.schedule, color: Colors.white54, size: 14),
+              Icon(Icons.schedule, color: AppColors.washiDim, size: 14),
               const SizedBox(width: 4),
               Text(
                 durationText,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white54,
+                  color: AppColors.washiDim,
                 ),
               ),
             ],

@@ -175,7 +175,7 @@ class PlaystyleScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white24),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(message, style: TextStyle(color: AppColors.washiDim)),

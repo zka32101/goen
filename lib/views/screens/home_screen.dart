@@ -325,7 +325,7 @@ class HomeScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(12),
         color: AppColors.washi.withOpacity(0.03),
       ),
@@ -342,7 +342,7 @@ class HomeScreen extends ConsumerWidget {
           Container(
             width: 1,
             height: 40,
-            color: Colors.white10,
+            color: AppColors.sumiLine,
           ),
           Expanded(
             child: _buildStatItem(

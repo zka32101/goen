@@ -237,7 +237,7 @@ class _BlitzGameScreenState extends ConsumerState<BlitzGameScreen> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: AppColors.sumi,
-                    border: Border.all(color: Colors.white24),
+                    border: Border.all(color: AppColors.sumiLine),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: game.moveHistory.isEmpty

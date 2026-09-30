@@ -166,14 +166,14 @@ class GameModeSelectorScreen extends ConsumerWidget {
                     Text(
                       l10n.timeLimitSecondsLabel(mode.timeLimit),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.white54,
+                        color: AppColors.washiDim,
                       ),
                     ),
                   if (mode.maxPlayers > 1)
                     Text(
                       l10n.maxPlayersLabel(mode.maxPlayers),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.white54,
+                        color: AppColors.washiDim,
                       ),
                     ),
                 ],
@@ -380,7 +380,7 @@ class GameModeSelectorScreen extends ConsumerWidget {
           Text(
             error,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white54,
+              color: AppColors.washiDim,
             ),
             textAlign: TextAlign.center,
           ),

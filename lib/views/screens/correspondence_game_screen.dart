@@ -432,7 +432,7 @@ class CorrespondenceGameScreen extends ConsumerWidget {
         children: [
           Icon(
             Icons.mail_outline,
-            color: Colors.white54,
+            color: AppColors.washiDim,
             size: 64,
           ),
           const SizedBox(height: 16),

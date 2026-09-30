@@ -208,7 +208,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.white10),
+              border: Border.all(color: AppColors.sumiLine),
               borderRadius: BorderRadius.circular(8),
               color: AppColors.washi.withOpacity(0.03),
             ),
@@ -244,7 +244,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: Colors.white10),
+              borderSide: const BorderSide(color: AppColors.sumiLine),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
@@ -266,7 +266,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.white10),
+            border: Border.all(color: AppColors.sumiLine),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
@@ -580,14 +580,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           label: l10n.sponsorshipLabel,
           onTap: () => Navigator.of(context).pushNamed('/sponsorship'),
         ),
-        const Divider(color: Colors.white10, height: 24),
+        const Divider(color: AppColors.sumiLine, height: 24),
         _buildConnectionRow(
           context,
           icon: Icons.live_tv,
           label: l10n.twitchStreamLabel,
           onTap: () => Navigator.of(context).pushNamed('/twitch-stream'),
         ),
-        const Divider(color: Colors.white10, height: 24),
+        const Divider(color: AppColors.sumiLine, height: 24),
         _buildConnectionRow(
           context,
           icon: Icons.video_library,

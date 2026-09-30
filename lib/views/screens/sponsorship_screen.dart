@@ -185,7 +185,7 @@ class SponsorshipScreen extends ConsumerWidget {
                           child: Text(
                             l10n.noSponsorsMessage,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white54,
+                              color: AppColors.washiDim,
                             ),
                           ),
                         ),
@@ -239,7 +239,7 @@ class SponsorshipScreen extends ConsumerWidget {
                           child: Text(
                             l10n.noActivityMessage,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white54,
+                              color: AppColors.washiDim,
                             ),
                           ),
                         ),
@@ -307,7 +307,7 @@ class SponsorshipScreen extends ConsumerWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Colors.white54,
+            color: AppColors.washiDim,
           ),
         ),
       ],
@@ -322,7 +322,7 @@ class SponsorshipScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -346,7 +346,7 @@ class SponsorshipScreen extends ConsumerWidget {
                     Text(
                       '${sponsor.tierName} • $startDate',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.white54,
+                        color: AppColors.washiDim,
                       ),
                     ),
                   ],
@@ -399,7 +399,7 @@ class SponsorshipScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -425,7 +425,7 @@ class SponsorshipScreen extends ConsumerWidget {
                 Text(
                   '\$${(notif.amountUSD / 100).toStringAsFixed(2)} • ${notif.tier}',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.white54,
+                    color: AppColors.washiDim,
                   ),
                 ),
               ],

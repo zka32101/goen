@@ -154,7 +154,7 @@ class YouTubeShareScreen extends ConsumerWidget {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: AppColors.sumiLine),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -219,7 +219,7 @@ class YouTubeShareScreen extends ConsumerWidget {
                           child: Text(
                             l10n.noUploadsMessage,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white54,
+                              color: AppColors.washiDim,
                             ),
                           ),
                         ),
@@ -291,7 +291,7 @@ class YouTubeShareScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -317,7 +317,7 @@ class YouTubeShareScreen extends ConsumerWidget {
                     Text(
                       upload.uploadedAt.toString().split('.')[0],
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.white54,
+                        color: AppColors.washiDim,
                       ),
                     ),
                   ],

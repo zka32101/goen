@@ -363,7 +363,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: borderColor ?? Colors.white10, width: 2),
+        border: Border.all(color: borderColor ?? AppColors.sumiLine, width: 2),
         borderRadius: BorderRadius.circular(8),
         color: AppColors.washi.withOpacity(0.03),
       ),
@@ -543,7 +543,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: AppColors.sumiLine),
                 borderRadius: BorderRadius.circular(8),
                 color: AppColors.washi.withOpacity(0.03),
               ),
@@ -655,7 +655,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.sumiLine),
         borderRadius: BorderRadius.circular(8),
         color: AppColors.washi.withOpacity(0.03),
       ),
@@ -702,8 +702,8 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isBlack ? AppColors.sumi : Colors.white24,
-        border: isBlack ? null : Border.all(color: Colors.white38),
+        color: isBlack ? AppColors.sumi : AppColors.washi.withOpacity(0.24),
+        border: isBlack ? null : Border.all(color: AppColors.washiDim),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

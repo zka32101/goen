@@ -236,7 +236,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           border: Border.all(
-            color: selected ? AppColors.kin : Colors.white24,
+            color: selected ? AppColors.kin : AppColors.sumiLine,
             width: selected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -279,7 +279,7 @@ class _TournamentCreateScreenState extends ConsumerState<TournamentCreateScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white24),
+          border: Border.all(color: AppColors.sumiLine),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
