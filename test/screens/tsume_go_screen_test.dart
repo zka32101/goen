@@ -63,7 +63,7 @@ void main() {
       await tester.pump();
 
       // When puzzle loads, difficulty should show
-      expect(find.text('Difficulty'), findsWidgets);
+      expect(find.text('難易度'), findsWidgets);
     });
 
     testWidgets('shows attempt counter', (WidgetTester tester) async {
@@ -76,7 +76,7 @@ void main() {
       await tester.pump();
 
       // Verify attempts counter
-      expect(find.text('Attempts'), findsWidgets);
+      expect(find.text('試行回数'), findsWidgets);
     });
 
     testWidgets('displays hint button in app bar', (WidgetTester tester) async {
@@ -116,7 +116,7 @@ void main() {
       await tester.pump();
 
       // Difficulty selector should be visible
-      expect(find.text('Browse by Difficulty'), findsWidgets);
+      expect(find.text('難易度から探す'), findsWidgets);
 
       // ChoiceChip widgets for difficulty selection
       expect(find.byType(Wrap), findsWidgets);
@@ -132,8 +132,8 @@ void main() {
       );
       await tester.pump();
 
-      // When puzzle not solved, show "Check Solution"
-      expect(find.text('Check Solution'), findsWidgets);
+      // When puzzle not solved, show the check-solution button
+      expect(find.text('解答をチェック'), findsWidgets);
     });
 
     testWidgets('shows skip button', (WidgetTester tester) async {
@@ -146,7 +146,7 @@ void main() {
       await tester.pump();
 
       // Skip to tomorrow button should be visible
-      expect(find.text('Skip to Tomorrow'), findsWidgets);
+      expect(find.text('明日にスキップ'), findsWidgets);
     });
 
     testWidgets('displays solution explanation when solved',
@@ -168,7 +168,7 @@ void main() {
       await tester.pump();
 
       // When solved, show explanation button
-      expect(find.text('View Explanation'), findsWidgets);
+      expect(find.text('解説を見る'), findsWidgets);
     });
 
     testWidgets('shows puzzle solved badge', (WidgetTester tester) async {
@@ -189,7 +189,7 @@ void main() {
       await tester.pump();
 
       // Solved badge with check icon
-      expect(find.text('Puzzle Solved!'), findsWidgets);
+      expect(find.text('解答済み！'), findsWidgets);
       expect(find.byIcon(Icons.check_circle), findsWidgets);
     });
 
@@ -204,17 +204,14 @@ void main() {
       await tester.pump();
 
       // Show hint about expected moves when puzzle not solved (renders as
-      // "N moves to solve", combined with the count)
-      expect(find.textContaining('moves to solve'), findsWidgets);
+      // "N手で解ける", combined with the count)
+      expect(find.textContaining('手で解ける'), findsWidgets);
     });
 
     testWidgets('hint button opens dialog', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: MaterialApp(
-            home: const TsumeGoScreen(),
-            navigatorObservers: [],
-          ),
+          child: const TsumeGoScreen(),
           container: container,
         ),
       );
@@ -225,7 +222,7 @@ void main() {
 
       // Dialog should appear with hint text
       expect(find.byType(AlertDialog), findsWidgets);
-      expect(find.text('Hint'), findsWidgets);
+      expect(find.text('ヒント'), findsWidgets);
     });
 
     testWidgets('dark theme styling applied', (WidgetTester tester) async {
@@ -276,17 +273,14 @@ void main() {
     testWidgets('has back navigation', (WidgetTester tester) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: MaterialApp(
-            home: const TsumeGoScreen(),
-            navigatorObservers: [],
-          ),
+          child: const TsumeGoScreen(),
           container: container,
         ),
       );
       await tester.pump();
 
       // Back button should work via Navigator.pop
-      final skipButton = find.text('Skip to Tomorrow');
+      final skipButton = find.text('明日にスキップ');
       expect(skipButton, findsWidgets);
     });
 
@@ -317,7 +311,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text("Today's Puzzle"), findsWidgets);
+      expect(find.text('今日のパズル'), findsWidgets);
     });
   });
 }

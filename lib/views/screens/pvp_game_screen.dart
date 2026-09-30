@@ -7,6 +7,7 @@ import 'package:goen/utils/stone_feedback.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -34,6 +35,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final gameAsync = ref.watch(pvpGameStreamProvider(widget.gameId));
 
     ref.listen<AsyncValue<PvpGame?>>(pvpGameStreamProvider(widget.gameId), (previous, next) {
@@ -56,7 +58,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('対局'),
+        title: Text(l10n.pvpGameTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
@@ -64,7 +66,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
         data: (game) {
           if (game == null) {
             return Center(
-              child: Text('対局が見つかりません', style: TextStyle(color: AppColors.washiDim)),
+              child: Text(l10n.gameNotFoundMessage, style: TextStyle(color: AppColors.washiDim)),
             );
           }
 
@@ -72,18 +74,18 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
             WidgetsBinding.instance.addPostFrameCallback((_) => _showResultDialog(context, game));
           }
 
-          return _buildContent(context, game);
+          return _buildContent(context, l10n, game);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) {
           _logger.e('PvP game stream error: $err');
-          return Center(child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)));
+          return Center(child: Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent)));
         },
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, PvpGame game) {
+  Widget _buildContent(BuildContext context, AppLocalizations l10n, PvpGame game) {
     final isMyTurn = game.isActive && game.isTurnOf(widget.uid);
     final myColor = game.playerColorOf(widget.uid);
 
@@ -91,33 +93,37 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          _buildPlayersHeader(game, isMyTurn),
+          _buildPlayersHeader(l10n, game, isMyTurn),
           const SizedBox(height: 20),
           Center(child: _buildBoard(context, game, isMyTurn)),
           const SizedBox(height: 16),
           Text(
-            '${game.movesCount}手目 — 黒${game.capturedWhite}目捕獲 / 白${game.capturedBlack}目捕獲',
+            l10n.moveCaptureStatusLabel(
+              game.movesCount,
+              game.capturedWhite,
+              game.capturedBlack,
+            ),
             style: TextStyle(color: AppColors.washiDim, fontSize: 12),
           ),
           const SizedBox(height: 20),
-          if (game.isActive && myColor != 0) _buildControls(context, game),
+          if (game.isActive && myColor != 0) _buildControls(context, l10n, game),
         ],
       ),
     );
   }
 
-  Widget _buildPlayersHeader(PvpGame game, bool isMyTurn) {
+  Widget _buildPlayersHeader(AppLocalizations l10n, PvpGame game, bool isMyTurn) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildPlayerBadge(game.blackDisplayName, isBlack: true, isTurn: game.isActive && game.isBlackTurn),
-        Text('vs', style: TextStyle(color: AppColors.washiDim)),
-        _buildPlayerBadge(game.whiteDisplayName, isBlack: false, isTurn: game.isActive && !game.isBlackTurn),
+        _buildPlayerBadge(l10n, game.blackDisplayName, isBlack: true, isTurn: game.isActive && game.isBlackTurn),
+        Text(l10n.vsLabel, style: TextStyle(color: AppColors.washiDim)),
+        _buildPlayerBadge(l10n, game.whiteDisplayName, isBlack: false, isTurn: game.isActive && !game.isBlackTurn),
       ],
     );
   }
 
-  Widget _buildPlayerBadge(String name, {required bool isBlack, required bool isTurn}) {
+  Widget _buildPlayerBadge(AppLocalizations l10n, String name, {required bool isBlack, required bool isTurn}) {
     return Column(
       children: [
         Container(
@@ -131,7 +137,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
         ),
         const SizedBox(height: 6),
         Text(name, style: const TextStyle(color: AppColors.washi, fontSize: 13)),
-        if (isTurn) Text('手番', style: TextStyle(color: AppColors.kin, fontSize: 11)),
+        if (isTurn) Text(l10n.turnIndicatorLabel, style: TextStyle(color: AppColors.kin, fontSize: 11)),
       ],
     );
   }
@@ -207,6 +213,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
                   child: _CaptureFlash(
                     key: ValueKey(_captureEventId),
                     count: _captureFlashCount!,
+                    l10n: AppLocalizations.of(context)!,
                     onDone: () {
                       if (mounted) setState(() => _captureFlashCount = null);
                     },
@@ -260,27 +267,28 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
     return stoneWidgets;
   }
 
-  Widget _buildControls(BuildContext context, PvpGame game) {
+  Widget _buildControls(BuildContext context, AppLocalizations l10n, PvpGame game) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         OutlinedButton.icon(
           onPressed: () => _handlePass(game),
           icon: const Icon(Icons.skip_next),
-          label: const Text('パス'),
+          label: Text(l10n.passButton),
         ),
         const SizedBox(width: 16),
         OutlinedButton.icon(
           style: OutlinedButton.styleFrom(foregroundColor: Colors.redAccent),
           onPressed: () => _confirmResign(context, game),
           icon: const Icon(Icons.flag),
-          label: const Text('投了'),
+          label: Text(l10n.resignButton),
         ),
       ],
     );
   }
 
   Future<void> _handleTap(PvpGame game, int row, int col) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isSubmittingMove = true);
     try {
       final success = await ref.read(applyPvpMoveProvider)(widget.gameId, widget.uid, row, col);
@@ -290,7 +298,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
         playIllegalMoveFeedback();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('その手は打てません')),
+            SnackBar(content: Text(l10n.illegalPvpMoveMessage)),
           );
         }
       }
@@ -310,20 +318,21 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
   }
 
   Future<void> _confirmResign(BuildContext context, PvpGame game) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('投了しますか？', style: TextStyle(color: AppColors.washi)),
-        content: const Text('この対局に負けとして記録されます。', style: TextStyle(color: AppColors.washiDim)),
+        title: Text(l10n.resignConfirmTitle, style: const TextStyle(color: AppColors.washi)),
+        content: Text(l10n.resignPvpConfirmContent, style: const TextStyle(color: AppColors.washiDim)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('キャンセル', style: TextStyle(color: AppColors.aiLight)),
+            child: Text(l10n.cancelButton, style: TextStyle(color: AppColors.aiLight)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text('投了する', style: TextStyle(color: AppColors.shuLight)),
+            child: Text(l10n.confirmResignButton, style: TextStyle(color: AppColors.shuLight)),
           ),
         ],
       ),
@@ -342,6 +351,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
     if (_resultShown) return;
     _resultShown = true;
 
+    final l10n = AppLocalizations.of(context)!;
     final won = game.winnerUid == widget.uid;
     final isDraw = game.winnerUid == null;
 
@@ -351,15 +361,20 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
         title: Text(
-          isDraw ? '引き分け' : (won ? 'あなたの勝ちです！' : 'あなたの負けです'),
+          isDraw
+              ? l10n.pvpDrawResultTitle
+              : (won ? l10n.pvpWinResultTitle : l10n.pvpLoseResultTitle),
           style: const TextStyle(color: AppColors.washi),
         ),
         content: Text(
           game.result == 'resignation'
-              ? '投了による決着'
+              ? l10n.resignationResultLabel
               : (game.blackScore != null && game.whiteScore != null
-                  ? '黒 ${game.blackScore!.toStringAsFixed(1)}目 - 白 ${game.whiteScore!.toStringAsFixed(2)}目'
-                  : '目算による決着'),
+                  ? l10n.scoreResultLabel(
+                      game.blackScore!.toStringAsFixed(1),
+                      game.whiteScore!.toStringAsFixed(2),
+                    )
+                  : l10n.territoryCountResultLabel),
           style: const TextStyle(color: AppColors.washiDim),
         ),
         actions: [
@@ -368,7 +383,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
               Navigator.pop(dialogContext);
               Navigator.pop(context);
             },
-            child: Text('閉じる', style: TextStyle(color: AppColors.kin)),
+            child: Text(l10n.closeButton, style: TextStyle(color: AppColors.kin)),
           ),
         ],
       ),
@@ -380,9 +395,15 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
 /// privateクラスなので共有できず、このファイル内に複製している。
 class _CaptureFlash extends StatefulWidget {
   final int count;
+  final AppLocalizations l10n;
   final VoidCallback onDone;
 
-  const _CaptureFlash({super.key, required this.count, required this.onDone});
+  const _CaptureFlash({
+    super.key,
+    required this.count,
+    required this.l10n,
+    required this.onDone,
+  });
 
   @override
   State<_CaptureFlash> createState() => _CaptureFlashState();
@@ -421,7 +442,9 @@ class _CaptureFlashState extends State<_CaptureFlash> {
               border: Border.all(color: AppColors.kin, width: 2),
             ),
             child: Text(
-              widget.count > 1 ? '${widget.count}石 捕獲！' : '捕獲！',
+              widget.count > 1
+                  ? widget.l10n.captureFlashMultipleMessage(widget.count)
+                  : widget.l10n.captureFlashSingleMessage,
               style: TextStyle(
                 color: AppColors.kin,
                 fontWeight: FontWeight.bold,

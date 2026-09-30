@@ -6,6 +6,7 @@ import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -38,6 +39,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final todaysPuzzle = ref.watch(todaysTsumeProblemProvider);
     final isPuzzleSolved = ref.watch(isPuzzleSolvedProvider);
     final attemptCount = ref.watch(puzzleAttemptCountProvider);
@@ -48,7 +50,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text("Today's Puzzle"),
+        title: Text(l10n.todaysPuzzleTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -56,7 +58,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () => _showHint(context),
-            tooltip: 'Hint',
+            tooltip: l10n.hintTooltip,
           ),
         ],
       ),
@@ -78,7 +80,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
               puzzleData: puzzleShareData,
               onShared: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Puzzle shared successfully!')),
+                  SnackBar(content: Text(l10n.puzzleSharedSuccessMessage)),
                 );
               },
             );
@@ -111,7 +113,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Difficulty',
+                                l10n.difficultyLabel,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -136,7 +138,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'Attempts',
+                                l10n.attemptsLabel,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -162,7 +164,9 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                       const SizedBox(height: 24),
                       if (!isPuzzleSolved)
                         Text(
-                          '${puzzle.expectedMoves} moves to solve',
+                          puzzle.expectedMoves != null
+                              ? l10n.movesToSolveLabel(puzzle.expectedMoves!)
+                              : '',
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
@@ -195,7 +199,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Puzzle Solved!',
+                                l10n.puzzleSolvedLabel,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -252,7 +256,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                                       currentUser,
                                     )
                                     : null,
-                                child: const Text('Check Solution'),
+                                child: Text(l10n.checkSolutionButton),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -260,7 +264,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                               width: double.infinity,
                               child: OutlinedButton(
                                 onPressed: () => _handleSkipPuzzle(context),
-                                child: const Text('Skip to Tomorrow'),
+                                child: Text(l10n.skipToTomorrowButton),
                               ),
                             ),
                           ],
@@ -275,7 +279,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                                   backgroundColor: AppColors.kin,
                                 ),
                                 onPressed: () => _handleShowExplanation(context, puzzle),
-                                child: const Text('View Explanation'),
+                                child: Text(l10n.viewExplanationButton),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -283,7 +287,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
                               width: double.infinity,
                               child: OutlinedButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text('Back'),
+                                child: Text(l10n.backButton),
                               ),
                             ),
                           ],
@@ -302,6 +306,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
   }
 
   Widget _buildLoadingState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -316,7 +321,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading today\'s puzzle...',
+            l10n.loadingTodaysPuzzleMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -327,6 +332,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
   }
 
   Widget _buildErrorState(BuildContext context, Object error) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -338,7 +344,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Could not load puzzle',
+            l10n.couldNotLoadPuzzleMessage,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
@@ -346,7 +352,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),
@@ -354,6 +360,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
   }
 
   Widget _buildNoPuzzleState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -365,14 +372,14 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No puzzle available today',
+            l10n.noPuzzleAvailableMessage,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Check back tomorrow for a new puzzle',
+            l10n.checkBackTomorrowMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -380,7 +387,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),
@@ -476,6 +483,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
   }
 
   Widget _buildDifficultySelector(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final selectedDifficulty = ref.watch(selectedDifficultyProvider);
     final difficultyLevels = ref.watch(difficultyLevelsProvider);
 
@@ -490,7 +498,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Browse by Difficulty',
+            l10n.browseByDifficultyLabel,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: AppColors.washi,
             ),
@@ -520,18 +528,17 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
   }
 
   void _showHint(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('Hint'),
-        content: const Text(
-          'Look for weak stones that can be captured. In tsume-go, find the forcing sequence that leads to capturing opponent\'s stones.',
-        ),
+        title: Text(l10n.hintTooltip),
+        content: Text(l10n.hintDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Got it'),
+            child: Text(l10n.gotItButton),
           ),
         ],
       ),
@@ -544,6 +551,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
     TsumeGoProblem puzzle,
     User currentUser,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     _logger.i('Submitting solution for puzzle ${puzzle.id}');
 
     final userSolutionSgf = ref.read(currentPuzzleBoardProvider).toSgf();
@@ -566,7 +574,9 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            isCorrect ? 'Correct! Well done.' : 'Not quite — try again.',
+            isCorrect
+                ? l10n.solutionCorrectMessage
+                : l10n.solutionIncorrectMessage,
           ),
         ),
       );
@@ -574,7 +584,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
       _logger.e('❌ Failed to record puzzle attempt: $e');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to check solution: $e')),
+        SnackBar(content: Text(l10n.failedToCheckSolutionMessage('$e'))),
       );
     }
   }
@@ -585,15 +595,16 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
   }
 
   void _handleShowExplanation(BuildContext context, TsumeGoProblem puzzle) {
+    final l10n = AppLocalizations.of(context)!;
     _logger.i('Showing explanation for puzzle ${puzzle.id}');
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('Explanation'),
+        title: Text(l10n.explanationDialogTitle),
         content: SingleChildScrollView(
           child: Text(
-            puzzle.explanation ?? 'No explanation available',
+            puzzle.explanation ?? l10n.noExplanationAvailableMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
               height: 1.6,
@@ -603,7 +614,7 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(l10n.closeButton),
           ),
         ],
       ),

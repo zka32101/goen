@@ -422,7 +422,6 @@
   "@ratingDiffLabel": {
     "placeholders": { "diff": { "type": "int" }, "boardSize": { "type": "int" } }
   },
-  "startGameButton": "対局を開始する",
   "noMatchHistoryMessage": "まだ対戦履歴がありません",
   "ratingBoardSizeLabel": "レート {rating} / {boardSize}路盤",
   "@ratingBoardSizeLabel": {
@@ -876,5 +875,142 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "todaysPuzzleTitle": "今日のパズル",
+  "hintTooltip": "ヒント",
+  "puzzleSharedSuccessMessage": "パズルをシェアしました！",
+  "attemptsLabel": "試行回数",
+  "movesToSolveLabel": "{count}手で解ける",
+  "@movesToSolveLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "puzzleSolvedLabel": "解答済み！",
+  "checkSolutionButton": "解答をチェック",
+  "skipToTomorrowButton": "明日にスキップ",
+  "viewExplanationButton": "解説を見る",
+  "loadingTodaysPuzzleMessage": "今日のパズルを読み込み中...",
+  "couldNotLoadPuzzleMessage": "パズルを読み込めませんでした",
+  "noPuzzleAvailableMessage": "今日は利用できるパズルがありません",
+  "checkBackTomorrowMessage": "明日また新しいパズルをチェックしてください",
+  "browseByDifficultyLabel": "難易度から探す",
+  "hintDialogContent": "取れそうな弱い石を探しましょう。詰碁では、相手の石を取るための絶対手順（強制手）を見つけることが鍵です。",
+  "gotItButton": "わかりました",
+  "solutionCorrectMessage": "正解です！お見事。",
+  "solutionIncorrectMessage": "残念、もう一度挑戦してください。",
+  "failedToCheckSolutionMessage": "解答のチェックに失敗しました: {error}",
+  "@failedToCheckSolutionMessage": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "explanationDialogTitle": "解説",
+  "noExplanationAvailableMessage": "解説はありません",
+  "filterTooltip": "フィルター",
+  "logInToViewGamesMessage": "対局を見るにはログインしてください",
+  "loadingYourGamesMessage": "対局を読み込み中...",
+  "couldNotLoadGamesMessage": "対局を読み込めませんでした",
+  "noGamesYetMessage": "まだ対局がありません",
+  "playFirstGameMessage": "最初のAI対局をプレイしてみましょう",
+  "gamesPlayedCountLabel": "{count}局プレイ済み",
+  "@gamesPlayedCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lossesStatLabel": "敗北",
+  "drawsStatLabel": "引き分け",
+  "resultVictoryLabel": "勝ち",
+  "resultDrawLabel": "引き分け",
+  "cardLevelLabel": "レベル",
+  "lvValueLabel": "Lv {level}",
+  "@lvValueLabel": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "gameDetailsTitle": "対局詳細",
+  "finalScoreLabel": "最終スコア",
+  "moveSequenceTitle": "着手の記録",
+  "noMoveDataMessage": "この対局の着手データはありません。",
+  "filterByResultTitle": "結果でフィルター",
+  "sortByTitle": "並び替え",
+  "filterAllLabel": "すべて",
+  "sortMostRecentLabel": "最新順",
+  "sortBestScoreLabel": "スコア順",
+  "sortLongestLabel": "最長",
+  "todayLabel": "今日",
+  "yesterdayLabel": "昨日",
+  "watchAndLearnTitle": "観戦して学ぶ",
+  "learnTooltip": "解説",
+  "loadingKifuLibraryMessage": "棋譜ライブラリを読み込み中...",
+  "noGamesAvailableMessage": "利用できる対局がありません",
+  "checkBackForHistoricalGamesMessage": "秀策など有名棋士の歴史的名局を近日公開予定です",
+  "historicalGamesTitle": "歴史的名局",
+  "studyMasterGamesMessage": "名棋士の対局を研究し、戦略的な考え方を学びましょう",
+  "unknownPlayersLabel": "対局者不明",
+  "categoryLabel": "カテゴリー",
+  "sourceLabel": "出典",
+  "moveProgressLabel": "{current} / {total}手目",
+  "@moveProgressLabel": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "previousButton": "前へ",
+  "pauseButton": "一時停止",
+  "playButton": "再生",
+  "commentaryTitle": "解説",
+  "commentaryPlaceholderMessage": "対局を進めると、ここにAIによる一手ごとの解説と戦略分析が表示されます。",
+  "aboutKifuObservationTitle": "観戦モードについて",
+  "aboutKifuObservationContent": "秀策など名棋士の対局を研究しましょう。一手ずつ再生し、AIの解説を読むことで、戦略的な考え方を理解し、自分の対局に活かせます。",
+  "pvpGameTitle": "対局",
+  "gameNotFoundMessage": "対局が見つかりません",
+  "vsLabel": "vs",
+  "turnIndicatorLabel": "手番",
+  "moveCaptureStatusLabel": "{movesCount}手目 — 黒{whiteCaptures}目捕獲 / 白{blackCaptures}目捕獲",
+  "@moveCaptureStatusLabel": {
+    "placeholders": {
+      "movesCount": { "type": "int" },
+      "whiteCaptures": { "type": "int" },
+      "blackCaptures": { "type": "int" }
+    }
+  },
+  "illegalPvpMoveMessage": "その手は打てません",
+  "resignPvpConfirmContent": "この対局に負けとして記録されます。",
+  "pvpDrawResultTitle": "引き分け",
+  "pvpWinResultTitle": "あなたの勝ちです！",
+  "pvpLoseResultTitle": "あなたの負けです",
+  "resignationResultLabel": "投了による決着",
+  "scoreResultLabel": "黒 {black}目 - 白 {white}目",
+  "@scoreResultLabel": {
+    "placeholders": {
+      "black": { "type": "String" },
+      "white": { "type": "String" }
+    }
+  },
+  "territoryCountResultLabel": "目算による決着",
+  "liveSpectateTitle": "ライブ観戦",
+  "spectatorSessionNotFoundMessage": "観戦セッションが見つかりません",
+  "liveLabel": "LIVE",
+  "endedLabel": "終了",
+  "spectatorMoveCountLabel": "{moveIndex}手目 / 観戦者 {count}人",
+  "@spectatorMoveCountLabel": {
+    "placeholders": {
+      "moveIndex": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "commentsTitle": "コメント",
+  "noCommentsYetMessage": "まだコメントはありません",
+  "commentsFetchFailedMessage": "コメントの取得に失敗しました: {error}",
+  "@commentsFetchFailedMessage": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "commentInputHint": "コメントを入力...",
+  "lastMoveLegendLabel": "直前の一手"
 }

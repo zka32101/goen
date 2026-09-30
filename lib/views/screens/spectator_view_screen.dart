@@ -6,6 +6,7 @@ import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -30,12 +31,13 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final sessionAsync = ref.watch(spectatorSessionStreamProvider(widget.sessionId));
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('ライブ観戦'),
+        title: Text(l10n.liveSpectateTitle),
         backgroundColor: AppColors.sumiSurface,
         elevation: 0,
       ),
@@ -43,21 +45,21 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
         data: (session) {
           if (session == null) {
             return Center(
-              child: Text('観戦セッションが見つかりません', style: TextStyle(color: AppColors.washiDim)),
+              child: Text(l10n.spectatorSessionNotFoundMessage, style: TextStyle(color: AppColors.washiDim)),
             );
           }
-          return _buildContent(context, session);
+          return _buildContent(context, l10n, session);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) {
           _logger.e('Spectator session stream error: $err');
-          return Center(child: Text('エラー: $err', style: const TextStyle(color: Colors.redAccent)));
+          return Center(child: Text(l10n.errorPrefix('$err'), style: const TextStyle(color: Colors.redAccent)));
         },
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, SpectatorSession session) {
+  Widget _buildContent(BuildContext context, AppLocalizations l10n, SpectatorSession session) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -71,12 +73,12 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                session.hostDisplayName ?? 'Player',
+                session.hostDisplayName ?? l10n.homeDefaultPlayerName,
                 style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(width: 12),
               Text(
-                session.isActive ? 'LIVE' : '終了',
+                session.isActive ? l10n.liveLabel : l10n.endedLabel,
                 style: TextStyle(
                   color: session.isActive ? Colors.redAccent : AppColors.washiDim,
                   fontWeight: FontWeight.bold,
@@ -87,31 +89,31 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            '${session.moveIndex}手目 / 観戦者 ${session.spectatorCount}人',
+            l10n.spectatorMoveCountLabel(session.moveIndex, session.spectatorCount),
             style: TextStyle(color: AppColors.washiDim, fontSize: 12),
           ),
           const SizedBox(height: 24),
           Center(child: _buildBoard(session)),
           const SizedBox(height: 24),
-          _buildLegend(),
+          _buildLegend(l10n),
           const SizedBox(height: 24),
           const Divider(color: AppColors.washiDim),
-          _buildComments(context, session),
+          _buildComments(context, l10n, session),
         ],
       ),
     );
   }
 
-  Widget _buildComments(BuildContext context, SpectatorSession session) {
+  Widget _buildComments(BuildContext context, AppLocalizations l10n, SpectatorSession session) {
     final currentUser = ref.watch(currentUserProvider);
     final commentsAsync = ref.watch(spectatorCommentsProvider(widget.sessionId));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'コメント',
-          style: TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 14),
+        Text(
+          l10n.commentsTitle,
+          style: const TextStyle(color: AppColors.washi, fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
         commentsAsync.when(
@@ -119,7 +121,7 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
             if (comments.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text('まだコメントはありません', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+                child: Text(l10n.noCommentsYetMessage, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
               );
             }
             return Column(
@@ -132,7 +134,7 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (err, _) => Text('コメントの取得に失敗しました: $err', style: const TextStyle(color: Colors.redAccent)),
+          error: (err, _) => Text(l10n.commentsFetchFailedMessage('$err'), style: const TextStyle(color: Colors.redAccent)),
         ),
         if (currentUser != null) ...[
           const SizedBox(height: 8),
@@ -143,7 +145,7 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
                   controller: _commentController,
                   style: const TextStyle(color: AppColors.washi),
                   decoration: InputDecoration(
-                    hintText: 'コメントを入力...',
+                    hintText: l10n.commentInputHint,
                     hintStyle: TextStyle(color: AppColors.washiDim),
                     isDense: true,
                     border: const OutlineInputBorder(),
@@ -154,7 +156,7 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
                 icon: const Icon(Icons.send, color: AppColors.kin),
                 onPressed: () => _sendComment(
                   currentUser.uid,
-                  currentUser.displayName ?? 'Player',
+                  currentUser.displayName ?? l10n.homeDefaultPlayerName,
                   session.moveIndex,
                 ),
               ),
@@ -318,13 +320,13 @@ class _SpectatorViewScreenState extends ConsumerState<SpectatorViewScreen> {
     return stoneWidgets;
   }
 
-  Widget _buildLegend() {
+  Widget _buildLegend(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.circle, color: Colors.redAccent.withOpacity(0.8), size: 12),
         const SizedBox(width: 4),
-        Text('直前の一手', style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
+        Text(l10n.lastMoveLegendLabel, style: TextStyle(color: AppColors.washiDim, fontSize: 12)),
       ],
     );
   }

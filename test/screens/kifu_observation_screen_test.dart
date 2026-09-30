@@ -62,7 +62,7 @@ void main() {
       );
 
       // Verify title
-      expect(find.text('Watch & Learn'), findsWidgets);
+      expect(find.text('観戦して学ぶ'), findsWidgets);
     });
 
     testWidgets('shows info button in app bar', (WidgetTester tester) async {
@@ -88,7 +88,7 @@ void main() {
       await tester.pump();
 
       // Should show historical games section
-      expect(find.text('Historical Games'), findsWidgets);
+      expect(find.text('歴史的名局'), findsWidgets);
     });
 
     testWidgets('shows loading state while fetching library', (
@@ -151,8 +151,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Category and source should be visible
-      expect(find.text('Category'), findsWidgets);
-      expect(find.text('Source'), findsWidgets);
+      expect(find.text('カテゴリー'), findsWidgets);
+      expect(find.text('出典'), findsWidgets);
     });
 
     testWidgets('play icon on game card', (WidgetTester tester) async {
@@ -238,7 +238,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Move counter should be visible
-      expect(find.textContaining('Move'), findsWidgets);
+      expect(find.textContaining('手目'), findsWidgets);
     });
 
     testWidgets('displays move progress slider', (WidgetTester tester) async {
@@ -274,9 +274,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Control buttons
-      expect(find.text('Previous'), findsWidgets);
-      expect(find.text('Play'), findsWidgets);
-      expect(find.text('Next'), findsWidgets);
+      expect(find.text('前へ'), findsWidgets);
+      expect(find.text('再生'), findsWidgets);
+      expect(find.text('次へ'), findsWidgets);
     });
 
     testWidgets('previous button disabled at start', (
@@ -296,7 +296,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Previous button exists but may be disabled at move 0
-      expect(find.text('Previous'), findsWidgets);
+      expect(find.text('前へ'), findsWidgets);
     });
 
     testWidgets('displays commentary section', (WidgetTester tester) async {
@@ -314,7 +314,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Commentary section
-      expect(find.text('Commentary'), findsWidgets);
+      expect(find.text('解説'), findsWidgets);
     });
 
     testWidgets('back to library button works', (WidgetTester tester) async {
@@ -336,7 +336,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should return to library
-      expect(find.text('Historical Games'), findsWidgets);
+      expect(find.text('歴史的名局'), findsWidgets);
     });
 
     testWidgets('dark theme styling applied', (WidgetTester tester) async {
@@ -374,10 +374,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: MaterialApp(
-            home: const KifuObservationScreen(),
-            navigatorObservers: [],
-          ),
+          child: const KifuObservationScreen(),
           container: container,
         ),
       );
@@ -397,10 +394,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
-          child: MaterialApp(
-            home: const KifuObservationScreen(),
-            navigatorObservers: [],
-          ),
+          child: const KifuObservationScreen(),
           container: container,
         ),
       );
@@ -412,7 +406,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check dialog content
-      expect(find.text('About Kifu Observation'), findsWidgets);
+      expect(find.text('観戦モードについて'), findsWidgets);
     });
 
     testWidgets('single game shows players vs format', (
@@ -468,7 +462,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Play button exists
-      expect(find.text('Play'), findsWidgets);
+      expect(find.text('再生'), findsWidgets);
     });
 
     testWidgets('handles multiple games in library', (

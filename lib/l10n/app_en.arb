@@ -422,7 +422,6 @@
   "@ratingDiffLabel": {
     "placeholders": { "diff": { "type": "int" }, "boardSize": { "type": "int" } }
   },
-  "startGameButton": "Start Game",
   "noMatchHistoryMessage": "No match history yet",
   "ratingBoardSizeLabel": "Rating {rating} / {boardSize}-line board",
   "@ratingBoardSizeLabel": {
@@ -876,5 +875,142 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "todaysPuzzleTitle": "Today's Puzzle",
+  "hintTooltip": "Hint",
+  "puzzleSharedSuccessMessage": "Puzzle shared successfully!",
+  "attemptsLabel": "Attempts",
+  "movesToSolveLabel": "{count} moves to solve",
+  "@movesToSolveLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "puzzleSolvedLabel": "Puzzle Solved!",
+  "checkSolutionButton": "Check Solution",
+  "skipToTomorrowButton": "Skip to Tomorrow",
+  "viewExplanationButton": "View Explanation",
+  "loadingTodaysPuzzleMessage": "Loading today's puzzle...",
+  "couldNotLoadPuzzleMessage": "Could not load puzzle",
+  "noPuzzleAvailableMessage": "No puzzle available today",
+  "checkBackTomorrowMessage": "Check back tomorrow for a new puzzle",
+  "browseByDifficultyLabel": "Browse by Difficulty",
+  "hintDialogContent": "Look for weak stones that can be captured. In tsume-go, find the forcing sequence that leads to capturing opponent's stones.",
+  "gotItButton": "Got it",
+  "solutionCorrectMessage": "Correct! Well done.",
+  "solutionIncorrectMessage": "Not quite — try again.",
+  "failedToCheckSolutionMessage": "Failed to check solution: {error}",
+  "@failedToCheckSolutionMessage": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "explanationDialogTitle": "Explanation",
+  "noExplanationAvailableMessage": "No explanation available",
+  "filterTooltip": "Filter",
+  "logInToViewGamesMessage": "Log in to view your games",
+  "loadingYourGamesMessage": "Loading your games...",
+  "couldNotLoadGamesMessage": "Could not load games",
+  "noGamesYetMessage": "No games yet",
+  "playFirstGameMessage": "Play your first AI game to see it here",
+  "gamesPlayedCountLabel": "{count} games played",
+  "@gamesPlayedCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "lossesStatLabel": "Losses",
+  "drawsStatLabel": "Draws",
+  "resultVictoryLabel": "Victory",
+  "resultDrawLabel": "Draw",
+  "cardLevelLabel": "Level",
+  "lvValueLabel": "Lv {level}",
+  "@lvValueLabel": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "gameDetailsTitle": "Game Details",
+  "finalScoreLabel": "Final Score",
+  "moveSequenceTitle": "Move Sequence",
+  "noMoveDataMessage": "No move data available for this game.",
+  "filterByResultTitle": "Filter by Result",
+  "sortByTitle": "Sort by",
+  "filterAllLabel": "All",
+  "sortMostRecentLabel": "Most Recent",
+  "sortBestScoreLabel": "Best Score",
+  "sortLongestLabel": "Longest",
+  "todayLabel": "Today",
+  "yesterdayLabel": "Yesterday",
+  "watchAndLearnTitle": "Watch & Learn",
+  "learnTooltip": "Learn",
+  "loadingKifuLibraryMessage": "Loading kifu library...",
+  "noGamesAvailableMessage": "No games available",
+  "checkBackForHistoricalGamesMessage": "Check back soon for historical games from\nfamous Go players like Honinbo Shusaku",
+  "historicalGamesTitle": "Historical Games",
+  "studyMasterGamesMessage": "Study games from master players and understand strategic concepts",
+  "unknownPlayersLabel": "Unknown players",
+  "categoryLabel": "Category",
+  "sourceLabel": "Source",
+  "moveProgressLabel": "Move {current} / {total}",
+  "@moveProgressLabel": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "previousButton": "Previous",
+  "pauseButton": "Pause",
+  "playButton": "Play",
+  "commentaryTitle": "Commentary",
+  "commentaryPlaceholderMessage": "Move-by-move AI commentary and strategic analysis will appear here as you play through the game.",
+  "aboutKifuObservationTitle": "About Kifu Observation",
+  "aboutKifuObservationContent": "Study games from master players like Honinbo Shusaku. Watch move-by-move replay and read AI commentary to understand strategic concepts and improve your game.",
+  "pvpGameTitle": "Game",
+  "gameNotFoundMessage": "Game not found",
+  "vsLabel": "vs",
+  "turnIndicatorLabel": "Turn",
+  "moveCaptureStatusLabel": "Move {movesCount} — Black captured {whiteCaptures} / White captured {blackCaptures}",
+  "@moveCaptureStatusLabel": {
+    "placeholders": {
+      "movesCount": { "type": "int" },
+      "whiteCaptures": { "type": "int" },
+      "blackCaptures": { "type": "int" }
+    }
+  },
+  "illegalPvpMoveMessage": "That move cannot be played",
+  "resignPvpConfirmContent": "This will be recorded as a loss.",
+  "pvpDrawResultTitle": "Draw",
+  "pvpWinResultTitle": "You win!",
+  "pvpLoseResultTitle": "You lose",
+  "resignationResultLabel": "Won by resignation",
+  "scoreResultLabel": "Black {black} - White {white}",
+  "@scoreResultLabel": {
+    "placeholders": {
+      "black": { "type": "String" },
+      "white": { "type": "String" }
+    }
+  },
+  "territoryCountResultLabel": "Decided by territory count",
+  "liveSpectateTitle": "Live Spectate",
+  "spectatorSessionNotFoundMessage": "Spectator session not found",
+  "liveLabel": "LIVE",
+  "endedLabel": "Ended",
+  "spectatorMoveCountLabel": "Move {moveIndex} / {count} watching",
+  "@spectatorMoveCountLabel": {
+    "placeholders": {
+      "moveIndex": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "commentsTitle": "Comments",
+  "noCommentsYetMessage": "No comments yet",
+  "commentsFetchFailedMessage": "Failed to load comments: {error}",
+  "@commentsFetchFailedMessage": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "commentInputHint": "Enter a comment...",
+  "lastMoveLegendLabel": "Last move"
 }

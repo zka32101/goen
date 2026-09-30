@@ -7,6 +7,7 @@ import 'package:goen/utils/sgf_parser.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -55,6 +56,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUser = ref.watch(currentUserProvider);
 
     if (currentUser == null) {
@@ -66,7 +68,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('My Games'),
+        title: Text(l10n.homeMyGamesTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -74,7 +76,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: () => _showFilterMenu(context),
-            tooltip: 'Filter',
+            tooltip: l10n.filterTooltip,
           ),
         ],
       ),
@@ -132,6 +134,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildAuthRequiredState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -143,7 +146,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Log in to view your games',
+            l10n.logInToViewGamesMessage,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
@@ -151,7 +154,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),
@@ -159,6 +162,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildLoadingState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -173,7 +177,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading your games...',
+            l10n.loadingYourGamesMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -184,6 +188,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildErrorState(BuildContext context, Object error) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -195,7 +200,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Could not load games',
+            l10n.couldNotLoadGamesMessage,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
@@ -203,7 +208,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),
@@ -211,6 +216,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -222,14 +228,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No games yet',
+            l10n.noGamesYetMessage,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Play your first AI game to see it here',
+            l10n.playFirstGameMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -237,7 +243,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),
@@ -245,6 +251,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildGameList(BuildContext context, List<GameRecord> games) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -255,14 +262,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Game History',
+                  l10n.homeMyGamesTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${games.length} game${games.length != 1 ? 's' : ''} played',
+                  l10n.gamesPlayedCountLabel(games.length),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.washiDim,
                   ),
@@ -279,21 +286,21 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               children: [
                 _buildStat(
                     context,
-                    'Wins',
+                    l10n.winsStatLabel,
                     games
                         .where((g) => _resultCategory(g.result) == 'win')
                         .length
                         .toString()),
                 _buildStat(
                     context,
-                    'Losses',
+                    l10n.lossesStatLabel,
                     games
                         .where((g) => _resultCategory(g.result) == 'loss')
                         .length
                         .toString()),
                 _buildStat(
                     context,
-                    'Draws',
+                    l10n.drawsStatLabel,
                     games
                         .where((g) => _resultCategory(g.result) == 'draw')
                         .length
@@ -342,6 +349,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildGameCard(BuildContext context, GameRecord game) {
+    final l10n = AppLocalizations.of(context)!;
     final category = _resultCategory(game.result);
     final isWin = category == 'win';
     final isDraw = category == 'draw';
@@ -370,17 +378,17 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               children: [
                 Text(
                   isWin
-                      ? 'Victory'
+                      ? l10n.resultVictoryLabel
                       : isDraw
-                      ? 'Draw'
-                      : 'Defeat',
+                      ? l10n.resultDrawLabel
+                      : l10n.gameResultDefeatTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: borderColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  _formatDate(game.playedAt),
+                  _formatDate(l10n, game.playedAt),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: AppColors.washiDim,
                   ),
@@ -398,7 +406,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Score',
+                      l10n.scoreLabel,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.washiDim,
                       ),
@@ -417,14 +425,14 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Level',
+                      l10n.cardLevelLabel,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.washiDim,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Lv ${game.aiLevel}',
+                      l10n.lvValueLabel(game.aiLevel),
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: AppColors.kin,
                         fontWeight: FontWeight.bold,
@@ -441,6 +449,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildGameDetails(BuildContext context, GameRecord game, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -458,10 +467,10 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                       children: [
                         Text(
                           _resultCategory(game.result) == 'win'
-                              ? 'Victory'
+                              ? l10n.resultVictoryLabel
                               : _resultCategory(game.result) == 'draw'
-                              ? 'Draw'
-                              : 'Defeat',
+                              ? l10n.resultDrawLabel
+                              : l10n.gameResultDefeatTitle,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AppColors.washi,
                             fontWeight: FontWeight.bold,
@@ -469,7 +478,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _formatDate(game.playedAt),
+                          _formatDate(l10n, game.playedAt),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.washiDim,
                           ),
@@ -479,7 +488,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                     OutlinedButton.icon(
                       onPressed: () => _handleBackToList(),
                       icon: const Icon(Icons.arrow_back),
-                      label: const Text('Back'),
+                      label: Text(l10n.backButton),
                     ),
                   ],
                 ),
@@ -542,23 +551,23 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Game Details',
+                    l10n.gameDetailsTitle,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppColors.washi,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildDetailRow(context, 'Board Size',
+                  _buildDetailRow(context, l10n.boardSizeLabel,
                       '${game.boardSize}×${game.boardSize}'),
                   const SizedBox(height: 12),
                   _buildDetailRow(
                       context,
-                      'AI Level',
-                      'Level ${game.aiLevel}'),
+                      l10n.aiLevelLabel,
+                      l10n.levelLabel(game.aiLevel)),
                   const SizedBox(height: 12),
                   _buildDetailRow(
                       context,
-                      'Final Score',
+                      l10n.finalScoreLabel,
                       '${game.blackScore?.toStringAsFixed(1) ?? "?"} - ${game.whiteScore?.toStringAsFixed(1) ?? "?"}'),
                 ],
               ),
@@ -640,6 +649,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   Widget _buildMoveSequence(BuildContext context, GameRecord game) {
+    final l10n = AppLocalizations.of(context)!;
     final moves = parseSgfMoves(game.sgfData);
 
     return Container(
@@ -653,7 +663,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Move Sequence',
+            l10n.moveSequenceTitle,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: AppColors.washi,
             ),
@@ -661,7 +671,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           const SizedBox(height: 12),
           if (moves.isEmpty)
             Text(
-              'No move data available for this game.',
+              l10n.noMoveDataMessage,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.washiDim,
               ),
@@ -671,7 +681,8 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (var i = 0; i < moves.length; i++) _buildMoveChip(i + 1, moves[i]),
+                for (var i = 0; i < moves.length; i++)
+                  _buildMoveChip(l10n, i + 1, moves[i]),
               ],
             ),
         ],
@@ -681,10 +692,10 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
 
   /// 1手を「17. Q16」のような棋譜表記で表示する小さなチップ。
   /// 列は伝統的な囲碁の座標表記に合わせ、Iを飛ばしたA〜Tを使う。
-  Widget _buildMoveChip(int moveNumber, SgfMove move) {
+  Widget _buildMoveChip(AppLocalizations l10n, int moveNumber, SgfMove move) {
     const columnLetters = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
     final label = move.isPass
-        ? '$moveNumber. パス'
+        ? '$moveNumber. ${l10n.passButton}'
         : '$moveNumber. ${columnLetters[move.col]}${move.row + 1}';
     final isBlack = move.player == 1;
 
@@ -707,6 +718,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
   }
 
   void _showFilterMenu(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.sumiSurface,
@@ -717,27 +729,27 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Filter by Result',
+                l10n.filterByResultTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.washi,
                 ),
               ),
               const SizedBox(height: 12),
-              _buildFilterOption(context, 'All', 'all'),
-              _buildFilterOption(context, 'Wins', 'win'),
-              _buildFilterOption(context, 'Losses', 'loss'),
-              _buildFilterOption(context, 'Draws', 'draw'),
+              _buildFilterOption(context, l10n.filterAllLabel, 'all'),
+              _buildFilterOption(context, l10n.winsStatLabel, 'win'),
+              _buildFilterOption(context, l10n.lossesStatLabel, 'loss'),
+              _buildFilterOption(context, l10n.drawsStatLabel, 'draw'),
               const SizedBox(height: 24),
               Text(
-                'Sort by',
+                l10n.sortByTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.washi,
                 ),
               ),
               const SizedBox(height: 12),
-              _buildSortOption(context, 'Most Recent', 'recent'),
-              _buildSortOption(context, 'Best Score', 'score'),
-              _buildSortOption(context, 'Longest', 'duration'),
+              _buildSortOption(context, l10n.sortMostRecentLabel, 'recent'),
+              _buildSortOption(context, l10n.sortBestScoreLabel, 'score'),
+              _buildSortOption(context, l10n.sortLongestLabel, 'duration'),
               const SizedBox(height: 24),
             ],
           ),
@@ -783,16 +795,16 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
     setState(() => _selectedGameId = null);
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(AppLocalizations l10n, DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
     final dateOnly = DateTime(date.year, date.month, date.day);
 
     if (dateOnly == today) {
-      return 'Today';
+      return l10n.todayLabel;
     } else if (dateOnly == yesterday) {
-      return 'Yesterday';
+      return l10n.yesterdayLabel;
     } else if (dateOnly.year == today.year) {
       return '${dateOnly.month}/${dateOnly.day}';
     } else {

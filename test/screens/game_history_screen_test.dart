@@ -64,7 +64,7 @@ void main() {
       );
 
       // Verify title
-      expect(find.text('My Games'), findsWidgets);
+      expect(find.text('対局履歴'), findsWidgets);
     });
 
     testWidgets('shows filter button in app bar', (WidgetTester tester) async {
@@ -104,9 +104,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Statistics section
-      expect(find.text('Wins'), findsWidgets);
-      expect(find.text('Losses'), findsWidgets);
-      expect(find.text('Draws'), findsWidgets);
+      expect(find.text('勝利'), findsWidgets);
+      expect(find.text('敗北'), findsWidgets);
+      expect(find.text('引き分け'), findsWidgets);
     });
 
     testWidgets('displays game cards', (WidgetTester tester) async {
@@ -162,7 +162,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Score should be displayed
-      expect(find.text('Score'), findsWidgets);
+      expect(find.text('スコア'), findsWidgets);
     });
 
     testWidgets('game card shows AI level', (WidgetTester tester) async {
@@ -176,7 +176,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // AI level should be displayed
-      expect(find.text('Level'), findsWidgets);
+      expect(find.text('レベル'), findsWidgets);
     });
 
     testWidgets('can select game to view details', (WidgetTester tester) async {
@@ -194,7 +194,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Details view should appear
-      expect(find.text('Victory'), findsWidgets);
+      expect(find.text('勝ち'), findsWidgets);
     });
 
     testWidgets('game details shows final board', (WidgetTester tester) async {
@@ -230,7 +230,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Game details section
-      expect(find.text('Game Details'), findsWidgets);
+      expect(find.text('対局詳細'), findsWidgets);
     });
 
     testWidgets('back button returns to game list', (WidgetTester tester) async {
@@ -252,7 +252,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should return to list
-      expect(find.text('Game History'), findsWidgets);
+      expect(find.text('対局履歴'), findsWidgets);
     });
 
     testWidgets('filter menu opens when filter button tapped', (WidgetTester tester) async {
@@ -270,7 +270,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Filter menu should open
-      expect(find.text('Filter by Result'), findsWidgets);
+      expect(find.text('結果でフィルター'), findsWidgets);
     });
 
     testWidgets('filter menu shows result options', (WidgetTester tester) async {
@@ -288,10 +288,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Filter options
-      expect(find.text('All'), findsWidgets);
-      expect(find.text('Wins'), findsWidgets);
-      expect(find.text('Losses'), findsWidgets);
-      expect(find.text('Draws'), findsWidgets);
+      expect(find.text('すべて'), findsWidgets);
+      expect(find.text('勝利'), findsWidgets);
+      expect(find.text('敗北'), findsWidgets);
+      expect(find.text('引き分け'), findsWidgets);
     });
 
     testWidgets('filter menu shows sort options', (WidgetTester tester) async {
@@ -309,10 +309,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Sort options
-      expect(find.text('Sort by'), findsWidgets);
-      expect(find.text('Most Recent'), findsWidgets);
-      expect(find.text('Best Score'), findsWidgets);
-      expect(find.text('Longest'), findsWidgets);
+      expect(find.text('並び替え'), findsWidgets);
+      expect(find.text('最新順'), findsWidgets);
+      expect(find.text('スコア順'), findsWidgets);
+      expect(find.text('最長'), findsWidgets);
     });
 
     testWidgets('shows auth required state when no user', (WidgetTester tester) async {
@@ -328,7 +328,7 @@ void main() {
       );
 
       // Auth required message
-      expect(find.text('Log in to view your games'), findsWidgets);
+      expect(find.text('対局を見るにはログインしてください'), findsWidgets);
     });
 
     testWidgets('shows loading state', (WidgetTester tester) async {
@@ -431,7 +431,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Move sequence section
-      expect(find.text('Move Sequence'), findsWidgets);
+      expect(find.text('着手の記録'), findsWidgets);
     });
 
     testWidgets('game details displays board size', (WidgetTester tester) async {
@@ -449,7 +449,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Board size should be displayed
-      expect(find.text('Board Size'), findsWidgets);
+      expect(find.text('碁盤サイズ'), findsWidgets);
     });
 
     testWidgets('game card tappable area', (WidgetTester tester) async {

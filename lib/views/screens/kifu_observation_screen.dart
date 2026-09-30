@@ -8,6 +8,7 @@ import 'package:goen/utils/sgf_parser.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
 
@@ -52,12 +53,13 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final kifuLibrary = ref.watch(kifuLibraryProvider);
 
     return Scaffold(
       backgroundColor: AppColors.sumi,
       appBar: AppBar(
-        title: const Text('Watch & Learn'),
+        title: Text(l10n.watchAndLearnTitle),
         centerTitle: true,
         backgroundColor: AppColors.sumi,
         elevation: 0,
@@ -65,7 +67,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () => _showInfo(context),
-            tooltip: 'Learn',
+            tooltip: l10n.learnTooltip,
           ),
         ],
       ),
@@ -92,6 +94,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildLoadingState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -106,7 +109,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading kifu library...',
+            l10n.loadingKifuLibraryMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -117,6 +120,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildErrorState(BuildContext context, Object error) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -128,7 +132,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Could not load games',
+            l10n.couldNotLoadGamesMessage,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
@@ -136,7 +140,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),
@@ -144,6 +148,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -155,14 +160,14 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No games available',
+            l10n.noGamesAvailableMessage,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Check back soon for historical games from\nfamous Go players like Honinbo Shusaku',
+            l10n.checkBackForHistoricalGamesMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.washiDim,
             ),
@@ -171,7 +176,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Go Back'),
+            child: Text(l10n.goBackButton),
           ),
         ],
       ),
@@ -179,6 +184,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildGameLibrary(BuildContext context, List<KifuLibrary> games) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -189,14 +195,14 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Historical Games',
+                  l10n.historicalGamesTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: AppColors.washi,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Study games from master players and understand strategic concepts',
+                  l10n.studyMasterGamesMessage,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.washiDim,
                   ),
@@ -222,6 +228,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildGameCard(BuildContext context, KifuLibrary game) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -254,7 +261,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                       Text(
                         game.players.isNotEmpty
                             ? '${game.players[0]} vs ${game.players.length > 1 ? game.players[1] : "?"}'
-                            : 'Unknown players',
+                            : l10n.unknownPlayersLabel,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.washiDim,
                         ),
@@ -276,8 +283,8 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildInfoItem(context, 'Category', game.category.toString().split('.').last),
-                _buildInfoItem(context, 'Source', game.source),
+                _buildInfoItem(context, l10n.categoryLabel, game.category.toString().split('.').last),
+                _buildInfoItem(context, l10n.sourceLabel, game.source),
               ],
             ),
           ],
@@ -308,6 +315,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildGameReplay(BuildContext context, KifuLibrary game, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final boardSize = parseSgfBoardSize(game.sgfData);
     final moves = parseSgfMoves(game.sgfData);
     _totalMoves = moves.length;
@@ -342,7 +350,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                           Text(
                             game.players.isNotEmpty
                                 ? game.players.join(' vs ')
-                                : 'Unknown players',
+                                : l10n.unknownPlayersLabel,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.washiDim,
                             ),
@@ -353,7 +361,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                     OutlinedButton.icon(
                       onPressed: () => _handleBackToLibrary(),
                       icon: const Icon(Icons.arrow_back),
-                      label: const Text('Back'),
+                      label: Text(l10n.backButton),
                     ),
                   ],
                 ),
@@ -464,6 +472,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildMoveControls(BuildContext context, int totalMoves) {
+    final l10n = AppLocalizations.of(context)!;
     final sliderMax = totalMoves > 0 ? totalMoves : 1;
     final isPlaying = _autoplayTimer != null;
 
@@ -478,7 +487,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Move $_currentMoveIndex / $totalMoves',
+            l10n.moveProgressLabel(_currentMoveIndex, totalMoves),
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: AppColors.washi,
             ),
@@ -520,7 +529,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                         }
                       : null,
                   icon: const Icon(Icons.skip_previous),
-                  label: const Text('Previous'),
+                  label: Text(l10n.previousButton),
                 ),
               ),
               const SizedBox(width: 12),
@@ -528,7 +537,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                 child: ElevatedButton.icon(
                   onPressed: totalMoves == 0 ? null : () => _handleAutoplay(context, totalMoves),
                   icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                  label: Text(isPlaying ? 'Pause' : 'Play'),
+                  label: Text(isPlaying ? l10n.pauseButton : l10n.playButton),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.kin,
                   ),
@@ -544,7 +553,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                         }
                       : null,
                   icon: const Icon(Icons.skip_next),
-                  label: const Text('Next'),
+                  label: Text(l10n.nextButton),
                 ),
               ),
             ],
@@ -555,6 +564,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   Widget _buildCommentarySection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -566,14 +576,14 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Commentary',
+            l10n.commentaryTitle,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: AppColors.washi,
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            'Move-by-move AI commentary and strategic analysis will appear here as you play through the game.',
+            l10n.commentaryPlaceholderMessage,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.washiDim,
               height: 1.6,
@@ -585,18 +595,17 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   }
 
   void _showInfo(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.sumiSurface,
-        title: const Text('About Kifu Observation'),
-        content: const Text(
-          'Study games from master players like Honinbo Shusaku. Watch move-by-move replay and read AI commentary to understand strategic concepts and improve your game.',
-        ),
+        title: Text(l10n.aboutKifuObservationTitle),
+        content: Text(l10n.aboutKifuObservationContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Got it'),
+            child: Text(l10n.gotItButton),
           ),
         ],
       ),
