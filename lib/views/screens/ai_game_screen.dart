@@ -377,17 +377,6 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
             ),
             child: Stack(
               children: [
-                // 木目
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CustomPaint(
-                      painter: WoodGrainPainter(
-                        color: AppColors.sumi.withOpacity(0.08),
-                      ),
-                    ),
-                  ),
-                ),
-
                 // Grid lines
                 CustomPaint(
                   painter: GoBoardGridPainter(boardSize: boardSize),
