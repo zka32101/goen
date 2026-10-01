@@ -72,6 +72,17 @@ class PvpGame {
     return 0;
   }
 
+  /// [uid]が、相手が長期間応答していない対局の放置勝ちを申請できるか
+  /// （PvpGameService.claimAbandonmentForfeit参照）。UIがボタンの表示判定
+  /// に使い、サービス側のトランザクションでも同じ条件を再確認している。
+  bool canClaimAbandonmentForfeit(String uid, {required Duration threshold}) {
+    if (!isActive) return false;
+    if (playerColorOf(uid) == 0) return false;
+    if (isTurnOf(uid)) return false;
+    final lastActivity = updatedAt ?? createdAt;
+    return DateTime.now().difference(lastActivity) >= threshold;
+  }
+
   bool isTurnOf(String uid) {
     final color = playerColorOf(uid);
     if (color == 0) return false;

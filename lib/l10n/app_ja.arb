@@ -1038,5 +1038,11 @@
   "messageSendFailedMessage": "メッセージの送信に失敗しました",
 
   "filterByDifficultyTitle": "難易度で絞り込む",
-  "noGamesMatchFilterMessage": "この難易度に該当する棋譜はありません"
+  "noGamesMatchFilterMessage": "この難易度に該当する棋譜はありません",
+
+  "opponentInactiveMessage": "相手が長時間応答していません",
+  "claimForfeitButton": "放棄による勝利を申請する",
+  "claimForfeitConfirmTitle": "放棄による勝利を申請しますか？",
+  "claimForfeitConfirmContent": "相手が48時間以上このゲームで何も操作していません。申請すると、この対局はあなたの勝利として終了します。",
+  "forfeitResultLabel": "相手の対局放棄による決着"
 }

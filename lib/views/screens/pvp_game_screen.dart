@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/pvp_game.dart';
+import 'package:goen/services/pvp_game_service.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/stone_feedback.dart';
 import 'package:goen/utils/go_board_geometry.dart';
@@ -107,6 +108,11 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
           ),
           const SizedBox(height: 20),
           if (game.isActive && myColor != 0) _buildControls(context, l10n, game),
+          if (game.canClaimAbandonmentForfeit(
+            widget.uid,
+            threshold: PvpGameService.abandonmentThreshold,
+          ))
+            _buildAbandonmentClaimCard(context, l10n, game),
         ],
       ),
     );
@@ -287,6 +293,56 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
     );
   }
 
+  Widget _buildAbandonmentClaimCard(BuildContext context, AppLocalizations l10n, PvpGame game) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        children: [
+          Text(
+            l10n.opponentInactiveMessage,
+            style: const TextStyle(color: AppColors.shuLight),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(foregroundColor: AppColors.shuLight),
+            onPressed: () => _confirmClaimForfeit(context, game),
+            child: Text(l10n.claimForfeitButton),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmClaimForfeit(BuildContext context, PvpGame game) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.sumiSurface,
+        title: Text(l10n.claimForfeitConfirmTitle, style: const TextStyle(color: AppColors.washi)),
+        content: Text(l10n.claimForfeitConfirmContent, style: TextStyle(color: AppColors.washiDim)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancelButton, style: TextStyle(color: AppColors.aiLight)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.claimForfeitButton, style: TextStyle(color: AppColors.shuLight)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(claimAbandonmentForfeitProvider)(widget.gameId, widget.uid);
+    } catch (e) {
+      _logger.e('Error claiming forfeit: $e');
+    }
+  }
+
   Future<void> _handleTap(PvpGame game, int row, int col) async {
     final l10n = AppLocalizations.of(context)!;
     setState(() => _isSubmittingMove = true);
@@ -367,14 +423,7 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
           style: const TextStyle(color: AppColors.washi),
         ),
         content: Text(
-          game.result == 'resignation'
-              ? l10n.resignationResultLabel
-              : (game.blackScore != null && game.whiteScore != null
-                  ? l10n.scoreResultLabel(
-                      game.blackScore!.toStringAsFixed(1),
-                      game.whiteScore!.toStringAsFixed(2),
-                    )
-                  : l10n.territoryCountResultLabel),
+          _resultDescription(l10n, game),
           style: const TextStyle(color: AppColors.washiDim),
         ),
         actions: [
@@ -388,6 +437,18 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
         ],
       ),
     );
+  }
+
+  String _resultDescription(AppLocalizations l10n, PvpGame game) {
+    if (game.result == 'resignation') return l10n.resignationResultLabel;
+    if (game.result == 'forfeit') return l10n.forfeitResultLabel;
+    if (game.blackScore != null && game.whiteScore != null) {
+      return l10n.scoreResultLabel(
+        game.blackScore!.toStringAsFixed(1),
+        game.whiteScore!.toStringAsFixed(2),
+      );
+    }
+    return l10n.territoryCountResultLabel;
   }
 }
 

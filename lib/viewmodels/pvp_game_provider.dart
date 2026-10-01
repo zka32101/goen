@@ -299,6 +299,23 @@ final resignPvpGameProvider = Provider((ref) {
   };
 });
 
+/// 相手が長期間応答していない対局を放置勝ちとして終局させる
+/// （PvpGameService.claimAbandonmentForfeit参照）。resignと同じく
+/// Eloレーティング・トーナメント結果報告を_onGameFinishedで反映する。
+final claimAbandonmentForfeitProvider = Provider((ref) {
+  return (String gameId, String claimantUid) async {
+    final service = ref.watch(pvpGameServiceProvider);
+    try {
+      await service.claimAbandonmentForfeit(gameId: gameId, claimantUid: claimantUid);
+      _logger.i('Claimed abandonment forfeit: $gameId by=$claimantUid');
+      await _onGameFinished(ref, service, gameId);
+    } catch (e) {
+      _logger.e('Error claiming abandonment forfeit: $e');
+      rethrow;
+    }
+  };
+});
+
 /// 対局が終局していれば、Eloレーティングの反映とトーナメント結果報告
 /// （紐づいていれば）を行う。それぞれ独立してbest-effortで処理し、
 /// 片方の失敗が他方をブロックしたり対局そのものの完了を妨げたりしない。

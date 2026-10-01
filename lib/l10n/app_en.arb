@@ -1038,5 +1038,11 @@
   "messageSendFailedMessage": "Failed to send message",
 
   "filterByDifficultyTitle": "Filter by difficulty",
-  "noGamesMatchFilterMessage": "No games match this difficulty"
+  "noGamesMatchFilterMessage": "No games match this difficulty",
+
+  "opponentInactiveMessage": "Your opponent hasn't responded in a while",
+  "claimForfeitButton": "Claim win by forfeit",
+  "claimForfeitConfirmTitle": "Claim a win by forfeit?",
+  "claimForfeitConfirmContent": "Your opponent hasn't made a move in this game for over 48 hours. Claiming will end this game as a win for you.",
+  "forfeitResultLabel": "Won — opponent forfeited"
 }
