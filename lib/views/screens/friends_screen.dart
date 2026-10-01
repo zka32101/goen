@@ -548,8 +548,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) return;
 
+    final fromDisplayName = currentUser.displayName ?? l10n.homeDefaultPlayerName;
     final success = await ref.read(
-      addFriendProvider((currentUser.uid, friendUid, null)).future,
+      addFriendProvider((currentUser.uid, friendUid, fromDisplayName, null)).future,
     );
 
     if (success) {

@@ -69,17 +69,36 @@ final friendsStreamProvider = StreamProvider.family<List<Friend>, String>(
   },
 );
 
-/// Add friend provider
+/// Add friend provider. [fromDisplayName] is the sender's own display name
+/// (the caller already has it from currentUserProvider, same as
+/// sendGameInvitationProvider's fromDisplayName param) - used only for the
+/// friend_request notification sent to the recipient on success.
 final addFriendProvider =
-    FutureProvider.family<bool, (String, String, String?)>(
+    FutureProvider.family<bool, (String, String, String, String?)>(
   (ref, params) async {
-    final (currentUid, friendUid, notes) = params;
+    final (currentUid, friendUid, fromDisplayName, notes) = params;
     final service = ref.watch(friendServiceProvider);
-    return service.addFriend(
+    final success = await service.addFriend(
       currentUid: currentUid,
       friendUid: friendUid,
       notes: notes,
     );
+
+    if (success) {
+      try {
+        await ref.read(sendNotificationProvider)(
+          uid: friendUid,
+          title: '$fromDisplayNameさんからフレンド申請が届きました',
+          body: '「フレンド」→「招待待ち」タブで確認できます',
+          type: 'friend_request',
+        );
+      } catch (e) {
+        // Best-effort, same as every other cross-user notification in
+        // this app (e.g. sendGameInvitationProvider's game_invitation).
+      }
+    }
+
+    return success;
   },
 );
 

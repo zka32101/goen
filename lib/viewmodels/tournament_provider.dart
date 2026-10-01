@@ -4,12 +4,15 @@ import 'package:goen/models/leaderboard.dart';
 import 'package:goen/models/tournament.dart';
 import 'package:goen/services/tournament_service.dart';
 import 'leaderboard_provider.dart';
+import 'notification_provider.dart';
 
 final _logger = Logger();
 
-/// Tournament Service プロバイダー
+/// Tournament Service プロバイダー - a new match's notifications go through
+/// the injected NotificationService (see TournamentService._notifyNewMatches),
+/// same DI pattern notificationServiceProvider's own consumers already use.
 final tournamentServiceProvider = Provider<TournamentService>((ref) {
-  return TournamentService();
+  return TournamentService(null, ref.watch(notificationServiceProvider));
 });
 
 /// アクティブなトーナメント一覧
