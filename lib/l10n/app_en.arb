@@ -1060,5 +1060,20 @@
   "invitationNoLongerAvailableMessage": "This invitation is no longer available",
   "invitationAcceptFailedMessage": "Failed to accept the invitation",
   "sendInvitationButton": "Send Invite",
-  "invitationSentMessage": "Invitation sent"
+  "invitationSentMessage": "Invitation sent",
+
+  "youtubeUploadButton": "Upload to YouTube",
+  "youtubeUploadTitle": "GoEn Game - {boardSize}x{boardSize}",
+  "@youtubeUploadTitle": {
+    "placeholders": {
+      "boardSize": { "type": "int" }
+    }
+  },
+  "youtubeUploadDescription": "A game played on GoEn (碁縁). Ended after {movesCount} moves.",
+  "@youtubeUploadDescription": {
+    "placeholders": {
+      "movesCount": { "type": "int" }
+    }
+  },
+  "youtubeUploadStartedMessage": "Upload started"
 }

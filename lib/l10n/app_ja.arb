@@ -1060,5 +1060,20 @@
   "invitationNoLongerAvailableMessage": "この招待はもう利用できません",
   "invitationAcceptFailedMessage": "招待の受諾に失敗しました",
   "sendInvitationButton": "招待を送る",
-  "invitationSentMessage": "招待を送りました"
+  "invitationSentMessage": "招待を送りました",
+
+  "youtubeUploadButton": "YouTubeにアップロード",
+  "youtubeUploadTitle": "碁縁の対局 - {boardSize}路盤",
+  "@youtubeUploadTitle": {
+    "placeholders": {
+      "boardSize": { "type": "int" }
+    }
+  },
+  "youtubeUploadDescription": "碁縁（GoEn）で対局した棋譜です。{movesCount}手で終局。",
+  "@youtubeUploadDescription": {
+    "placeholders": {
+      "movesCount": { "type": "int" }
+    }
+  },
+  "youtubeUploadStartedMessage": "アップロードを開始しました"
 }

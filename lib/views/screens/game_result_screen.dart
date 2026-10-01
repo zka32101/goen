@@ -284,6 +284,21 @@ class GameResultScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _handleUploadToYouTube(
+                          context,
+                          ref,
+                          l10n,
+                          currentUser,
+                          boardState,
+                        ),
+                        icon: const Icon(Icons.ondemand_video),
+                        label: Text(l10n.youtubeUploadButton),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
                       child: OutlinedButton(
                         onPressed: () => _handleBackToHome(context),
                         child: Text(l10n.backToHomeButton),
@@ -544,6 +559,89 @@ class GameResultScreen extends ConsumerWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.failedToSaveGameMessage('$e'))),
+      );
+    }
+  }
+
+  /// YouTubeへのアップロードは実際のOAuth/APIバックエンドが存在しない
+  /// （Firestoreへのブックキーピングのみ — youtube_share_screen.dartの
+  /// 「接続する」ボタンと同じ理由・同じ正直な「まだ使えません」ダイアログ）
+  /// ため、isYouTubeConnectedが true になることは実質無い。それでも
+  /// GameResultScreenから対局を直接アップロードする入口自体は実装し、
+  /// 接続済みになった場合にそのまま使えるようにしておく。
+  Future<void> _handleUploadToYouTube(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    User? currentUser,
+    BoardState boardState,
+  ) async {
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.pleaseLoginToSaveMessage)),
+      );
+      return;
+    }
+
+    // アップロードは実在するgameIdを指す必要があるため、未保存ならまず保存する。
+    if (ref.read(currentGameSavedIdProvider) == null) {
+      await _handleSaveGame(context, ref, l10n, currentUser);
+      if (!context.mounted) return;
+    }
+    final gameId = ref.read(currentGameSavedIdProvider);
+    if (gameId == null) return; // 保存失敗。_handleSaveGame側で既に通知済み。
+
+    final isConnected =
+        await ref.read(youtubeShareServiceProvider).isYouTubeConnected(currentUser.uid);
+    if (!context.mounted) return;
+
+    if (!isConnected) {
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: AppColors.sumiSurface,
+          title: Text(l10n.youtubeComingSoonTitle),
+          content: Text(l10n.youtubeComingSoonMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l10n.closeButton),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final movesCount = ref.read(movesCountProvider);
+    final moves = ref
+        .read(moveHistoryProvider)
+        .map((m) => m.row < 0 ? -1 : m.row * boardState.boardSize + m.col)
+        .toList();
+
+    try {
+      final uploadResult = await ref.read(uploadToYouTubeProvider)(
+        YouTubeShareData(
+          userId: currentUser.uid,
+          gameId: gameId,
+          title: l10n.youtubeUploadTitle(boardState.boardSize),
+          description: l10n.youtubeUploadDescription(movesCount),
+          moves: moves,
+        ),
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uploadResult != null ? l10n.youtubeUploadStartedMessage : l10n.genericErrorMessage,
+          ),
+        ),
+      );
+    } catch (e) {
+      _logger.e('❌ Failed to upload to YouTube: $e');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.genericErrorMessage)),
       );
     }
   }
