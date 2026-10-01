@@ -1038,5 +1038,23 @@
   "messageSendFailedMessage": "Failed to send message",
 
   "filterByDifficultyTitle": "Filter by difficulty",
-  "noGamesMatchFilterMessage": "No games match this difficulty"
+  "noGamesMatchFilterMessage": "No games match this difficulty",
+
+  "aiLevelSheetTitle": "Choose AI strength",
+  "aiLevelSheetFreeNote": "Levels 1-{freeMax} are free. Level {lockedMin} and above are unlocked with Premium.",
+  "@aiLevelSheetFreeNote": {
+    "placeholders": {
+      "freeMax": { "type": "int" },
+      "lockedMin": { "type": "int" }
+    }
+  },
+  "aiLevelOption": "Level {level}",
+  "@aiLevelOption": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "aiLevelStartButton": "Play at this strength",
+  "analysisLockedMessage": "Detailed position analysis (score and win rate) is available with Premium",
+  "analysisLockedAction": "See Premium"
 }

@@ -5,6 +5,7 @@ import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/l10n/app_localizations.dart';
+import 'package:goen/views/widgets/ai_level_sheet.dart';
 
 final _logger = Logger();
 
@@ -278,7 +279,11 @@ class GameModeSelectorScreen extends ConsumerWidget {
         case GameModeType.handicap:
           Navigator.of(context).pushNamed('/handicap-settings');
         case GameModeType.traditional:
-          Navigator.of(context).pushNamed('/ai-game');
+          showAiLevelSheet(context, ref).then((picked) {
+            if (picked && context.mounted) {
+              Navigator.of(context).pushNamed('/ai-game');
+            }
+          });
       }
     });
   }

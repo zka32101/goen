@@ -725,9 +725,52 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     ref.read(startNewGameProvider)();
   }
 
+  /// 無料ユーザー向けの、形勢判断のロック表示。
+  Widget _buildAnalysisLocked(BuildContext context, AppLocalizations l10n) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => Navigator.of(context).pushNamed('/paywall'),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.kin, width: 1),
+          borderRadius: BorderRadius.circular(8),
+          color: AppColors.washiDim.withOpacity(0.5),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.lock_outline, color: AppColors.kin),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.analysisLockedMessage,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.washi,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n.analysisLockedAction,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: AppColors.kin,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Build position evaluation widget
   Widget _buildPositionEvaluation(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    // 形勢判断の詳細（目差・勝率）はプレミアム機能。無料ユーザーには
+    // 計算も走らせず、ロック表示から課金画面へ誘導する。
+    if (!ref.watch(isSubscriptionActiveProvider)) {
+      return _buildAnalysisLocked(context, l10n);
+    }
     final evaluation = ref.watch(positionEvaluationProvider);
 
     // 再計算中は直前の評価を表示し続け、パネルの中身と高さを変えない。

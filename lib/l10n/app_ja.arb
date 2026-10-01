@@ -1038,5 +1038,23 @@
   "messageSendFailedMessage": "メッセージの送信に失敗しました",
 
   "filterByDifficultyTitle": "難易度で絞り込む",
-  "noGamesMatchFilterMessage": "この難易度に該当する棋譜はありません"
+  "noGamesMatchFilterMessage": "この難易度に該当する棋譜はありません",
+
+  "aiLevelSheetTitle": "AIの強さを選ぶ",
+  "aiLevelSheetFreeNote": "レベル1〜{freeMax}は無料です。レベル{lockedMin}以上はプレミアムで解放されます。",
+  "@aiLevelSheetFreeNote": {
+    "placeholders": {
+      "freeMax": { "type": "int" },
+      "lockedMin": { "type": "int" }
+    }
+  },
+  "aiLevelOption": "レベル {level}",
+  "@aiLevelOption": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "aiLevelStartButton": "この強さで対局する",
+  "analysisLockedMessage": "形勢判断の詳細（目差・勝率）はプレミアムで利用できます",
+  "analysisLockedAction": "プレミアムを見る"
 }
