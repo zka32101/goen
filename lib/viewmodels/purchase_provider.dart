@@ -13,6 +13,13 @@ final purchaseServiceProvider = Provider<PurchaseService>((ref) {
   return PurchaseService();
 });
 
+/// Store listing (localized price/currency) for a plan; null when the store
+/// can't be reached or the product isn't configured yet.
+final subscriptionProductProvider =
+    FutureProvider.family<ProductDetails?, SubscriptionPlan>((ref, plan) {
+  return ref.watch(purchaseServiceProvider).fetchProduct(plan.productId);
+});
+
 /// Persists a successful purchase's entitlement to Firestore and refreshes
 /// the cached/watched current user. Shared between the interactive purchase
 /// flow below and [purchaseRecoveryProvider], since a purchase can also
