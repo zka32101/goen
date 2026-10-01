@@ -1047,5 +1047,18 @@
   "forfeitResultLabel": "相手の対局放棄による決着",
 
   "rematchButton": "再戦する",
-  "rematchFailedMessage": "再戦の対局を開始できませんでした"
+  "rematchFailedMessage": "再戦の対局を開始できませんでした",
+
+  "gameInvitationsTab": "対局の招待",
+  "noGameInvitationsMessage": "対局の招待はありません",
+  "boardSizeInviteLabel": "{boardSize}路盤での対局に招待されました",
+  "@boardSizeInviteLabel": {
+    "placeholders": {
+      "boardSize": { "type": "int" }
+    }
+  },
+  "invitationNoLongerAvailableMessage": "この招待はもう利用できません",
+  "invitationAcceptFailedMessage": "招待の受諾に失敗しました",
+  "sendInvitationButton": "招待を送る",
+  "invitationSentMessage": "招待を送りました"
 }

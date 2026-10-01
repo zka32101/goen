@@ -106,10 +106,10 @@ void main() {
     test('Send game invitation', () async {
       final sent = await invitationService.sendInvitation(
         fromUid: testUserId1,
+        fromDisplayName: 'Player 1',
         toUid: testUserId2,
-        gameMode: 'blitz',
+        toDisplayName: 'Player 2',
         boardSize: 19,
-        aiLevel: 5,
       );
 
       expect(sent, isTrue);
@@ -118,10 +118,10 @@ void main() {
     test('Accept game invitation', () async {
       await invitationService.sendInvitation(
         fromUid: testUserId1,
+        fromDisplayName: 'Player 1',
         toUid: testUserId2,
-        gameMode: 'blitz',
+        toDisplayName: 'Player 2',
         boardSize: 19,
-        aiLevel: 5,
       );
 
       final incoming = await invitationService.getIncomingInvitations(
@@ -133,17 +133,17 @@ void main() {
           invitationId: incoming[0].id,
         );
 
-        expect(accepted, isTrue);
+        expect(accepted, isNotNull);
       }
     });
 
     test('Decline game invitation', () async {
       await invitationService.sendInvitation(
         fromUid: testUserId1,
+        fromDisplayName: 'Player 1',
         toUid: testUserId2,
-        gameMode: 'correspondence',
+        toDisplayName: 'Player 2',
         boardSize: 13,
-        aiLevel: 3,
       );
 
       final incoming = await invitationService.getIncomingInvitations(
@@ -174,7 +174,9 @@ void main() {
     });
 
     test('Cleanup expired invitations', () async {
-      final deletedCount = await invitationService.cleanupExpiredInvitations();
+      final deletedCount = await invitationService.cleanupExpiredInvitations(
+        uid: testUserId1,
+      );
 
       expect(deletedCount, isA<int>());
       expect(deletedCount, greaterThanOrEqualTo(0));
@@ -220,10 +222,10 @@ void main() {
       // User 1 sends game invitation to User 2
       final sent = await invitationService.sendInvitation(
         fromUid: testUserId1,
+        fromDisplayName: 'Player 1',
         toUid: testUserId2,
-        gameMode: 'blitz',
+        toDisplayName: 'Player 2',
         boardSize: 19,
-        aiLevel: 6,
         customMessage: 'Want to play?',
       );
       expect(sent, isTrue);
@@ -239,7 +241,7 @@ void main() {
         final accepted = await invitationService.acceptInvitation(
           invitationId: incoming[0].id,
         );
-        expect(accepted, isTrue);
+        expect(accepted, isNotNull);
       }
     });
 

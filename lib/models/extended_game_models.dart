@@ -27,8 +27,11 @@ abstract class GameInvitation with _$GameInvitation {
   const factory GameInvitation({
     required String id,
     required String fromUid,
+    required String fromDisplayName,
     required String toUid,
-    required String gameMode, // 'blitz', 'correspondence', 'team'
+    required String toDisplayName,
+    required String gameMode, // currently always 'standard' (PvP)
+    required int boardSize,
     required DateTime createdAt,
     required DateTime expiresAt,
     String? status, // 'pending', 'accepted', 'declined'

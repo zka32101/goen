@@ -5,6 +5,7 @@ import 'package:goen/models/notification.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/l10n/app_localizations.dart';
 import 'pvp_game_screen.dart';
+import 'friends_screen.dart';
 import 'package:goen/config/theme.dart';
 
 final _logger = Logger();
@@ -63,6 +64,8 @@ class NotificationScreen extends ConsumerWidget {
           itemBuilder: (context, index) {
             final n = notifications[index];
             final gameId = n.type == 'pvp_challenge' ? (n.data?['gameId'] as String?) : null;
+            final isGameInvitation = n.type == 'game_invitation';
+            final opensElsewhere = gameId != null || isGameInvitation;
             return ListTile(
               tileColor: n.isRead ? null : AppColors.kin.withOpacity(0.05),
               leading: Icon(_iconFor(n.type), color: n.isRead ? AppColors.washiDim : AppColors.kin),
@@ -74,7 +77,7 @@ class NotificationScreen extends ConsumerWidget {
                 ),
               ),
               subtitle: Text(n.body, style: TextStyle(color: AppColors.washiDim)),
-              trailing: gameId != null
+              trailing: opensElsewhere
                   ? const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.kin)
                   : Text(
                       _formatDate(n.createdAt),
@@ -82,7 +85,9 @@ class NotificationScreen extends ConsumerWidget {
                     ),
               onTap: gameId != null
                   ? () => _openPvpGame(context, ref, uid, n, gameId)
-                  : (n.isRead ? null : () => _markAsRead(ref, uid, n.id)),
+                  : (isGameInvitation
+                      ? () => _openGameInvitations(context, ref, uid, n)
+                      : (n.isRead ? null : () => _markAsRead(ref, uid, n.id))),
             );
           },
         );
@@ -105,6 +110,8 @@ class NotificationScreen extends ConsumerWidget {
         return Icons.star;
       case 'pvp_challenge':
         return Icons.sports_esports;
+      case 'game_invitation':
+        return Icons.mail_outline;
       default:
         return Icons.notifications;
     }
@@ -125,6 +132,22 @@ class NotificationScreen extends ConsumerWidget {
     if (context.mounted) {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => PvpGameScreen(gameId: gameId, uid: uid)),
+      );
+    }
+  }
+
+  Future<void> _openGameInvitations(
+    BuildContext context,
+    WidgetRef ref,
+    String uid,
+    AppNotification notification,
+  ) async {
+    if (!notification.isRead) {
+      await _markAsRead(ref, uid, notification.id);
+    }
+    if (context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const FriendsScreen(initialTabIndex: 2)),
       );
     }
   }

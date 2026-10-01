@@ -1047,5 +1047,18 @@
   "forfeitResultLabel": "Won — opponent forfeited",
 
   "rematchButton": "Rematch",
-  "rematchFailedMessage": "Could not start the rematch"
+  "rematchFailedMessage": "Could not start the rematch",
+
+  "gameInvitationsTab": "Game Invites",
+  "noGameInvitationsMessage": "No game invitations",
+  "boardSizeInviteLabel": "Invited you to a {boardSize}x{boardSize} game",
+  "@boardSizeInviteLabel": {
+    "placeholders": {
+      "boardSize": { "type": "int" }
+    }
+  },
+  "invitationNoLongerAvailableMessage": "This invitation is no longer available",
+  "invitationAcceptFailedMessage": "Failed to accept the invitation",
+  "sendInvitationButton": "Send Invite",
+  "invitationSentMessage": "Invitation sent"
 }

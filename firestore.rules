@@ -444,9 +444,11 @@ service cloud.firestore {
         (request.auth.uid == resource.data.toUid && onlyChanged(['status'])) ||
         (request.auth.uid == resource.data.fromUid && onlyChanged(['status']))
       );
-      // cleanupExpiredInvitations deletes other users' expired invitations;
-      // there's no admin/server context to scope this to, so allow any
-      // participant of THIS invitation to delete it (covers cancel too).
+      // Covers both cancelling a sent invitation and
+      // GameInvitationService.cleanupExpiredInvitations, which is scoped
+      // to the calling user's own invitations precisely because deletion
+      // here is participant-only (no admin/server context exists to run a
+      // global sweep).
       allow delete: if isParticipant([resource.data.fromUid, resource.data.toUid]);
     }
 
