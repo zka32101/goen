@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod/riverpod.dart';
 import '../models/extended_game_models.dart';
+import '../models/pvp_game.dart';
 import '../services/friend_service.dart';
 import '../services/game_invitation_service.dart';
+import 'notification_provider.dart';
+import 'pvp_game_provider.dart';
 
 // ==================== Service Providers ====================
 
@@ -66,17 +69,36 @@ final friendsStreamProvider = StreamProvider.family<List<Friend>, String>(
   },
 );
 
-/// Add friend provider
+/// Add friend provider. [fromDisplayName] is the sender's own display name
+/// (the caller already has it from currentUserProvider, same as
+/// sendGameInvitationProvider's fromDisplayName param) - used only for the
+/// friend_request notification sent to the recipient on success.
 final addFriendProvider =
-    FutureProvider.family<bool, (String, String, String?)>(
+    FutureProvider.family<bool, (String, String, String, String?)>(
   (ref, params) async {
-    final (currentUid, friendUid, notes) = params;
+    final (currentUid, friendUid, fromDisplayName, notes) = params;
     final service = ref.watch(friendServiceProvider);
-    return service.addFriend(
+    final success = await service.addFriend(
       currentUid: currentUid,
       friendUid: friendUid,
       notes: notes,
     );
+
+    if (success) {
+      try {
+        await ref.read(sendNotificationProvider)(
+          uid: friendUid,
+          title: '$fromDisplayNameさんからフレンド申請が届きました',
+          body: '「フレンド」→「招待待ち」タブで確認できます',
+          type: 'friend_request',
+        );
+      } catch (e) {
+        // Best-effort, same as every other cross-user notification in
+        // this app (e.g. sendGameInvitationProvider's game_invitation).
+      }
+    }
+
+    return success;
   },
 );
 
@@ -90,6 +112,17 @@ final acceptFriendRequestProvider =
       currentUid: currentUid,
       friendUid: friendUid,
     );
+  },
+);
+
+/// Reject a pending friend request provider - used both for the recipient
+/// declining it and the sender canceling it (same underlying operation).
+final rejectFriendRequestProvider =
+    FutureProvider.family<bool, (String, String)>(
+  (ref, params) async {
+    final (currentUid, friendUid) = params;
+    final service = ref.watch(friendServiceProvider);
+    return service.rejectFriendRequest(currentUid: currentUid, friendUid: friendUid);
   },
 );
 
@@ -140,55 +173,100 @@ final outgoingInvitationsProvider =
   },
 );
 
-/// Stream incoming invitations (real-time)
+/// Stream incoming invitations (real-time). Fires the opportunistic
+/// expired-invitation cleanup once per subscription (fire-and-forget,
+/// never blocks the stream) since there's no scheduler to run it
+/// otherwise - see cleanupExpiredInvitationsProvider.
 final incomingInvitationsStreamProvider =
     StreamProvider.family<List<GameInvitation>, String>(
   (ref, uid) {
     final service = ref.watch(gameInvitationServiceProvider);
+    ref.read(cleanupExpiredInvitationsProvider)(uid);
     return service.streamIncomingInvitations(uid: uid);
   },
 );
 
-/// Send game invitation provider
-final sendGameInvitationProvider = FutureProvider.family<bool,
-    ({
-      String fromUid,
-      String toUid,
-      String gameMode,
-      int boardSize,
-      int aiLevel,
-      String? customMessage,
-    })>(
-  (ref, params) async {
-    final service = ref.watch(gameInvitationServiceProvider);
-    return service.sendInvitation(
-      fromUid: params.fromUid,
-      toUid: params.toUid,
-      gameMode: params.gameMode,
-      boardSize: params.boardSize,
-      aiLevel: params.aiLevel,
-      customMessage: params.customMessage,
+/// Send a game invitation. A plain action Provider (not
+/// FutureProvider.family) since sending is a one-shot action, not a cached
+/// query - a family keyed by the full params record would otherwise grow
+/// one cache entry per invitation ever sent.
+final sendGameInvitationProvider = Provider((ref) {
+  final service = ref.watch(gameInvitationServiceProvider);
+  return ({
+    required String fromUid,
+    required String fromDisplayName,
+    required String toUid,
+    required String toDisplayName,
+    required int boardSize,
+    String? customMessage,
+  }) async {
+    final success = await service.sendInvitation(
+      fromUid: fromUid,
+      fromDisplayName: fromDisplayName,
+      toUid: toUid,
+      toDisplayName: toDisplayName,
+      boardSize: boardSize,
+      customMessage: customMessage,
     );
-  },
-);
 
-/// Accept game invitation provider
-final acceptGameInvitationProvider =
-    FutureProvider.family<bool, String>(
-  (ref, invitationId) async {
-    final service = ref.watch(gameInvitationServiceProvider);
-    return service.acceptInvitation(invitationId: invitationId);
-  },
-);
+    if (success) {
+      try {
+        await ref.read(sendNotificationProvider)(
+          uid: toUid,
+          title: '$fromDisplayNameさんから対局の招待が届きました',
+          body: '「フレンド」→「対局の招待」タブで確認できます',
+          type: 'game_invitation',
+        );
+      } catch (e) {
+        // Best-effort, same as every other cross-user notification in
+        // this app (e.g. matching_screen.dart's pvp_challenge) - the
+        // invitation itself is already saved either way.
+      }
+    }
 
-/// Decline game invitation provider
-final declineGameInvitationProvider =
-    FutureProvider.family<bool, String>(
-  (ref, invitationId) async {
+    return success;
+  };
+});
+
+/// Accepts a pending invitation and, if that succeeded, creates the actual
+/// PvP game (inviter plays black, matching the "founder plays black"
+/// convention used elsewhere - e.g. matching_screen.dart's _startGame) by
+/// routing through createPvpGameProvider so a game started this way gets
+/// the same live-spectator-session wiring any other PvP game gets.
+/// Returns null if the invitation couldn't be accepted (already
+/// accepted/declined by the time this ran, or expired).
+final acceptGameInvitationProvider = Provider((ref) {
+  return (GameInvitation invitation) async {
     final service = ref.watch(gameInvitationServiceProvider);
-    return service.declineInvitation(invitationId: invitationId);
-  },
-);
+    final accepted = await service.acceptInvitation(invitationId: invitation.id);
+    if (accepted == null) return null;
+
+    final PvpGame game = await ref.read(createPvpGameProvider)(
+      accepted.boardSize,
+      accepted.fromUid,
+      accepted.fromDisplayName,
+      accepted.toUid,
+      accepted.toDisplayName,
+    );
+    return game;
+  };
+});
+
+/// Decline a pending invitation.
+final declineGameInvitationProvider = Provider((ref) {
+  final service = ref.watch(gameInvitationServiceProvider);
+  return (String invitationId) => service.declineInvitation(invitationId: invitationId);
+});
+
+/// Opportunistic housekeeping: deletes [uid]'s own expired pending
+/// invitations. There's no Cloud Functions scheduler in this app, so this
+/// is meant to be fired (best-effort, fire-and-forget) whenever [uid]'s
+/// invitations are loaded rather than on a schedule - see
+/// GameInvitationService.cleanupExpiredInvitations.
+final cleanupExpiredInvitationsProvider = Provider((ref) {
+  final service = ref.watch(gameInvitationServiceProvider);
+  return (String uid) => service.cleanupExpiredInvitations(uid: uid);
+});
 
 // ==================== Computed Providers ====================
 

@@ -15,6 +15,12 @@ abstract class Friend with _$Friend {
     required DateTime addedAt,
     String? notes,
     String? avatarUrl,
+    // Who sent the original request - lets the UI tell an incoming request
+    // (show accept/decline) apart from one this user sent themselves (show
+    // cancel only). Nullable since relationship docs created before this
+    // field existed don't have it; treated as "incoming" by callers when
+    // absent, matching the pre-existing behavior for old data.
+    String? requestedBy,
   }) = _Friend;
 
   factory Friend.fromJson(Map<String, dynamic> json) =>
@@ -27,8 +33,11 @@ abstract class GameInvitation with _$GameInvitation {
   const factory GameInvitation({
     required String id,
     required String fromUid,
+    required String fromDisplayName,
     required String toUid,
-    required String gameMode, // 'blitz', 'correspondence', 'team'
+    required String toDisplayName,
+    required String gameMode, // currently always 'standard' (PvP)
+    required int boardSize,
     required DateTime createdAt,
     required DateTime expiresAt,
     String? status, // 'pending', 'accepted', 'declined'

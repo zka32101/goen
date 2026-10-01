@@ -4,41 +4,61 @@ import '../models/extended_game_models.dart';
 
 final _logger = Logger();
 
-/// Service for managing game invitations
+/// Service for managing game invitations (friend-to-friend PvP invites,
+/// distinct from the open per-game chat_messages/matching_queue systems).
 class GameInvitationService {
   final FirebaseFirestore _firestore;
 
   GameInvitationService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  /// Send game invitation
+  CollectionReference<Map<String, dynamic>> get _invitations =>
+      _firestore.collection('gameInvitations');
+
+  /// Send a game invitation.
   Future<bool> sendInvitation({
     required String fromUid,
+    required String fromDisplayName,
     required String toUid,
-    required String gameMode,
+    required String toDisplayName,
     required int boardSize,
-    required int aiLevel,
+    String gameMode = 'standard',
     String? customMessage,
     Duration expirationTime = const Duration(days: 7),
   }) async {
     try {
+      // FriendService.blockFriend mirrors a block onto both sides' own
+      // `friends` entries, so checking the sender's own (readable) entry
+      // catches a block placed by either party.
+      final relationship = await _firestore
+          .collection('users')
+          .doc(fromUid)
+          .collection('friends')
+          .doc(toUid)
+          .get();
+      if (relationship.data()?['status'] == 'blocked') {
+        _logger.w('sendInvitation refused: $fromUid/$toUid have a blocked relationship');
+        return false;
+      }
+
       _logger.i('Sending game invitation from $fromUid to $toUid');
 
       final now = DateTime.now();
       final expiresAt = now.add(expirationTime);
-      final invitationId = _firestore.collection('gameInvitations').doc().id;
+      final invitationId = _invitations.doc().id;
 
       // GameInvitation.fromJson parses createdAt/expiresAt via
       // DateTime.parse(json[...] as String) - storing raw DateTimes would
       // round-trip through Firestore as Timestamps and fail that cast on
       // every later read.
-      await _firestore.collection('gameInvitations').doc(invitationId).set({
+      await _invitations.doc(invitationId).set({
         'id': invitationId,
         'fromUid': fromUid,
+        'fromDisplayName': fromDisplayName,
         'toUid': toUid,
+        'toDisplayName': toDisplayName,
         'gameMode': gameMode,
         'boardSize': boardSize,
-        'aiLevel': aiLevel,
         'createdAt': now.toIso8601String(),
         'expiresAt': expiresAt.toIso8601String(),
         'status': 'pending',
@@ -52,22 +72,27 @@ class GameInvitationService {
     }
   }
 
-  /// Accept game invitation
-  Future<bool> acceptInvitation({
-    required String invitationId,
-  }) async {
+  /// Accepts a pending invitation. Returns the now-accepted invitation, or
+  /// null if it wasn't pending anymore (already accepted/declined, or this
+  /// call lost a race with another accept/decline/cancel) - the transaction
+  /// guard means a double-tap can never flip it twice, which matters to the
+  /// caller since accepting is what triggers creating the actual game.
+  Future<GameInvitation?> acceptInvitation({required String invitationId}) async {
     try {
-      _logger.i('Accepting invitation: $invitationId');
+      return await _firestore.runTransaction<GameInvitation?>((transaction) async {
+        final ref = _invitations.doc(invitationId);
+        final snapshot = await transaction.get(ref);
+        if (!snapshot.exists) return null;
 
-      await _firestore
-          .collection('gameInvitations')
-          .doc(invitationId)
-          .update({'status': 'accepted'});
+        final data = snapshot.data()!;
+        if (data['status'] != 'pending') return null;
 
-      return true;
+        transaction.update(ref, {'status': 'accepted'});
+        return GameInvitation.fromJson({...data, 'id': snapshot.id, 'status': 'accepted'});
+      });
     } catch (e) {
       _logger.e('Failed to accept invitation: $e');
-      return false;
+      return null;
     }
   }
 
@@ -78,10 +103,7 @@ class GameInvitationService {
     try {
       _logger.i('Declining invitation: $invitationId');
 
-      await _firestore
-          .collection('gameInvitations')
-          .doc(invitationId)
-          .update({'status': 'declined'});
+      await _invitations.doc(invitationId).update({'status': 'declined'});
 
       return true;
     } catch (e) {
@@ -97,10 +119,7 @@ class GameInvitationService {
     try {
       _logger.i('Canceling invitation: $invitationId');
 
-      await _firestore
-          .collection('gameInvitations')
-          .doc(invitationId)
-          .delete();
+      await _invitations.doc(invitationId).delete();
 
       return true;
     } catch (e) {
@@ -121,8 +140,7 @@ class GameInvitationService {
       // to actually match/order against it.
       final now = DateTime.now().toIso8601String();
 
-      final querySnapshot = await _firestore
-          .collection('gameInvitations')
+      final querySnapshot = await _invitations
           .where('toUid', isEqualTo: uid)
           .where('status', isEqualTo: 'pending')
           .where('expiresAt', isGreaterThan: now)
@@ -149,8 +167,7 @@ class GameInvitationService {
 
       final now = DateTime.now().toIso8601String();
 
-      final querySnapshot = await _firestore
-          .collection('gameInvitations')
+      final querySnapshot = await _invitations
           .where('fromUid', isEqualTo: uid)
           .where('status', isEqualTo: 'pending')
           .where('expiresAt', isGreaterThan: now)
@@ -173,10 +190,7 @@ class GameInvitationService {
     try {
       _logger.i('Getting invitation: $invitationId');
 
-      final doc = await _firestore
-          .collection('gameInvitations')
-          .doc(invitationId)
-          .get();
+      final doc = await _invitations.doc(invitationId).get();
 
       if (!doc.exists) {
         return null;
@@ -195,8 +209,7 @@ class GameInvitationService {
   }) {
     final now = DateTime.now().toIso8601String();
 
-    return _firestore
-        .collection('gameInvitations')
+    return _invitations
         .where('toUid', isEqualTo: uid)
         .where('status', isEqualTo: 'pending')
         .where('expiresAt', isGreaterThan: now)
@@ -209,32 +222,44 @@ class GameInvitationService {
     });
   }
 
-  /// Clean up expired invitations
-  Future<int> cleanupExpiredInvitations() async {
-    try {
-      _logger.i('Cleaning up expired invitations');
+  /// Deletes [uid]'s own expired pending invitations (sent or received).
+  ///
+  /// There's no admin/server context in this app to run a global sweep
+  /// (and firestore.rules only allows a participant to delete their own
+  /// invitation anyway), so this is scoped to one user and meant to be
+  /// called opportunistically whenever that user's invitations are loaded,
+  /// not on a schedule. Reads already filter out expired invitations
+  /// (see getIncomingInvitations et al.), so this is housekeeping, not a
+  /// correctness requirement - a failure here is harmless.
+  Future<int> cleanupExpiredInvitations({required String uid}) async {
+    final now = DateTime.now().toIso8601String();
+    var deletedCount = 0;
 
-      final now = DateTime.now().toIso8601String();
+    for (final field in ['fromUid', 'toUid']) {
+      try {
+        final querySnapshot = await _invitations
+            .where(field, isEqualTo: uid)
+            .where('status', isEqualTo: 'pending')
+            .where('expiresAt', isLessThan: now)
+            .get();
 
-      final querySnapshot = await _firestore
-          .collection('gameInvitations')
-          .where('expiresAt', isLessThan: now)
-          .where('status', isEqualTo: 'pending')
-          .get();
-
-      var deletedCount = 0;
-
-      for (final doc in querySnapshot.docs) {
-        await doc.reference.delete();
-        deletedCount++;
+        for (final doc in querySnapshot.docs) {
+          try {
+            await doc.reference.delete();
+            deletedCount++;
+          } catch (e) {
+            _logger.w('Failed to delete expired invitation ${doc.id} (non-fatal): $e');
+          }
+        }
+      } catch (e) {
+        _logger.w('Failed to query expired invitations by $field (non-fatal): $e');
       }
-
-      _logger.i('Deleted $deletedCount expired invitations');
-      return deletedCount;
-    } catch (e) {
-      _logger.e('Failed to cleanup expired invitations: $e');
-      return 0;
     }
+
+    if (deletedCount > 0) {
+      _logger.i('Deleted $deletedCount expired invitations for $uid');
+    }
+    return deletedCount;
   }
 
   /// Get invitation statistics
@@ -258,11 +283,9 @@ class GameInvitationService {
 
   Map<String, int> _groupByMode(List<GameInvitation> invitations) {
     final grouped = <String, int>{};
-
     for (final invitation in invitations) {
       grouped[invitation.gameMode] = (grouped[invitation.gameMode] ?? 0) + 1;
     }
-
     return grouped;
   }
 }

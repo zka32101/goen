@@ -153,11 +153,16 @@ class NotificationPreference {
     required this.allNotifications,
   });
 
+  /// [uid] is passed in by the caller rather than read from [doc.id] -
+  /// every preference doc's own id is the constant string 'settings'
+  /// (nested under notifications/{uid}/notificationPreferences/settings),
+  /// not the owning user's uid, so reading uid from doc.id always produced
+  /// the literal string 'settings' instead of a real uid.
   factory NotificationPreference.fromFirestore(
-      DocumentSnapshot<Map<String, dynamic>> doc) {
+      DocumentSnapshot<Map<String, dynamic>> doc, String uid) {
     final data = doc.data()!;
     return NotificationPreference(
-      uid: doc.id,
+      uid: uid,
       friendRequests: data['friendRequests'] ?? true,
       tournamentUpdates: data['tournamentUpdates'] ?? true,
       achievements: data['achievements'] ?? true,

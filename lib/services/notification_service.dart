@@ -6,7 +6,10 @@ final _logger = Logger();
 
 /// 通知サービス (FCM + Firestore統合)
 class NotificationService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+
+  NotificationService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const String notificationsCollection = 'notifications';
   static const String fcmTokensCollection = 'fcmTokens';
@@ -50,6 +53,17 @@ class NotificationService {
   }
 
   /// ユーザーの通知一覧
+  ///
+  /// A sender can't read the recipient's own notification preferences
+  /// (firestore.rules only lets the owner read
+  /// notifications/{uid}/notificationPreferences/*), so disabled
+  /// categories can't be stopped at send time - filtering has to happen
+  /// here, on the read side, instead. This runs after the `limit` above,
+  /// so a user with many disabled-category notifications among their most
+  /// recent `limit` could see fewer than `limit` results even when older
+  /// enabled ones exist - an accepted, documented tradeoff rather than a
+  /// multi-page fetch loop for what's a notification list, not a feed
+  /// that needs to always fill the page.
   Future<List<AppNotification>> getUserNotifications(
     String uid, {
     bool unreadOnly = false,
@@ -75,11 +89,42 @@ class NotificationService {
               doc as DocumentSnapshot<Map<String, dynamic>>))
           .toList();
 
-      _logger.i('✅ Notifications fetched: ${notifications.length}');
-      return notifications;
+      final preference = await getNotificationPreference(uid);
+      final visible = preference == null
+          ? notifications
+          : notifications.where((n) => _isCategoryEnabled(preference, n.type)).toList();
+
+      _logger.i('✅ Notifications fetched: ${visible.length}');
+      return visible;
     } catch (e) {
       _logger.e('Error fetching notifications: $e');
       rethrow;
+    }
+  }
+
+  /// Maps a notification's `type` to the preference toggle that governs it.
+  /// `game_invitation`/`pvp_challenge`/`correspondence_game`/`team_game`
+  /// are all "you've been invited into a game" variants, so they share the
+  /// `gameInvitations` toggle. `friend_request`/`tournament_match`/
+  /// `achievement` have dedicated toggles too, even though nothing in this
+  /// build sends those types yet - an unrecognized type defaults to shown,
+  /// so a future type is never silently hidden by this mapping alone.
+  bool _isCategoryEnabled(NotificationPreference preference, String type) {
+    if (!preference.allNotifications) return false;
+    switch (type) {
+      case 'game_invitation':
+      case 'pvp_challenge':
+      case 'correspondence_game':
+      case 'team_game':
+        return preference.gameInvitations;
+      case 'friend_request':
+        return preference.friendRequests;
+      case 'tournament_match':
+        return preference.tournamentUpdates;
+      case 'achievement':
+        return preference.achievements;
+      default:
+        return true;
     }
   }
 
@@ -152,7 +197,7 @@ class NotificationService {
       }
 
       return NotificationPreference.fromFirestore(
-          doc as DocumentSnapshot<Map<String, dynamic>>);
+          doc as DocumentSnapshot<Map<String, dynamic>>, uid);
     } catch (e) {
       _logger.e('Error fetching preference: $e');
       rethrow;

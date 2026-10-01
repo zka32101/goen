@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/services/pvp_game_service.dart';
@@ -96,6 +97,103 @@ void main() {
       // Resignation doesn't run area scoring.
       expect(finished.blackScore, null);
       expect(finished.whiteScore, null);
+    });
+
+    group('claimAbandonmentForfeit', () {
+      Future<void> makeStale(String gameId) async {
+        await firestore.collection('pvp_games').doc(gameId).update({
+          'updatedAt': Timestamp.fromDate(
+            DateTime.now().subtract(PvpGameService.abandonmentThreshold + const Duration(hours: 1)),
+          ),
+        });
+      }
+
+      test('ends the game in favor of the claimant when the opponent has gone stale', () async {
+        final game = await service.createGame(
+          boardSize: 9,
+          blackUid: 'black',
+          blackDisplayName: 'Black',
+          whiteUid: 'white',
+          whiteDisplayName: 'White',
+        );
+        await makeStale(game.id);
+
+        // It's black's turn (the default after creation), so white is the
+        // one waiting and can claim the forfeit.
+        await service.claimAbandonmentForfeit(gameId: game.id, claimantUid: 'white');
+
+        final finished = await service.getGame(game.id);
+        expect(finished!.isFinished, true);
+        expect(finished.result, 'forfeit');
+        expect(finished.winnerUid, 'white');
+      });
+
+      test('does nothing when the game has not gone stale yet', () async {
+        final game = await service.createGame(
+          boardSize: 9,
+          blackUid: 'black',
+          blackDisplayName: 'Black',
+          whiteUid: 'white',
+          whiteDisplayName: 'White',
+        );
+
+        await service.claimAbandonmentForfeit(gameId: game.id, claimantUid: 'white');
+
+        final stillActive = await service.getGame(game.id);
+        expect(stillActive!.isActive, true);
+      });
+
+      test('does nothing when the claimant is the one whose turn it is', () async {
+        final game = await service.createGame(
+          boardSize: 9,
+          blackUid: 'black',
+          blackDisplayName: 'Black',
+          whiteUid: 'white',
+          whiteDisplayName: 'White',
+        );
+        await makeStale(game.id);
+
+        // It's black's turn — black is the delinquent party, not white, so
+        // black has nothing to claim against themself.
+        await service.claimAbandonmentForfeit(gameId: game.id, claimantUid: 'black');
+
+        final stillActive = await service.getGame(game.id);
+        expect(stillActive!.isActive, true);
+      });
+
+      test('does nothing for a non-participant', () async {
+        final game = await service.createGame(
+          boardSize: 9,
+          blackUid: 'black',
+          blackDisplayName: 'Black',
+          whiteUid: 'white',
+          whiteDisplayName: 'White',
+        );
+        await makeStale(game.id);
+
+        await service.claimAbandonmentForfeit(gameId: game.id, claimantUid: 'stranger');
+
+        final stillActive = await service.getGame(game.id);
+        expect(stillActive!.isActive, true);
+      });
+
+      test('does nothing once the game has already finished', () async {
+        final game = await service.createGame(
+          boardSize: 9,
+          blackUid: 'black',
+          blackDisplayName: 'Black',
+          whiteUid: 'white',
+          whiteDisplayName: 'White',
+        );
+        await service.resign(gameId: game.id, uid: 'black');
+        await makeStale(game.id);
+
+        await service.claimAbandonmentForfeit(gameId: game.id, claimantUid: 'white');
+
+        final finished = await service.getGame(game.id);
+        // Still the resignation result, not overwritten by a forfeit.
+        expect(finished!.result, 'resignation');
+      });
     });
 
     test('attachSpectatorSession persists the spectator session id on the game', () async {

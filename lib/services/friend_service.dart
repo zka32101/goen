@@ -65,12 +65,22 @@ class FriendService {
       final currentDisplayName = await _lookupDisplayName(currentUid);
       final batch = _firestore.batch();
 
+      // If this is a resend of an already-pending request, keep the
+      // original sender so the UI's incoming/outgoing split doesn't flip
+      // depending on who happens to trigger the resend.
+      String requestedBy = currentUid;
+      if (existingStatus == 'pending') {
+        final existingData = (await _friendDoc(currentUid, friendUid).get()).data();
+        requestedBy = existingData?['requestedBy'] as String? ?? currentUid;
+      }
+
       batch.set(_friendDoc(currentUid, friendUid), {
         'uid': friendUid,
         'displayName': friendDisplayName,
         'status': 'pending',
         'addedAt': now,
         'notes': notes ?? '',
+        'requestedBy': requestedBy,
       });
       batch.set(_friendDoc(friendUid, currentUid), {
         'uid': currentUid,
@@ -78,6 +88,7 @@ class FriendService {
         'status': 'pending',
         'addedAt': now,
         'notes': '',
+        'requestedBy': requestedBy,
       });
 
       await batch.commit();
@@ -117,12 +128,58 @@ class FriendService {
     }
   }
 
-  /// Block a user. Only the blocker's own entry is marked - blocking should
-  /// work even for someone who was never actually a friend, so this upserts
-  /// a full, valid Friend-shaped doc rather than requiring one to already
-  /// exist (a bare merge-update would leave required fields like
-  /// displayName/addedAt missing on a brand-new doc, breaking every later
-  /// read via getFriends/getBlockedUsers).
+  /// Reject a pending friend request - removes both sides' pending entries
+  /// so the sender is free to send a new request later, same as if there'd
+  /// never been one. This is distinct from blocking (which is a lasting
+  /// decision); also used for the sender's own "cancel request" action,
+  /// since canceling a request you sent is the same data operation as the
+  /// recipient declining it.
+  ///
+  /// Refuses (no-op) unless the relationship is actually 'pending' on the
+  /// caller's own side, so a stale UI can't use this to delete an already
+  /// -accepted friendship.
+  Future<bool> rejectFriendRequest({
+    required String currentUid,
+    required String friendUid,
+  }) async {
+    try {
+      final status = await getFriendStatus(currentUid: currentUid, friendUid: friendUid);
+      if (status != 'pending') {
+        _logger.i('rejectFriendRequest no-op: $friendUid is $status for $currentUid, not pending');
+        return false;
+      }
+
+      _logger.i('Rejecting friend request with: $friendUid');
+
+      final batch = _firestore.batch();
+      batch.delete(_friendDoc(currentUid, friendUid));
+      batch.delete(_friendDoc(friendUid, currentUid));
+      await batch.commit();
+
+      return true;
+    } catch (e) {
+      _logger.e('Failed to reject friend request: $e');
+      return false;
+    }
+  }
+
+  /// Block a user. Blocking should work even for someone who was never
+  /// actually a friend, so the caller's own entry is a full upsert rather
+  /// than requiring one to already exist (a bare merge-update would leave
+  /// required fields like displayName/addedAt missing on a brand-new doc,
+  /// breaking every later read via getFriends/getBlockedUsers).
+  ///
+  /// Also mirrors the block onto the target's own entry, if they already
+  /// have one - otherwise a blocked former friend would keep reading
+  /// 'accepted' on their own side (friendsStreamProvider/getFriends would
+  /// still list the blocker as an accepted friend to them, and the UI's
+  /// message/invite buttons - only ever shown for an accepted friend -
+  /// would stay reachable in that direction too). The mirror is skipped
+  /// if the target's entry is already 'blocked' for any reason, so this
+  /// never overwrites a block the target placed independently; `blockedBy`
+  /// records who actually caused each entry's blocked state, so
+  /// unblockFriend can tell its own mirror apart from that independent
+  /// block later.
   Future<bool> blockFriend({
     required String currentUid,
     required String friendUid,
@@ -140,7 +197,14 @@ class FriendService {
         'status': 'blocked',
         'addedAt': existing?['addedAt'] ?? DateTime.now().toIso8601String(),
         'notes': existing?['notes'] ?? '',
+        'blockedBy': currentUid,
       });
+
+      final otherRef = _friendDoc(friendUid, currentUid);
+      final otherDoc = await otherRef.get();
+      if (otherDoc.exists && otherDoc.data()?['status'] != 'blocked') {
+        await otherRef.update({'status': 'blocked', 'blockedBy': currentUid});
+      }
 
       return true;
     } catch (e) {
@@ -149,7 +213,21 @@ class FriendService {
     }
   }
 
-  /// Unblock a friend, restoring the accepted friendship on both sides.
+  /// Unblock a user - removes the block on the caller's own side.
+  ///
+  /// This intentionally does NOT force both sides back to 'accepted': the
+  /// block overwrote whatever relationship existed before (if any), so
+  /// there's no reliable prior state to restore, and forcing a friendship
+  /// that may never have existed would also be rejected by firestore.rules'
+  /// create rule (which only allows a brand-new entry with status
+  /// 'pending'). Removing the block returns the caller to "no relationship"
+  /// with this user - they can send a fresh friend request if they want to
+  /// actually become friends again.
+  ///
+  /// Also removes the mirror blockFriend placed on the target's own entry
+  /// - but only when `blockedBy` shows THIS block caused it; if the target
+  /// independently blocked back (their own `blockedBy` is their own uid),
+  /// that block is left alone, since only they can lift it.
   Future<bool> unblockFriend({
     required String currentUid,
     required String friendUid,
@@ -157,18 +235,15 @@ class FriendService {
     try {
       _logger.i('Unblocking friend: $friendUid');
 
-      final batch = _firestore.batch();
-      batch.set(
-        _friendDoc(currentUid, friendUid),
-        {'uid': friendUid, 'status': 'accepted'},
-        SetOptions(merge: true),
-      );
-      batch.set(
-        _friendDoc(friendUid, currentUid),
-        {'uid': currentUid, 'status': 'accepted'},
-        SetOptions(merge: true),
-      );
-      await batch.commit();
+      await _friendDoc(currentUid, friendUid).delete();
+
+      final otherRef = _friendDoc(friendUid, currentUid);
+      final otherDoc = await otherRef.get();
+      if (otherDoc.exists &&
+          otherDoc.data()?['status'] == 'blocked' &&
+          otherDoc.data()?['blockedBy'] == currentUid) {
+        await otherRef.delete();
+      }
 
       return true;
     } catch (e) {

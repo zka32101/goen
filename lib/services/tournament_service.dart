@@ -3,14 +3,54 @@ import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
 import 'package:goen/models/tournament.dart';
+import 'notification_service.dart';
 
 final _logger = Logger();
 
 /// トーナメント管理サービス
 class TournamentService {
   final FirebaseFirestore _firestore;
+  final NotificationService? _notificationService;
 
-  TournamentService([FirebaseFirestore? firestore]) : _firestore = firestore ?? FirebaseFirestore.instance;
+  TournamentService([FirebaseFirestore? firestore, NotificationService? notificationService])
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _notificationService = notificationService;
+
+  /// Notifies both real players (skips byes - there's no opponent to tell
+  /// them about) of each newly-created match. Called after a round's
+  /// matches are durably written (after a batch/transaction commits), so
+  /// this never fires for a write that ends up rolled back. Best-effort,
+  /// same as every other cross-user notification in this app - a failure
+  /// here never blocks tournament progression itself.
+  Future<void> _notifyNewMatches(List<TournamentMatch> matches) async {
+    final service = _notificationService;
+    if (service == null) return;
+
+    for (final match in matches) {
+      final player1Uid = match.player1Uid;
+      final player2Uid = match.player2Uid;
+      if (player1Uid == null || player2Uid == null) continue;
+
+      try {
+        await service.sendNotification(
+          uid: player1Uid,
+          title: '次の対戦相手が決まりました',
+          body: '${match.player2DisplayName ?? "対戦相手"}さんと対局します',
+          type: 'tournament_match',
+          data: {'tournamentId': match.tournamentId, 'matchId': match.id},
+        );
+        await service.sendNotification(
+          uid: player2Uid,
+          title: '次の対戦相手が決まりました',
+          body: '${match.player1DisplayName ?? "対戦相手"}さんと対局します',
+          type: 'tournament_match',
+          data: {'tournamentId': match.tournamentId, 'matchId': match.id},
+        );
+      } catch (e) {
+        _logger.w('Failed to send tournament_match notification for ${match.id} (non-fatal): $e');
+      }
+    }
+  }
 
   static const String tournamentsCollection = 'tournaments';
   static const String participantsCollection = 'participants';
@@ -144,12 +184,13 @@ class TournamentService {
       };
 
       if (tournament.format == 'round_robin') {
-        await _generateRoundRobinSchedule(
+        final matches = await _generateRoundRobinSchedule(
           tournamentId: tournamentId,
           playerUids: List<String>.from(tournament.participantUids),
           displayNames: displayNames,
         );
         await tournamentRef.update({'status': 'active'});
+        await _notifyNewMatches(matches);
         _logger.i('✅ Tournament started with full round-robin schedule: $tournamentId');
         return;
       }
@@ -158,7 +199,7 @@ class TournamentService {
         final totalRounds = _computeSwissTotalRounds(tournament.participantUids.length);
         final shuffledUids = List<String>.from(tournament.participantUids)..shuffle();
         final (:pairs, :byeUid) = _swissPairings(shuffledUids, const []);
-        await _writeSwissRoundBatch(
+        final matches = await _writeSwissRoundBatch(
           tournamentRef: tournamentRef,
           round: 1,
           pairs: pairs,
@@ -166,6 +207,7 @@ class TournamentService {
           displayNames: displayNames,
         );
         await tournamentRef.update({'status': 'active', 'totalRounds': totalRounds});
+        await _notifyNewMatches(matches);
         _logger.i('✅ Tournament started with swiss round 1 ($totalRounds rounds total): $tournamentId');
         return;
       }
@@ -174,7 +216,7 @@ class TournamentService {
         throw Exception('${tournament.format} is not a supported tournament format');
       }
 
-      await _generateRound(
+      final matches = await _generateRound(
         tournamentId: tournamentId,
         round: 1,
         playerUids: List<String>.from(tournament.participantUids),
@@ -182,6 +224,7 @@ class TournamentService {
       );
 
       await tournamentRef.update({'status': 'active'});
+      await _notifyNewMatches(matches);
       // 稀なケース（全員不戦勝で1ラウンド目が即完了）でも進行が止まらないようにする。
       await _advanceRoundIfComplete(tournamentId: tournamentId, round: 1);
       _logger.i('✅ Tournament started with round 1 bracket: $tournamentId');
@@ -200,7 +243,7 @@ class TournamentService {
   /// Firestoreのバッチ上限は500操作なので、TournamentCreateScreenの
   /// 最大参加人数(32人→496試合)までは安全だが、上限を引き上げる場合は
   /// バッチ分割が必要になる。
-  Future<void> _generateRoundRobinSchedule({
+  Future<List<TournamentMatch>> _generateRoundRobinSchedule({
     required String tournamentId,
     required List<String> playerUids,
     required Map<String, String> displayNames,
@@ -209,6 +252,7 @@ class TournamentService {
     final schedule = _roundRobinPairings(playerUids);
     final batch = _firestore.batch();
     final now = DateTime.now();
+    final matches = <TournamentMatch>[];
 
     for (var i = 0; i < schedule.length; i++) {
       final round = i + 1;
@@ -226,11 +270,13 @@ class TournamentService {
           scheduledAt: now,
         );
         batch.set(matchRef, match.toFirestore());
+        matches.add(match);
       }
     }
 
     await batch.commit();
     _logger.i('Generated round-robin schedule (${schedule.length} rounds) for $tournamentId');
+    return matches;
   }
 
   /// 総当たり戦の対戦カードをサークル法で組む。先頭を固定し、残りを1つずつ
@@ -313,7 +359,7 @@ class TournamentService {
   /// する（トーナメント開始時、start時点では他の呼び出しと競合しないため
   /// トランザクション不要）。不戦勝は即座に完了・勝者確定にする（single_
   /// eliminationの不戦勝と同じ扱い）。
-  Future<void> _writeSwissRoundBatch({
+  Future<List<TournamentMatch>> _writeSwissRoundBatch({
     required DocumentReference<Map<String, dynamic>> tournamentRef,
     required int round,
     required List<(String, String)> pairs,
@@ -322,23 +368,23 @@ class TournamentService {
   }) async {
     final batch = _firestore.batch();
     final now = DateTime.now();
+    final matches = <TournamentMatch>[];
 
     for (final pair in pairs) {
       final matchRef = tournamentRef.collection(matchesCollection).doc();
-      batch.set(
-        matchRef,
-        TournamentMatch(
-          id: matchRef.id,
-          tournamentId: tournamentRef.id,
-          player1Uid: pair.$1,
-          player1DisplayName: displayNames[pair.$1],
-          player2Uid: pair.$2,
-          player2DisplayName: displayNames[pair.$2],
-          round: round,
-          status: 'pending',
-          scheduledAt: now,
-        ).toFirestore(),
+      final match = TournamentMatch(
+        id: matchRef.id,
+        tournamentId: tournamentRef.id,
+        player1Uid: pair.$1,
+        player1DisplayName: displayNames[pair.$1],
+        player2Uid: pair.$2,
+        player2DisplayName: displayNames[pair.$2],
+        round: round,
+        status: 'pending',
+        scheduledAt: now,
       );
+      batch.set(matchRef, match.toFirestore());
+      matches.add(match);
     }
 
     if (byeUid != null) {
@@ -361,11 +407,12 @@ class TournamentService {
 
     await batch.commit();
     _logger.i('Generated swiss round $round (${pairs.length} matches${byeUid != null ? " + 1 bye" : ""})');
+    return matches;
   }
 
   /// _writeSwissRoundBatchのトランザクション版。_advanceSwissRoundIfComplete
   /// から、次ラウンドの二重生成を防ぐガードと同じトランザクション内で呼ぶ。
-  void _writeSwissRoundTransaction({
+  List<TournamentMatch> _writeSwissRoundTransaction({
     required Transaction transaction,
     required DocumentReference<Map<String, dynamic>> tournamentRef,
     required int round,
@@ -374,23 +421,23 @@ class TournamentService {
     required Map<String, String> displayNames,
   }) {
     final now = DateTime.now();
+    final matches = <TournamentMatch>[];
 
     for (final pair in pairs) {
       final matchRef = tournamentRef.collection(matchesCollection).doc();
-      transaction.set(
-        matchRef,
-        TournamentMatch(
-          id: matchRef.id,
-          tournamentId: tournamentRef.id,
-          player1Uid: pair.$1,
-          player1DisplayName: displayNames[pair.$1],
-          player2Uid: pair.$2,
-          player2DisplayName: displayNames[pair.$2],
-          round: round,
-          status: 'pending',
-          scheduledAt: now,
-        ).toFirestore(),
+      final match = TournamentMatch(
+        id: matchRef.id,
+        tournamentId: tournamentRef.id,
+        player1Uid: pair.$1,
+        player1DisplayName: displayNames[pair.$1],
+        player2Uid: pair.$2,
+        player2DisplayName: displayNames[pair.$2],
+        round: round,
+        status: 'pending',
+        scheduledAt: now,
       );
+      transaction.set(matchRef, match.toFirestore());
+      matches.add(match);
     }
 
     if (byeUid != null) {
@@ -410,6 +457,7 @@ class TournamentService {
         ).toFirestore(),
       );
     }
+    return matches;
   }
 
   /// 指定ラウンドの全試合（不戦勝も含む）が完了していれば、swissの次ラウンド
@@ -431,7 +479,7 @@ class TournamentService {
     final matchRefs = allMatchesSnapshot.docs.map((doc) => doc.reference).toList();
     if (matchRefs.isEmpty) return;
 
-    await _firestore.runTransaction<void>((transaction) async {
+    final newMatches = await _firestore.runTransaction<List<TournamentMatch>>((transaction) async {
       final allMatches = <TournamentMatch>[];
       for (final ref in matchRefs) {
         allMatches.add(TournamentMatch.fromFirestore(await transaction.get(ref)));
@@ -439,14 +487,14 @@ class TournamentService {
 
       final roundMatches = allMatches.where((m) => m.round == round).toList();
       if (roundMatches.isEmpty || roundMatches.any((m) => !m.isCompleted)) {
-        return; // まだこのラウンドの全試合が終わっていない
+        return const []; // まだこのラウンドの全試合が終わっていない
       }
 
       final tournamentDoc = await transaction.get(tournamentRef);
       final tournament = Tournament.fromFirestore(tournamentDoc);
       if (tournament.lastAdvancedRound >= round) {
         _logger.i('Swiss round $round already advanced for $tournamentId, skipping');
-        return; // 既に別の呼び出しがこのラウンドを処理済み
+        return const []; // 既に別の呼び出しがこのラウンドを処理済み
       }
 
       if (round >= tournament.totalRounds) {
@@ -457,7 +505,7 @@ class TournamentService {
           'lastAdvancedRound': round,
         });
         _logger.i('🏆 Swiss tournament completed: $tournamentId winner=$championUid');
-        return;
+        return const [];
       }
 
       final displayNames = <String, String>{
@@ -469,7 +517,7 @@ class TournamentService {
       final allPlayerUids = displayNames.keys.toList();
       final (:pairs, :byeUid) = _swissPairings(allPlayerUids, allMatches);
 
-      _writeSwissRoundTransaction(
+      final written = _writeSwissRoundTransaction(
         transaction: transaction,
         tournamentRef: tournamentRef,
         round: round + 1,
@@ -479,12 +527,15 @@ class TournamentService {
       );
       transaction.update(tournamentRef, {'lastAdvancedRound': round});
       _logger.i('Advanced $tournamentId to swiss round ${round + 1}');
+      return written;
     });
+
+    await _notifyNewMatches(newMatches);
   }
 
   /// プレイヤーのリストからペアを作り、指定ラウンドの試合を生成する。
   /// 奇数なら最後の1人を不戦勝として即座に勝者確定させる。
-  Future<void> _generateRound({
+  Future<List<TournamentMatch>> _generateRound({
     required String tournamentId,
     required int round,
     required List<String> playerUids,
@@ -493,6 +544,7 @@ class TournamentService {
     final tournamentRef = _firestore.collection(tournamentsCollection).doc(tournamentId);
     final batch = _firestore.batch();
     final now = DateTime.now();
+    final matches = <TournamentMatch>[];
 
     for (var i = 0; i < playerUids.length; i += 2) {
       final player1Uid = playerUids[i];
@@ -515,10 +567,12 @@ class TournamentService {
         completedAt: hasOpponent ? null : now,
       );
       batch.set(matchRef, match.toFirestore());
+      matches.add(match);
     }
 
     await batch.commit();
     _logger.i('Generated round $round with ${(playerUids.length / 2).ceil()} matches for $tournamentId');
+    return matches;
   }
 
   /// 対局が紐づく試合に勝者を紐付ける。実際のPvpGame作成はプロバイダー層が行う。
@@ -733,7 +787,7 @@ class TournamentService {
     final matchRefs = roundMatchesSnapshot.docs.map((doc) => doc.reference).toList();
     if (matchRefs.isEmpty) return;
 
-    await _firestore.runTransaction<void>((transaction) async {
+    final newMatches = await _firestore.runTransaction<List<TournamentMatch>>((transaction) async {
       final roundMatches = <TournamentMatch>[];
       for (final ref in matchRefs) {
         final doc = await transaction.get(ref);
@@ -741,14 +795,14 @@ class TournamentService {
       }
 
       if (roundMatches.any((m) => !m.isCompleted)) {
-        return; // まだ全試合が終わっていない
+        return const []; // まだ全試合が終わっていない
       }
 
       final tournamentDoc = await transaction.get(tournamentRef);
       final tournament = Tournament.fromFirestore(tournamentDoc);
       if (tournament.lastAdvancedRound >= round) {
         _logger.i('Round $round already advanced for $tournamentId, skipping');
-        return; // 既に別の呼び出しがこのラウンドを処理済み
+        return const []; // 既に別の呼び出しがこのラウンドを処理済み
       }
 
       final winners = roundMatches.map((m) => m.winnerUid).whereType<String>().toList();
@@ -761,7 +815,7 @@ class TournamentService {
           'lastAdvancedRound': round,
         });
         _logger.i('🏆 Tournament completed: $tournamentId winner=$championUid');
-        return;
+        return const [];
       }
 
       final displayNames = <String, String>{
@@ -771,7 +825,7 @@ class TournamentService {
         },
       };
 
-      _writeRound(
+      final written = _writeRound(
         transaction: transaction,
         tournamentRef: tournamentRef,
         round: round + 1,
@@ -780,12 +834,15 @@ class TournamentService {
       );
       transaction.update(tournamentRef, {'lastAdvancedRound': round});
       _logger.i('Advanced $tournamentId to round ${round + 1} with ${winners.length} players');
+      return written;
     });
+
+    await _notifyNewMatches(newMatches);
   }
 
   /// _generateRoundのトランザクション版。単一のFirestoreトランザクション
   /// 内から呼び出し、次ラウンドの試合をアトミックに書き込む。
-  void _writeRound({
+  List<TournamentMatch> _writeRound({
     required Transaction transaction,
     required DocumentReference<Map<String, dynamic>> tournamentRef,
     required int round,
@@ -793,6 +850,7 @@ class TournamentService {
     required Map<String, String> displayNames,
   }) {
     final now = DateTime.now();
+    final matches = <TournamentMatch>[];
     for (var i = 0; i < playerUids.length; i += 2) {
       final player1Uid = playerUids[i];
       final hasOpponent = i + 1 < playerUids.length;
@@ -813,7 +871,9 @@ class TournamentService {
         completedAt: hasOpponent ? null : now,
       );
       transaction.set(matchRef, match.toFirestore());
+      matches.add(match);
     }
+    return matches;
   }
 
   /// 大会を中止する（主催者のみ）。開催予定/開催中のいずれからでも中止可能。

@@ -24,18 +24,19 @@ export 'social_features_provider.dart';
 export 'game_modes_analytics_provider.dart';
 export 'leaderboard_provider.dart';
 // friend_provider.dart's friendServiceProvider/addFriendProvider/
-// acceptFriendRequestProvider/blockFriendProvider/pendingFriendRequestsProvider
-// are unwired stubs (see friend_provider.dart) that collide with
-// social_features_provider.dart's working versions of the same names,
-// which is what friends_screen.dart actually calls; hide the stubs and
-// keep userFriendsProvider/rejectFriendRequestProvider (unique to this file).
+// acceptFriendRequestProvider/blockFriendProvider/pendingFriendRequestsProvider/
+// rejectFriendRequestProvider are unwired stubs (see friend_provider.dart)
+// that collide with social_features_provider.dart's working versions of the
+// same names, which is what friends_screen.dart actually calls; hide the
+// stubs and keep userFriendsProvider (unique to this file).
 export 'friend_provider.dart'
     hide
         friendServiceProvider,
         addFriendProvider,
         acceptFriendRequestProvider,
         blockFriendProvider,
-        pendingFriendRequestsProvider;
+        pendingFriendRequestsProvider,
+        rejectFriendRequestProvider;
 export 'tournament_provider.dart';
 export 'notification_provider.dart';
 export 'spectator_provider.dart';

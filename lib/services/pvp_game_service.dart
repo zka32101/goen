@@ -331,4 +331,60 @@ class PvpGameService {
       rethrow;
     }
   }
+
+  /// 相手が長期間応答していない（`updatedAt`からこの期間が経過している）
+  /// 対局を、放置勝ちとして終局させる。「NO TIMERS」方針（対局中に時間
+  /// 制限を課さない）とは別物 — 何日も現実に動きが無い対局を永久に
+  /// 「進行中」で残さないための救済措置であり、1手ごとの時間制限ではない。
+  static const Duration abandonmentThreshold = Duration(hours: 48);
+
+  /// トランザクション内で読み取り・判定・書き込みを行い、resign()/pass()
+  /// と同時に呼ばれても後勝ちで結果が上書きされないようにする。
+  Future<void> claimAbandonmentForfeit({
+    required String gameId,
+    required String claimantUid,
+  }) async {
+    try {
+      await _firestore.runTransaction<void>((transaction) async {
+        final docRef = _games.doc(gameId);
+        final snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return;
+
+        final game = PvpGame.fromFirestore(snapshot);
+        if (!game.isActive) {
+          _logger.w('PvP game already finished, ignoring forfeit claim: $gameId');
+          return;
+        }
+
+        final claimantColor = game.playerColorOf(claimantUid);
+        if (claimantColor == 0) {
+          _logger.w('Non-participant tried to claim forfeit: $gameId by=$claimantUid');
+          return;
+        }
+        if (game.isTurnOf(claimantUid)) {
+          // It's the claimant's own turn — they're the one who hasn't
+          // moved, not the opponent, so they have nothing to claim.
+          _logger.w('Claimant is the one whose turn it is, ignoring: $gameId by=$claimantUid');
+          return;
+        }
+
+        final lastActivity = game.updatedAt ?? game.createdAt;
+        if (DateTime.now().difference(lastActivity) < abandonmentThreshold) {
+          _logger.w('Game not stale enough yet for forfeit claim: $gameId');
+          return;
+        }
+
+        transaction.update(docRef, {
+          'status': 'finished',
+          'winnerUid': claimantUid,
+          'result': 'forfeit',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        _logger.i('PvP game forfeited by abandonment: game=$gameId winner=$claimantUid');
+      });
+    } catch (e) {
+      _logger.e('Error claiming abandonment forfeit: $e');
+      rethrow;
+    }
+  }
 }

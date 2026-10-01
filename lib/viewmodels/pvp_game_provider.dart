@@ -8,6 +8,7 @@ import '../models/pvp_game.dart';
 import '../services/pvp_game_service.dart';
 import 'friend_activity_provider.dart';
 import 'leaderboard_provider.dart';
+import 'notification_provider.dart';
 import 'spectator_provider.dart';
 import 'tournament_provider.dart';
 
@@ -294,6 +295,69 @@ final resignPvpGameProvider = Provider((ref) {
       await _onGameFinished(ref, service, gameId);
     } catch (e) {
       _logger.e('Error resigning PvP game: $e');
+      rethrow;
+    }
+  };
+});
+
+/// 同じ相手ともう一局。前回の対局から色を入れ替えて（白番だった方が今度は
+/// 黒番）createPvpGameProviderで新規対局を作成する — 通常のマッチング経由
+/// の対局と同じ経路を通すことで、観戦セッション作成等の副作用も同様に
+/// 発生する。相手には対局成立時と同じpvp_challenge通知で知らせる
+/// （matching_screen.dart._startGameと同じ役割）。通知文言は他の
+/// best-effort通知（friend_activity_service.dart等）と同様、
+/// ロケール非対応のハードコード文言。
+final rematchPvpGameProvider = Provider((ref) {
+  return (PvpGame previousGame, String requestingUid) async {
+    try {
+      final newGame = await ref.read(createPvpGameProvider)(
+        previousGame.boardSize,
+        previousGame.whiteUid,
+        previousGame.whiteDisplayName,
+        previousGame.blackUid,
+        previousGame.blackDisplayName,
+      );
+
+      final opponentUid = requestingUid == previousGame.blackUid
+          ? previousGame.whiteUid
+          : previousGame.blackUid;
+      final requesterDisplayName = requestingUid == previousGame.blackUid
+          ? previousGame.blackDisplayName
+          : previousGame.whiteDisplayName;
+
+      try {
+        await ref.read(sendNotificationProvider)(
+          uid: opponentUid,
+          title: '$requesterDisplayNameさんが再戦を希望しています',
+          body: 'タップして対局を始めましょう',
+          type: 'pvp_challenge',
+          data: {'gameId': newGame.id},
+        );
+      } catch (e) {
+        _logger.w('Failed to notify opponent of rematch (non-fatal): $e');
+      }
+
+      _logger.i('Rematch created: ${newGame.id} (from ${previousGame.id})');
+      return newGame;
+    } catch (e) {
+      _logger.e('Error creating rematch: $e');
+      rethrow;
+    }
+  };
+});
+
+/// 相手が長期間応答していない対局を放置勝ちとして終局させる
+/// （PvpGameService.claimAbandonmentForfeit参照）。resignと同じく
+/// Eloレーティング・トーナメント結果報告を_onGameFinishedで反映する。
+final claimAbandonmentForfeitProvider = Provider((ref) {
+  return (String gameId, String claimantUid) async {
+    final service = ref.watch(pvpGameServiceProvider);
+    try {
+      await service.claimAbandonmentForfeit(gameId: gameId, claimantUid: claimantUid);
+      _logger.i('Claimed abandonment forfeit: $gameId by=$claimantUid');
+      await _onGameFinished(ref, service, gameId);
+    } catch (e) {
+      _logger.e('Error claiming abandonment forfeit: $e');
       rethrow;
     }
   };

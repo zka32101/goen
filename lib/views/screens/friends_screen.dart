@@ -6,6 +6,7 @@ import '../../viewmodels/index.dart';
 import '../widgets/index.dart';
 import 'friend_profile_screen.dart';
 import 'chat_screen.dart';
+import 'pvp_game_screen.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/l10n/app_localizations.dart';
 
@@ -13,7 +14,10 @@ final _logger = Logger();
 
 /// Friends management screen
 class FriendsScreen extends ConsumerStatefulWidget {
-  const FriendsScreen({Key? key}) : super(key: key);
+  /// Which tab to open on ('対局の招待' notification taps land on tab 2).
+  final int initialTabIndex;
+
+  const FriendsScreen({Key? key, this.initialTabIndex = 0}) : super(key: key);
 
   @override
   ConsumerState<FriendsScreen> createState() => _FriendsScreenState();
@@ -27,7 +31,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
   }
 
   @override
@@ -51,9 +59,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
           tabs: [
             Tab(text: l10n.friendsTitle),
             Tab(text: l10n.pendingTab),
+            Tab(text: l10n.gameInvitationsTab),
             Tab(text: l10n.blockedTab),
           ],
         ),
@@ -65,6 +75,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
               children: [
                 _buildFriendsList(l10n, currentUser.uid),
                 _buildPendingRequests(l10n, currentUser.uid),
+                _buildGameInvitations(l10n, currentUser.uid),
                 _buildBlockedUsers(l10n, currentUser.uid),
               ],
             ),
@@ -143,6 +154,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     String uid,
     Friend request,
   ) {
+    // requestedBy is null for relationship docs created before this field
+    // existed - treated as incoming (the pre-existing behavior: both
+    // accept and decline shown) since there's no way to know direction.
+    final isIncoming = request.requestedBy != uid;
+
     return Card(
       color: AppColors.kin.withOpacity(0.3),
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -168,15 +184,110 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
                     ),
                   ),
                   Text(
-                    l10n.requestPendingLabel,
+                    isIncoming ? l10n.requestPendingLabel : l10n.requestSentLabel,
+                    style: TextStyle(color: AppColors.kin, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            if (isIncoming) ...[
+              ElevatedButton.icon(
+                onPressed: () =>
+                    _acceptFriendRequest(context, l10n, uid, request.uid),
+                icon: const Icon(Icons.check),
+                label: Text(l10n.acceptButton),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.wakatake,
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    _rejectFriendRequest(context, l10n, uid, request.uid),
+                icon: const Icon(Icons.close),
+                label: Text(l10n.declineButton),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.shuLight,
+                ),
+              ),
+            ] else
+              OutlinedButton.icon(
+                onPressed: () =>
+                    _rejectFriendRequest(context, l10n, uid, request.uid),
+                icon: const Icon(Icons.close),
+                label: Text(l10n.cancelButton),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.washiDim,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGameInvitations(AppLocalizations l10n, String uid) {
+    final invitationsAsync = ref.watch(incomingInvitationsStreamProvider(uid));
+
+    return invitationsAsync.when(
+      data: (invitations) {
+        if (invitations.isEmpty) {
+          return Center(
+            child: Text(l10n.noGameInvitationsMessage,
+                style: TextStyle(color: AppColors.washiDim)),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: invitations.length,
+          itemBuilder: (context, index) {
+            return _buildGameInvitationTile(context, l10n, invitations[index]);
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text(l10n.errorPrefix('$err'))),
+    );
+  }
+
+  Widget _buildGameInvitationTile(
+    BuildContext context,
+    AppLocalizations l10n,
+    GameInvitation invitation,
+  ) {
+    return Card(
+      color: AppColors.kin.withOpacity(0.3),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: AppColors.kin,
+              radius: 24,
+              child: const Icon(Icons.sports_esports, color: AppColors.washi),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    invitation.fromDisplayName,
+                    style: const TextStyle(
+                      color: AppColors.washi,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    l10n.boardSizeInviteLabel(invitation.boardSize),
                     style: TextStyle(color: AppColors.kin, fontSize: 12),
                   ),
                 ],
               ),
             ),
             ElevatedButton.icon(
-              onPressed: () =>
-                  _acceptFriendRequest(context, l10n, uid, request.uid),
+              onPressed: () => _acceptGameInvitation(context, l10n, invitation),
               icon: const Icon(Icons.check),
               label: Text(l10n.acceptButton),
               style: ElevatedButton.styleFrom(
@@ -185,8 +296,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
             ),
             const SizedBox(width: 8),
             OutlinedButton.icon(
-              onPressed: () =>
-                  _blockFriend(context, l10n, uid, request.uid),
+              onPressed: () => _declineGameInvitation(context, invitation),
               icon: const Icon(Icons.close),
               label: Text(l10n.declineButton),
               style: OutlinedButton.styleFrom(
@@ -197,6 +307,46 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _acceptGameInvitation(
+    BuildContext context,
+    AppLocalizations l10n,
+    GameInvitation invitation,
+  ) async {
+    try {
+      final game = await ref.read(acceptGameInvitationProvider)(invitation);
+      if (!context.mounted) return;
+
+      if (game == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.invitationNoLongerAvailableMessage)),
+        );
+        return;
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PvpGameScreen(gameId: game.id, uid: invitation.toUid),
+        ),
+      );
+    } catch (e) {
+      _logger.e('Error accepting game invitation: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.invitationAcceptFailedMessage)),
+        );
+      }
+    }
+  }
+
+  Future<void> _declineGameInvitation(BuildContext context, GameInvitation invitation) async {
+    try {
+      await ref.read(declineGameInvitationProvider)(invitation.id);
+    } catch (e) {
+      _logger.e('Error declining game invitation: $e');
+    }
   }
 
   Widget _buildBlockedUsers(AppLocalizations l10n, String uid) {
@@ -398,8 +548,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     final currentUser = ref.read(currentUserProvider);
     if (currentUser == null) return;
 
+    final fromDisplayName = currentUser.displayName ?? l10n.homeDefaultPlayerName;
     final success = await ref.read(
-      addFriendProvider((currentUser.uid, friendUid, null)).future,
+      addFriendProvider((currentUser.uid, friendUid, fromDisplayName, null)).future,
     );
 
     if (success) {
@@ -431,13 +582,33 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
 
     if (success) {
       ref.invalidate(blockedFriendsProvider(uid));
-      // Also refreshes the "招待待ち" tab when 拒否 (decline) calls this -
-      // the pending request just got blocked and should disappear from
-      // that list without waiting for a manual refresh.
       ref.invalidate(pendingFriendRequestsProvider(uid));
     }
     if (!mounted) return;
     _showMessage(context, success ? l10n.blockedMessage : l10n.genericErrorMessage);
+  }
+
+  /// Declines an incoming request or cancels one the current user sent -
+  /// both are the same "delete the pending request" operation, just
+  /// triggered from different sides (see FriendService.rejectFriendRequest).
+  void _rejectFriendRequest(
+    BuildContext context,
+    AppLocalizations l10n,
+    String uid,
+    String friendUid,
+  ) async {
+    final success = await ref.read(
+      rejectFriendRequestProvider((uid, friendUid)).future,
+    );
+
+    if (success) {
+      ref.invalidate(pendingFriendRequestsProvider(uid));
+    }
+    if (!mounted) return;
+    _showMessage(
+      context,
+      success ? l10n.friendRequestRemovedMessage : l10n.genericErrorMessage,
+    );
   }
 
   void _unblockUser(BuildContext context, AppLocalizations l10n, String uid, String friendUid) async {
@@ -459,18 +630,82 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     String toUid,
     String displayName,
   ) {
+    int selectedBoardSize = 19;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.sumiSurface,
-        title: Text(l10n.inviteToGameDialogTitle(displayName)),
-        content: Text(l10n.selectGameModeMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancelButton),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setState) => AlertDialog(
+          backgroundColor: AppColors.sumiSurface,
+          title: Text(l10n.inviteToGameDialogTitle(displayName)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.selectGameModeMessage, style: TextStyle(color: AppColors.washiDim)),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                children: [9, 13, 19].map((size) {
+                  return ChoiceChip(
+                    label: Text('$size × $size'),
+                    selected: selectedBoardSize == size,
+                    onSelected: (_) => setState(() => selectedBoardSize = size),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l10n.cancelButton),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _sendGameInvitation(
+                  context,
+                  l10n,
+                  fromUid,
+                  toUid,
+                  displayName,
+                  selectedBoardSize,
+                );
+              },
+              child: Text(l10n.sendInvitationButton),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendGameInvitation(
+    BuildContext context,
+    AppLocalizations l10n,
+    String fromUid,
+    String toUid,
+    String toDisplayName,
+    int boardSize,
+  ) async {
+    final currentUser = ref.read(currentUserProvider);
+    final fromDisplayName = currentUser?.displayName ?? l10n.homeDefaultPlayerName;
+
+    final success = await ref.read(sendGameInvitationProvider)(
+      fromUid: fromUid,
+      fromDisplayName: fromDisplayName,
+      toUid: toUid,
+      toDisplayName: toDisplayName,
+      boardSize: boardSize,
+    );
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? l10n.invitationSentMessage : l10n.genericErrorMessage,
+        ),
       ),
     );
   }

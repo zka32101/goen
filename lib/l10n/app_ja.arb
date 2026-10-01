@@ -519,6 +519,7 @@
   "blockedTab": "ブロック中",
   "noPendingRequestsMessage": "待機中のリクエストはありません",
   "requestPendingLabel": "リクエスト待機中",
+  "requestSentLabel": "送信済み",
   "acceptButton": "承認",
   "declineButton": "拒否",
   "noBlockedUsersMessage": "ブロック中のユーザーはいません",
@@ -532,6 +533,7 @@
   "becameFriendsMessage": "フレンドになりました",
   "blockedMessage": "ブロックしました",
   "unblockedMessage": "ブロックを解除しました",
+  "friendRequestRemovedMessage": "リクエストを削除しました",
   "inviteToGameDialogTitle": "{name}を招待",
   "@inviteToGameDialogTitle": { "placeholders": { "name": { "type": "String" } } },
   "selectGameModeMessage": "ゲームモードを選択してください",
@@ -1056,5 +1058,41 @@
   },
   "aiLevelStartButton": "この強さで対局する",
   "analysisLockedMessage": "形勢判断の詳細（目差・勝率）はプレミアムで利用できます",
-  "analysisLockedAction": "プレミアムを見る"
+  "analysisLockedAction": "プレミアムを見る",
+  "opponentInactiveMessage": "相手が長時間応答していません",
+  "claimForfeitButton": "放棄による勝利を申請する",
+  "claimForfeitConfirmTitle": "放棄による勝利を申請しますか？",
+  "claimForfeitConfirmContent": "相手が48時間以上このゲームで何も操作していません。申請すると、この対局はあなたの勝利として終了します。",
+  "forfeitResultLabel": "相手の対局放棄による決着",
+
+  "rematchButton": "再戦する",
+  "rematchFailedMessage": "再戦の対局を開始できませんでした",
+
+  "gameInvitationsTab": "対局の招待",
+  "noGameInvitationsMessage": "対局の招待はありません",
+  "boardSizeInviteLabel": "{boardSize}路盤での対局に招待されました",
+  "@boardSizeInviteLabel": {
+    "placeholders": {
+      "boardSize": { "type": "int" }
+    }
+  },
+  "invitationNoLongerAvailableMessage": "この招待はもう利用できません",
+  "invitationAcceptFailedMessage": "招待の受諾に失敗しました",
+  "sendInvitationButton": "招待を送る",
+  "invitationSentMessage": "招待を送りました",
+
+  "youtubeUploadButton": "YouTubeにアップロード",
+  "youtubeUploadTitle": "碁縁の対局 - {boardSize}路盤",
+  "@youtubeUploadTitle": {
+    "placeholders": {
+      "boardSize": { "type": "int" }
+    }
+  },
+  "youtubeUploadDescription": "碁縁（GoEn）で対局した棋譜です。{movesCount}手で終局。",
+  "@youtubeUploadDescription": {
+    "placeholders": {
+      "movesCount": { "type": "int" }
+    }
+  },
+  "youtubeUploadStartedMessage": "アップロードを開始しました"
 }

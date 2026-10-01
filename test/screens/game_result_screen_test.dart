@@ -1,7 +1,9 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/models/index.dart';
+import 'package:goen/services/youtube_share_service.dart';
 import 'package:goen/views/screens/game_result_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
@@ -381,6 +383,127 @@ void main() {
 
       // The provider is reset so the same achievement isn't shown twice.
       expect(container.read(newlyUnlockedAchievementsProvider), isEmpty);
+    });
+
+    testWidgets('shows the YouTube upload button', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const GameResultScreen(
+            result: 'win',
+            blackScore: 45.5,
+            whiteScore: 38.0,
+          ),
+          container: container,
+        ),
+      );
+
+      expect(find.text('YouTubeにアップロード'), findsOneWidget);
+    });
+  });
+
+  group('GameResultScreen YouTube upload', () {
+    late FakeFirebaseFirestore firestore;
+
+    setUp(() {
+      firestore = FakeFirebaseFirestore();
+    });
+
+    ProviderContainer buildContainer({String? savedGameId}) {
+      final container = TestUtils.createTestContainer(
+        currentUser: TestData.testUser,
+        boardState: TestData.emptyBoardState,
+        movesCount: 45,
+        aiLevel: 5,
+        extraOverrides: [
+          youtubeShareServiceProvider
+              .overrideWithValue(YouTubeShareService(firestore: firestore)),
+        ],
+      );
+      if (savedGameId != null) {
+        container.read(currentGameSavedIdProvider.notifier).state = savedGameId;
+      }
+      return container;
+    }
+
+    testWidgets('shows login message when tapped while logged out', (tester) async {
+      final container = TestUtils.createTestContainer(
+        currentUser: null,
+        extraOverrides: [
+          youtubeShareServiceProvider
+              .overrideWithValue(YouTubeShareService(firestore: firestore)),
+        ],
+      );
+
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const GameResultScreen(result: 'win', blackScore: 45.5, whiteScore: 38.0),
+          container: container,
+        ),
+      );
+
+      await tester.ensureVisible(find.text('YouTubeにアップロード'));
+      await tester.pump();
+      await tester.tap(find.text('YouTubeにアップロード'));
+      await tester.pump();
+
+      expect(find.text('対局を保存するにはログインが必要です'), findsOneWidget);
+    });
+
+    testWidgets('shows the honest coming-soon dialog when not YouTube-connected',
+        (tester) async {
+      final container = buildContainer(savedGameId: 'game-1');
+
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const GameResultScreen(result: 'win', blackScore: 45.5, whiteScore: 38.0),
+          container: container,
+        ),
+      );
+
+      await tester.ensureVisible(find.text('YouTubeにアップロード'));
+      await tester.pump();
+      await tester.tap(find.text('YouTubeにアップロード'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('YouTube 連携は準備中です'), findsOneWidget);
+    });
+
+    testWidgets('uploads to YouTube and shows a success message when connected',
+        (tester) async {
+      await firestore
+          .collection('users')
+          .doc(TestData.testUser.uid)
+          .collection('oauth')
+          .doc('youtube')
+          .set({'isConnected': true});
+
+      final container = buildContainer(savedGameId: 'game-1');
+
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const GameResultScreen(result: 'win', blackScore: 45.5, whiteScore: 38.0),
+          container: container,
+        ),
+      );
+
+      await tester.ensureVisible(find.text('YouTubeにアップロード'));
+      await tester.pump();
+      await tester.tap(find.text('YouTubeにアップロード'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('アップロードを開始しました'), findsOneWidget);
+
+      final uploads = await firestore
+          .collection('games')
+          .doc('game-1')
+          .collection('uploads')
+          .get();
+      expect(uploads.docs, hasLength(1));
+      expect(uploads.docs.single.data()['userId'], TestData.testUser.uid);
     });
   });
 }
