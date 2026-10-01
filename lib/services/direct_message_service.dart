@@ -30,6 +30,20 @@ class DirectMessageService {
     final trimmed = content.trim();
     if (trimmed.isEmpty) return;
 
+    // FriendService.blockFriend mirrors a block onto both sides' own
+    // `friends` entries, so checking the sender's own (readable) entry
+    // catches a block placed by either party.
+    final relationship = await _firestore
+        .collection('users')
+        .doc(fromUid)
+        .collection('friends')
+        .doc(toUid)
+        .get();
+    if (relationship.data()?['status'] == 'blocked') {
+      _logger.w('sendMessage refused: $fromUid/$toUid have a blocked relationship');
+      return;
+    }
+
     final threadId = threadIdFor(fromUid, toUid);
     final threadRef = _threads.doc(threadId);
     final messageRef = threadRef.collection('messages').doc();

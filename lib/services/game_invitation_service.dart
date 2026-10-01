@@ -27,6 +27,20 @@ class GameInvitationService {
     Duration expirationTime = const Duration(days: 7),
   }) async {
     try {
+      // FriendService.blockFriend mirrors a block onto both sides' own
+      // `friends` entries, so checking the sender's own (readable) entry
+      // catches a block placed by either party.
+      final relationship = await _firestore
+          .collection('users')
+          .doc(fromUid)
+          .collection('friends')
+          .doc(toUid)
+          .get();
+      if (relationship.data()?['status'] == 'blocked') {
+        _logger.w('sendInvitation refused: $fromUid/$toUid have a blocked relationship');
+        return false;
+      }
+
       _logger.i('Sending game invitation from $fromUid to $toUid');
 
       final now = DateTime.now();

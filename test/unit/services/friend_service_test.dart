@@ -116,20 +116,6 @@ void main() {
       expect(await service.getFriendStatus(currentUid: 'me', friendUid: 'friend'), 'pending');
     });
 
-    test('unblockFriend removes only the caller\'s own block, not the other side', () async {
-      await service.addFriend(currentUid: 'me', friendUid: 'friend');
-      await service.acceptFriendRequest(currentUid: 'me', friendUid: 'friend');
-      await service.blockFriend(currentUid: 'me', friendUid: 'friend');
-      expect(await service.getFriendStatus(currentUid: 'friend', friendUid: 'me'), 'accepted');
-
-      final success = await service.unblockFriend(currentUid: 'me', friendUid: 'friend');
-
-      expect(success, true);
-      expect(await service.getFriendStatus(currentUid: 'me', friendUid: 'friend'), isNull);
-      // The other side was never touched by block or unblock.
-      expect(await service.getFriendStatus(currentUid: 'friend', friendUid: 'me'), 'accepted');
-    });
-
     test('unblockFriend on a block with no prior relationship just clears it', () async {
       await service.blockFriend(currentUid: 'me', friendUid: 'stranger');
 
@@ -137,6 +123,53 @@ void main() {
 
       expect(success, true);
       expect(await service.getFriendStatus(currentUid: 'me', friendUid: 'stranger'), isNull);
+    });
+
+    test('blockFriend mirrors the block onto the target\'s own entry too', () async {
+      await service.addFriend(currentUid: 'me', friendUid: 'friend');
+      await service.acceptFriendRequest(currentUid: 'me', friendUid: 'friend');
+
+      await service.blockFriend(currentUid: 'me', friendUid: 'friend');
+
+      // Both sides now read 'blocked' - the target no longer sees the
+      // blocker as an accepted friend, and can detect the block from
+      // their own (readable) side.
+      expect(await service.getFriendStatus(currentUid: 'me', friendUid: 'friend'), 'blocked');
+      expect(await service.getFriendStatus(currentUid: 'friend', friendUid: 'me'), 'blocked');
+    });
+
+    test('blockFriend never overwrites a block the target placed independently', () async {
+      await service.addFriend(currentUid: 'me', friendUid: 'friend');
+      await service.acceptFriendRequest(currentUid: 'me', friendUid: 'friend');
+      // The target blocks first, on their own.
+      await service.blockFriend(currentUid: 'friend', friendUid: 'me');
+
+      // Now the original party also blocks.
+      await service.blockFriend(currentUid: 'me', friendUid: 'friend');
+
+      // 'me' unblocking later must not silently lift 'friend's own block.
+      await service.unblockFriend(currentUid: 'me', friendUid: 'friend');
+      expect(await service.getFriendStatus(currentUid: 'friend', friendUid: 'me'), 'blocked');
+    });
+
+    test('unblockFriend removes the mirror it placed on the target\'s side', () async {
+      await service.addFriend(currentUid: 'me', friendUid: 'friend');
+      await service.acceptFriendRequest(currentUid: 'me', friendUid: 'friend');
+      await service.blockFriend(currentUid: 'me', friendUid: 'friend');
+
+      await service.unblockFriend(currentUid: 'me', friendUid: 'friend');
+
+      expect(await service.getFriendStatus(currentUid: 'me', friendUid: 'friend'), isNull);
+      expect(await service.getFriendStatus(currentUid: 'friend', friendUid: 'me'), isNull);
+    });
+
+    test('a blocked former friend no longer appears in either side\'s accepted list', () async {
+      await service.addFriend(currentUid: 'me', friendUid: 'friend');
+      await service.acceptFriendRequest(currentUid: 'me', friendUid: 'friend');
+      await service.blockFriend(currentUid: 'me', friendUid: 'friend');
+
+      expect(await service.getFriends(uid: 'me', status: 'accepted'), isEmpty);
+      expect(await service.getFriends(uid: 'friend', status: 'accepted'), isEmpty);
     });
   });
 }

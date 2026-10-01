@@ -30,6 +30,27 @@ void main() {
       expect(incoming.first.status, 'pending');
     });
 
+    test('sendInvitation refuses when the sender or recipient has a blocked relationship',
+        () async {
+      await firestore
+          .collection('users')
+          .doc('uid1')
+          .collection('friends')
+          .doc('uid2')
+          .set({'status': 'blocked'});
+
+      final sent = await service.sendInvitation(
+        fromUid: 'uid1',
+        fromDisplayName: 'Alice',
+        toUid: 'uid2',
+        toDisplayName: 'Bob',
+        boardSize: 9,
+      );
+
+      expect(sent, isFalse);
+      expect(await service.getIncomingInvitations(uid: 'uid2'), isEmpty);
+    });
+
     test('getIncomingInvitations only returns invitations for that recipient', () async {
       await service.sendInvitation(
         fromUid: 'uid1',

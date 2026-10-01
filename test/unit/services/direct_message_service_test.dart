@@ -158,6 +158,52 @@ void main() {
       expect(threads.map((t) => t.otherUidFor('uid1')), containsAll(['uid2', 'uid3']));
     });
 
+    test('sendMessage refuses when the sender has blocked the recipient', () async {
+      await firestore
+          .collection('users')
+          .doc('uid1')
+          .collection('friends')
+          .doc('uid2')
+          .set({'status': 'blocked'});
+
+      await service.sendMessage(
+        fromUid: 'uid1',
+        fromDisplayName: 'Alice',
+        toUid: 'uid2',
+        toDisplayName: 'Bob',
+        content: 'Hello!',
+      );
+
+      final threadId = DirectMessageService.threadIdFor('uid1', 'uid2');
+      final threadDoc = await firestore.collection('message_threads').doc(threadId).get();
+      expect(threadDoc.exists, isFalse);
+    });
+
+    test('sendMessage refuses when the recipient had blocked the sender '
+        '(the block mirrors onto the sender\'s own readable entry)', () async {
+      // FriendService.blockFriend mirrors the block onto both sides' own
+      // entries, so the sender can detect a block the OTHER party placed
+      // just by reading their own (readable) relationship doc.
+      await firestore
+          .collection('users')
+          .doc('uid1')
+          .collection('friends')
+          .doc('uid2')
+          .set({'status': 'blocked', 'blockedBy': 'uid2'});
+
+      await service.sendMessage(
+        fromUid: 'uid1',
+        fromDisplayName: 'Alice',
+        toUid: 'uid2',
+        toDisplayName: 'Bob',
+        content: 'Hello!',
+      );
+
+      final threadId = DirectMessageService.threadIdFor('uid1', 'uid2');
+      final threadDoc = await firestore.collection('message_threads').doc(threadId).get();
+      expect(threadDoc.exists, isFalse);
+    });
+
     test('watchMessages streams messages in chronological order', () async {
       await service.sendMessage(
         fromUid: 'uid1',

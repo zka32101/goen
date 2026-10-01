@@ -65,14 +65,20 @@ service cloud.firestore {
         // an existing entry may only move to accepted/blocked (and only the
         // side that did NOT send the request can accept it - the sender
         // can still block, e.g. to withdraw into a blocked state), and the
-        // caller may remove their mirror (covers decline/cancel/unfriend).
+        // caller may remove their mirror (covers decline/cancel/unfriend/
+        // undoing a block mirror on unblockFriend - see FriendService).
+        // blockFriend also mirrors a block onto the OTHER side's entry (so
+        // a blocked former friend disappears from both people's friends
+        // list, not just the blocker's), stamping `blockedBy` alongside
+        // `status` so unblockFriend can tell that mirror apart from a
+        // block the other person placed independently.
         allow create: if isOwner(friendUid) &&
           request.resource.data.uid == request.auth.uid &&
           request.resource.data.status == 'pending' &&
           request.resource.data.requestedBy == request.auth.uid;
         allow update: if isOwner(friendUid) &&
           unchanged('uid') &&
-          onlyChanged(['status']) &&
+          onlyChanged(['status', 'blockedBy']) &&
           (
             request.resource.data.status == 'blocked' ||
             (request.resource.data.status == 'accepted' &&

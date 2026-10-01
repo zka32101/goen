@@ -163,12 +163,23 @@ class FriendService {
     }
   }
 
-  /// Block a user. Only the blocker's own entry is marked - blocking should
-  /// work even for someone who was never actually a friend, so this upserts
-  /// a full, valid Friend-shaped doc rather than requiring one to already
-  /// exist (a bare merge-update would leave required fields like
-  /// displayName/addedAt missing on a brand-new doc, breaking every later
-  /// read via getFriends/getBlockedUsers).
+  /// Block a user. Blocking should work even for someone who was never
+  /// actually a friend, so the caller's own entry is a full upsert rather
+  /// than requiring one to already exist (a bare merge-update would leave
+  /// required fields like displayName/addedAt missing on a brand-new doc,
+  /// breaking every later read via getFriends/getBlockedUsers).
+  ///
+  /// Also mirrors the block onto the target's own entry, if they already
+  /// have one - otherwise a blocked former friend would keep reading
+  /// 'accepted' on their own side (friendsStreamProvider/getFriends would
+  /// still list the blocker as an accepted friend to them, and the UI's
+  /// message/invite buttons - only ever shown for an accepted friend -
+  /// would stay reachable in that direction too). The mirror is skipped
+  /// if the target's entry is already 'blocked' for any reason, so this
+  /// never overwrites a block the target placed independently; `blockedBy`
+  /// records who actually caused each entry's blocked state, so
+  /// unblockFriend can tell its own mirror apart from that independent
+  /// block later.
   Future<bool> blockFriend({
     required String currentUid,
     required String friendUid,
@@ -186,7 +197,14 @@ class FriendService {
         'status': 'blocked',
         'addedAt': existing?['addedAt'] ?? DateTime.now().toIso8601String(),
         'notes': existing?['notes'] ?? '',
+        'blockedBy': currentUid,
       });
+
+      final otherRef = _friendDoc(friendUid, currentUid);
+      final otherDoc = await otherRef.get();
+      if (otherDoc.exists && otherDoc.data()?['status'] != 'blocked') {
+        await otherRef.update({'status': 'blocked', 'blockedBy': currentUid});
+      }
 
       return true;
     } catch (e) {
@@ -195,7 +213,7 @@ class FriendService {
     }
   }
 
-  /// Unblock a user - removes the block on the caller's own side only.
+  /// Unblock a user - removes the block on the caller's own side.
   ///
   /// This intentionally does NOT force both sides back to 'accepted': the
   /// block overwrote whatever relationship existed before (if any), so
@@ -205,6 +223,11 @@ class FriendService {
   /// 'pending'). Removing the block returns the caller to "no relationship"
   /// with this user - they can send a fresh friend request if they want to
   /// actually become friends again.
+  ///
+  /// Also removes the mirror blockFriend placed on the target's own entry
+  /// - but only when `blockedBy` shows THIS block caused it; if the target
+  /// independently blocked back (their own `blockedBy` is their own uid),
+  /// that block is left alone, since only they can lift it.
   Future<bool> unblockFriend({
     required String currentUid,
     required String friendUid,
@@ -213,6 +236,14 @@ class FriendService {
       _logger.i('Unblocking friend: $friendUid');
 
       await _friendDoc(currentUid, friendUid).delete();
+
+      final otherRef = _friendDoc(friendUid, currentUid);
+      final otherDoc = await otherRef.get();
+      if (otherDoc.exists &&
+          otherDoc.data()?['status'] == 'blocked' &&
+          otherDoc.data()?['blockedBy'] == currentUid) {
+        await otherRef.delete();
+      }
 
       return true;
     } catch (e) {
