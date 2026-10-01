@@ -5,6 +5,7 @@ import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/utils/shoji_transition.dart';
 import 'package:goen/views/widgets/ad_banner.dart';
+import 'package:goen/views/widgets/ai_level_sheet.dart';
 import 'ai_game_screen.dart';
 import 'game_mode_selector_screen.dart';
 import 'package:goen/config/theme.dart';
@@ -516,9 +517,12 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _navigateToAiGame(BuildContext context, WidgetRef ref) {
+  Future<void> _navigateToAiGame(BuildContext context, WidgetRef ref) async {
     _logger.i('Navigating to AI Game');
     ref.read(logPaywallTriggeredProvider)(gameNumber: 1);
+    // 対局の前にAIの強さを選ばせる（高レベルはプレミアム）。
+    final picked = await showAiLevelSheet(context, ref);
+    if (!picked || !context.mounted) return;
     // gameBoardStateProvider etc. are plain globals that outlive this
     // screen; without resetting them here, a previous game's finished
     // board would still be showing (see startNewGameProvider's doc).

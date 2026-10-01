@@ -1,5 +1,11 @@
 /// Configuration for AI opponent difficulty and behavior
 class AIOpponentConfig {
+  /// Highest AI level available without Premium.
+  static const int freeMaxLevel = 5;
+
+  /// Highest AI level.
+  static const int maxLevel = 10;
+
   final int level; // 1-10: 1=beginner, 10=professional
   final String engineName; // e.g., "GNU Go"
   final String engineVersion;
