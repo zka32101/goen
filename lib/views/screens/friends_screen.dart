@@ -154,6 +154,11 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     String uid,
     Friend request,
   ) {
+    // requestedBy is null for relationship docs created before this field
+    // existed - treated as incoming (the pre-existing behavior: both
+    // accept and decline shown) since there's no way to know direction.
+    final isIncoming = request.requestedBy != uid;
+
     return Card(
       color: AppColors.kin.withOpacity(0.3),
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -179,31 +184,42 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
                     ),
                   ),
                   Text(
-                    l10n.requestPendingLabel,
+                    isIncoming ? l10n.requestPendingLabel : l10n.requestSentLabel,
                     style: TextStyle(color: AppColors.kin, fontSize: 12),
                   ),
                 ],
               ),
             ),
-            ElevatedButton.icon(
-              onPressed: () =>
-                  _acceptFriendRequest(context, l10n, uid, request.uid),
-              icon: const Icon(Icons.check),
-              label: Text(l10n.acceptButton),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.wakatake,
+            if (isIncoming) ...[
+              ElevatedButton.icon(
+                onPressed: () =>
+                    _acceptFriendRequest(context, l10n, uid, request.uid),
+                icon: const Icon(Icons.check),
+                label: Text(l10n.acceptButton),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.wakatake,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              onPressed: () =>
-                  _blockFriend(context, l10n, uid, request.uid),
-              icon: const Icon(Icons.close),
-              label: Text(l10n.declineButton),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.shuLight,
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    _rejectFriendRequest(context, l10n, uid, request.uid),
+                icon: const Icon(Icons.close),
+                label: Text(l10n.declineButton),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.shuLight,
+                ),
               ),
-            ),
+            ] else
+              OutlinedButton.icon(
+                onPressed: () =>
+                    _rejectFriendRequest(context, l10n, uid, request.uid),
+                icon: const Icon(Icons.close),
+                label: Text(l10n.cancelButton),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.washiDim,
+                ),
+              ),
           ],
         ),
       ),
@@ -565,13 +581,33 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
 
     if (success) {
       ref.invalidate(blockedFriendsProvider(uid));
-      // Also refreshes the "招待待ち" tab when 拒否 (decline) calls this -
-      // the pending request just got blocked and should disappear from
-      // that list without waiting for a manual refresh.
       ref.invalidate(pendingFriendRequestsProvider(uid));
     }
     if (!mounted) return;
     _showMessage(context, success ? l10n.blockedMessage : l10n.genericErrorMessage);
+  }
+
+  /// Declines an incoming request or cancels one the current user sent -
+  /// both are the same "delete the pending request" operation, just
+  /// triggered from different sides (see FriendService.rejectFriendRequest).
+  void _rejectFriendRequest(
+    BuildContext context,
+    AppLocalizations l10n,
+    String uid,
+    String friendUid,
+  ) async {
+    final success = await ref.read(
+      rejectFriendRequestProvider((uid, friendUid)).future,
+    );
+
+    if (success) {
+      ref.invalidate(pendingFriendRequestsProvider(uid));
+    }
+    if (!mounted) return;
+    _showMessage(
+      context,
+      success ? l10n.friendRequestRemovedMessage : l10n.genericErrorMessage,
+    );
   }
 
   void _unblockUser(BuildContext context, AppLocalizations l10n, String uid, String friendUid) async {

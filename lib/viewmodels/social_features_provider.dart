@@ -96,6 +96,17 @@ final acceptFriendRequestProvider =
   },
 );
 
+/// Reject a pending friend request provider - used both for the recipient
+/// declining it and the sender canceling it (same underlying operation).
+final rejectFriendRequestProvider =
+    FutureProvider.family<bool, (String, String)>(
+  (ref, params) async {
+    final (currentUid, friendUid) = params;
+    final service = ref.watch(friendServiceProvider);
+    return service.rejectFriendRequest(currentUid: currentUid, friendUid: friendUid);
+  },
+);
+
 /// Block friend provider
 final blockFriendProvider = FutureProvider.family<bool, (String, String)>(
   (ref, params) async {

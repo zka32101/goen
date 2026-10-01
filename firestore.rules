@@ -61,18 +61,23 @@ service cloud.firestore {
         // acceptFriendRequest, removeFriend, ...), so a user must also be
         // able to touch their OWN mirror entry (friendUid == caller) inside
         // another user's list. Kept narrow: a new entry must be a pending
-        // request that points back at the caller, an existing entry may only
-        // move to accepted/blocked, and the caller may remove their mirror.
-        // Limit: entries carry no "who initiated" field, so rules cannot tell
-        // a genuine accept from a forged one; that needs a data-model change
-        // or a Cloud Function.
+        // request that points back at the caller and records who sent it,
+        // an existing entry may only move to accepted/blocked (and only the
+        // side that did NOT send the request can accept it - the sender
+        // can still block, e.g. to withdraw into a blocked state), and the
+        // caller may remove their mirror (covers decline/cancel/unfriend).
         allow create: if isOwner(friendUid) &&
           request.resource.data.uid == request.auth.uid &&
-          request.resource.data.status == 'pending';
+          request.resource.data.status == 'pending' &&
+          request.resource.data.requestedBy == request.auth.uid;
         allow update: if isOwner(friendUid) &&
           unchanged('uid') &&
           onlyChanged(['status']) &&
-          request.resource.data.status in ['accepted', 'blocked'];
+          (
+            request.resource.data.status == 'blocked' ||
+            (request.resource.data.status == 'accepted' &&
+              resource.data.get('requestedBy', null) != request.auth.uid)
+          );
         allow delete: if isOwner(friendUid);
       }
 

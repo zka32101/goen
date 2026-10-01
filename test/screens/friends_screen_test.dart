@@ -90,6 +90,114 @@ void main() {
     });
   });
 
+  group('FriendsScreen pending requests', () {
+    late FakeFirebaseFirestore firestore;
+    late FriendService friendService;
+
+    setUp(() async {
+      firestore = FakeFirebaseFirestore();
+      friendService = FriendService(firestore: firestore);
+      await firestore
+          .collection('users')
+          .doc(TestData.testUser.uid)
+          .set({'displayName': TestData.testUser.displayName});
+      await firestore.collection('users').doc('other-uid').set({'displayName': 'Carol'});
+    });
+
+    ProviderContainer buildContainer() {
+      return TestUtils.createTestContainer(
+        currentUser: TestData.testUser,
+        extraOverrides: [
+          friendServiceProvider.overrideWithValue(friendService),
+        ],
+      );
+    }
+
+    testWidgets('an incoming request shows accept and decline', (tester) async {
+      await friendService.addFriend(currentUid: 'other-uid', friendUid: TestData.testUser.uid);
+
+      final container = buildContainer();
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const FriendsScreen(initialTabIndex: 1),
+          container: container,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Carol'), findsOneWidget);
+      expect(find.text('リクエスト待機中'), findsOneWidget);
+      expect(find.text('承認'), findsOneWidget);
+      expect(find.text('拒否'), findsOneWidget);
+      expect(find.text('キャンセル'), findsNothing);
+    });
+
+    testWidgets('a request the current user sent shows cancel only', (tester) async {
+      await friendService.addFriend(currentUid: TestData.testUser.uid, friendUid: 'other-uid');
+
+      final container = buildContainer();
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const FriendsScreen(initialTabIndex: 1),
+          container: container,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Carol'), findsOneWidget);
+      expect(find.text('送信済み'), findsOneWidget);
+      expect(find.text('キャンセル'), findsOneWidget);
+      expect(find.text('承認'), findsNothing);
+      expect(find.text('拒否'), findsNothing);
+    });
+
+    testWidgets('declining an incoming request removes it from both sides', (tester) async {
+      await friendService.addFriend(currentUid: 'other-uid', friendUid: TestData.testUser.uid);
+
+      final container = buildContainer();
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const FriendsScreen(initialTabIndex: 1),
+          container: container,
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.text('拒否'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Carol'), findsNothing);
+      expect(
+        await friendService.getFriendStatus(currentUid: 'other-uid', friendUid: TestData.testUser.uid),
+        isNull,
+      );
+    });
+
+    testWidgets('canceling a sent request removes it from both sides', (tester) async {
+      await friendService.addFriend(currentUid: TestData.testUser.uid, friendUid: 'other-uid');
+
+      final container = buildContainer();
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const FriendsScreen(initialTabIndex: 1),
+          container: container,
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.text('キャンセル'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Carol'), findsNothing);
+      expect(
+        await friendService.getFriendStatus(currentUid: 'other-uid', friendUid: TestData.testUser.uid),
+        isNull,
+      );
+    });
+  });
+
   group('FriendsScreen game invitations', () {
     late FakeFirebaseFirestore firestore;
     late GameInvitationService invitationService;

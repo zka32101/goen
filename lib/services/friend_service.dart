@@ -65,12 +65,22 @@ class FriendService {
       final currentDisplayName = await _lookupDisplayName(currentUid);
       final batch = _firestore.batch();
 
+      // If this is a resend of an already-pending request, keep the
+      // original sender so the UI's incoming/outgoing split doesn't flip
+      // depending on who happens to trigger the resend.
+      String requestedBy = currentUid;
+      if (existingStatus == 'pending') {
+        final existingData = (await _friendDoc(currentUid, friendUid).get()).data();
+        requestedBy = existingData?['requestedBy'] as String? ?? currentUid;
+      }
+
       batch.set(_friendDoc(currentUid, friendUid), {
         'uid': friendUid,
         'displayName': friendDisplayName,
         'status': 'pending',
         'addedAt': now,
         'notes': notes ?? '',
+        'requestedBy': requestedBy,
       });
       batch.set(_friendDoc(friendUid, currentUid), {
         'uid': currentUid,
@@ -78,6 +88,7 @@ class FriendService {
         'status': 'pending',
         'addedAt': now,
         'notes': '',
+        'requestedBy': requestedBy,
       });
 
       await batch.commit();
@@ -117,6 +128,41 @@ class FriendService {
     }
   }
 
+  /// Reject a pending friend request - removes both sides' pending entries
+  /// so the sender is free to send a new request later, same as if there'd
+  /// never been one. This is distinct from blocking (which is a lasting
+  /// decision); also used for the sender's own "cancel request" action,
+  /// since canceling a request you sent is the same data operation as the
+  /// recipient declining it.
+  ///
+  /// Refuses (no-op) unless the relationship is actually 'pending' on the
+  /// caller's own side, so a stale UI can't use this to delete an already
+  /// -accepted friendship.
+  Future<bool> rejectFriendRequest({
+    required String currentUid,
+    required String friendUid,
+  }) async {
+    try {
+      final status = await getFriendStatus(currentUid: currentUid, friendUid: friendUid);
+      if (status != 'pending') {
+        _logger.i('rejectFriendRequest no-op: $friendUid is $status for $currentUid, not pending');
+        return false;
+      }
+
+      _logger.i('Rejecting friend request with: $friendUid');
+
+      final batch = _firestore.batch();
+      batch.delete(_friendDoc(currentUid, friendUid));
+      batch.delete(_friendDoc(friendUid, currentUid));
+      await batch.commit();
+
+      return true;
+    } catch (e) {
+      _logger.e('Failed to reject friend request: $e');
+      return false;
+    }
+  }
+
   /// Block a user. Only the blocker's own entry is marked - blocking should
   /// work even for someone who was never actually a friend, so this upserts
   /// a full, valid Friend-shaped doc rather than requiring one to already
@@ -149,7 +195,16 @@ class FriendService {
     }
   }
 
-  /// Unblock a friend, restoring the accepted friendship on both sides.
+  /// Unblock a user - removes the block on the caller's own side only.
+  ///
+  /// This intentionally does NOT force both sides back to 'accepted': the
+  /// block overwrote whatever relationship existed before (if any), so
+  /// there's no reliable prior state to restore, and forcing a friendship
+  /// that may never have existed would also be rejected by firestore.rules'
+  /// create rule (which only allows a brand-new entry with status
+  /// 'pending'). Removing the block returns the caller to "no relationship"
+  /// with this user - they can send a fresh friend request if they want to
+  /// actually become friends again.
   Future<bool> unblockFriend({
     required String currentUid,
     required String friendUid,
@@ -157,18 +212,7 @@ class FriendService {
     try {
       _logger.i('Unblocking friend: $friendUid');
 
-      final batch = _firestore.batch();
-      batch.set(
-        _friendDoc(currentUid, friendUid),
-        {'uid': friendUid, 'status': 'accepted'},
-        SetOptions(merge: true),
-      );
-      batch.set(
-        _friendDoc(friendUid, currentUid),
-        {'uid': currentUid, 'status': 'accepted'},
-        SetOptions(merge: true),
-      );
-      await batch.commit();
+      await _friendDoc(currentUid, friendUid).delete();
 
       return true;
     } catch (e) {
