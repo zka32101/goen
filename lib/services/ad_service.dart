@@ -1,15 +1,16 @@
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
+
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:logger/logger.dart';
 
 final _logger = Logger();
 
-/// Google's official TEST ad unit IDs (documented at
-/// https://developers.google.com/admob/flutter/test-ads) — always serve
-/// test creatives, safe to ship. Replace with goen's real AdMob ad unit
-/// IDs (from the AdMob console, one app + one banner + one interstitial
-/// unit) before a production release.
+/// Release builds on Android use goen's real AdMob ad units; debug/profile
+/// builds and iOS (no AdMob iOS app yet) use Google's official TEST ad unit
+/// IDs (https://developers.google.com/admob/flutter/test-ads), which always
+/// serve test creatives, so development never generates invalid traffic.
 class AdService {
   AdService._();
 
@@ -20,11 +21,19 @@ class AdService {
   static const _testInterstitialIOS =
       'ca-app-pub-3940256099942544/4411468910';
 
-  static String get bannerAdUnitId =>
-      Platform.isIOS ? _testBannerIOS : _testBannerAndroid;
+  static const _bannerAndroid = 'ca-app-pub-5058227312086483/2723095121';
+  static const _interstitialAndroid =
+      'ca-app-pub-5058227312086483/9988350787';
 
-  static String get interstitialAdUnitId =>
-      Platform.isIOS ? _testInterstitialIOS : _testInterstitialAndroid;
+  static String get bannerAdUnitId {
+    if (Platform.isIOS) return _testBannerIOS;
+    return kReleaseMode ? _bannerAndroid : _testBannerAndroid;
+  }
+
+  static String get interstitialAdUnitId {
+    if (Platform.isIOS) return _testInterstitialIOS;
+    return kReleaseMode ? _interstitialAndroid : _testInterstitialAndroid;
+  }
 
   static Future<void> initialize() async {
     try {
