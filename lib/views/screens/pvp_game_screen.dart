@@ -434,9 +434,41 @@ class _PvpGameScreenState extends ConsumerState<PvpGameScreen> {
             },
             child: Text(l10n.closeButton, style: TextStyle(color: AppColors.kin)),
           ),
+          // トーナメント試合はブラケットの対戦順で決まるため、その場での
+          // 再戦は対象外（通常の対局・マッチング経由の対局のみ）。
+          if (game.tournamentId == null)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _handleRematch(context, game);
+              },
+              child: Text(l10n.rematchButton, style: TextStyle(color: AppColors.kin)),
+            ),
         ],
       ),
     );
+  }
+
+  /// 同じ相手ともう一局。色入れ替え・相手への通知はrematchPvpGameProvider
+  /// 側の責務（ロジックをテスト可能にするため、resignPvpGameProvider等と
+  /// 同じくプロバイダー層に置いている）。
+  Future<void> _handleRematch(BuildContext context, PvpGame game) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final newGame = await ref.read(rematchPvpGameProvider)(game, widget.uid);
+
+      if (!context.mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => PvpGameScreen(gameId: newGame.id, uid: widget.uid)),
+      );
+    } catch (e) {
+      _logger.e('Error starting rematch: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.rematchFailedMessage)),
+        );
+      }
+    }
   }
 
   String _resultDescription(AppLocalizations l10n, PvpGame game) {

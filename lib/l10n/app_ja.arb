@@ -1044,5 +1044,8 @@
   "claimForfeitButton": "放棄による勝利を申請する",
   "claimForfeitConfirmTitle": "放棄による勝利を申請しますか？",
   "claimForfeitConfirmContent": "相手が48時間以上このゲームで何も操作していません。申請すると、この対局はあなたの勝利として終了します。",
-  "forfeitResultLabel": "相手の対局放棄による決着"
+  "forfeitResultLabel": "相手の対局放棄による決着",
+
+  "rematchButton": "再戦する",
+  "rematchFailedMessage": "再戦の対局を開始できませんでした"
 }

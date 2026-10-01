@@ -1,6 +1,7 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:goen/models/pvp_game.dart';
 import 'package:goen/services/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/viewmodels/friend_provider.dart' as friend_provider;
@@ -114,5 +115,78 @@ void main() {
     // so PvpGameService.attachSpectatorSessionIfAbsent's correctness there
     // rests on that guarantee plus this suite's sequential coverage of its
     // logic, not on a fake-library concurrency test that tool can't provide.
+  });
+
+  group('rematchPvpGameProvider', () {
+    late FakeFirebaseFirestore firestore;
+    late ProviderContainer container;
+
+    setUp(() {
+      firestore = FakeFirebaseFirestore();
+      container = ProviderContainer(overrides: [
+        pvpGameServiceProvider.overrideWithValue(PvpGameService(firestore)),
+        spectatorServiceProvider.overrideWithValue(SpectatorService(firestore)),
+        friend_provider.friendServiceProvider
+            .overrideWithValue(FriendService(firestore: firestore)),
+      ]);
+    });
+
+    tearDown(() => container.dispose());
+
+    PvpGame finishedGame({required String winnerUid}) => PvpGame(
+          id: 'previous-game',
+          boardSize: 13,
+          blackUid: 'black-uid',
+          blackDisplayName: 'Black Player',
+          whiteUid: 'white-uid',
+          whiteDisplayName: 'White Player',
+          stones: List.generate(13, (_) => List.filled(13, 0)),
+          isBlackTurn: true,
+          capturedBlack: 0,
+          capturedWhite: 0,
+          movesCount: 42,
+          consecutivePasses: 2,
+          status: 'finished',
+          winnerUid: winnerUid,
+          result: 'resignation',
+          createdAt: DateTime(2026, 1, 1),
+        );
+
+    test('creates a new game with colors swapped from the previous one', () async {
+      final previous = finishedGame(winnerUid: 'black-uid');
+
+      final newGame = await container.read(rematchPvpGameProvider)(previous, 'white-uid');
+
+      expect(newGame.boardSize, 13);
+      expect(newGame.blackUid, 'white-uid');
+      expect(newGame.blackDisplayName, 'White Player');
+      expect(newGame.whiteUid, 'black-uid');
+      expect(newGame.whiteDisplayName, 'Black Player');
+      expect(newGame.isActive, isTrue);
+      expect(newGame.id, isNot(equals(previous.id)));
+    });
+
+    test('a rematch is a fresh, independent game (not linked to the previous one)',
+        () async {
+      final previous = finishedGame(winnerUid: 'white-uid');
+
+      final newGame = await container.read(rematchPvpGameProvider)(previous, 'black-uid');
+
+      expect(newGame.movesCount, 0);
+      expect(newGame.consecutivePasses, 0);
+      expect(newGame.winnerUid, isNull);
+      expect(newGame.tournamentId, isNull);
+    });
+
+    test('either player can request the rematch', () async {
+      final previous = finishedGame(winnerUid: 'black-uid');
+
+      final fromLoser = await container.read(rematchPvpGameProvider)(previous, 'white-uid');
+      expect(fromLoser.isActive, isTrue);
+
+      final fromWinner = await container.read(rematchPvpGameProvider)(previous, 'black-uid');
+      expect(fromWinner.isActive, isTrue);
+      expect(fromWinner.id, isNot(equals(fromLoser.id)));
+    });
   });
 }

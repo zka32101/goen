@@ -1044,5 +1044,8 @@
   "claimForfeitButton": "Claim win by forfeit",
   "claimForfeitConfirmTitle": "Claim a win by forfeit?",
   "claimForfeitConfirmContent": "Your opponent hasn't made a move in this game for over 48 hours. Claiming will end this game as a win for you.",
-  "forfeitResultLabel": "Won — opponent forfeited"
+  "forfeitResultLabel": "Won — opponent forfeited",
+
+  "rematchButton": "Rematch",
+  "rematchFailedMessage": "Could not start the rematch"
 }
