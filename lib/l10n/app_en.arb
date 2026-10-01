@@ -1035,5 +1035,8 @@
   "noMessagesYetMessage": "No messages yet. Say hello!",
   "messageInputHint": "Type a message...",
   "sendMessageButton": "Send",
-  "messageSendFailedMessage": "Failed to send message"
+  "messageSendFailedMessage": "Failed to send message",
+
+  "filterByDifficultyTitle": "Filter by difficulty",
+  "noGamesMatchFilterMessage": "No games match this difficulty"
 }

@@ -36,6 +36,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
   String? _selectedGameId;
   int _totalMoves = 0;
   Timer? _autoplayTimer;
+  int? _filterDifficulty;
 
   @override
   void initState() {
@@ -65,6 +66,11 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () => _showFilterMenu(context),
+            tooltip: l10n.filterTooltip,
+          ),
+          IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () => _showInfo(context),
             tooltip: l10n.learnTooltip,
@@ -79,9 +85,15 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
             return _buildEmptyState(context);
           }
 
+          final filteredGames = _filterDifficulty == null
+              ? games
+              : games.where((g) => g.difficulty == _filterDifficulty).toList();
+
           // If no game selected, show library list
           if (_selectedGameId == null) {
-            return _buildGameLibrary(context, games);
+            return filteredGames.isEmpty
+                ? _buildNoMatchState(context)
+                : _buildGameLibrary(context, filteredGames);
           }
 
           // If game selected, show replay interface
@@ -180,6 +192,75 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNoMatchState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.filter_list_off,
+            size: 64,
+            color: AppColors.kin,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.noGamesMatchFilterMessage,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.washiDim,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => setState(() => _filterDifficulty = null),
+            child: Text(l10n.filterAllLabel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterMenu(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.sumiSurface,
+      builder: (context) => SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.filterByDifficultyTitle,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.washi,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildDifficultyFilterOption(context, l10n.filterAllLabel, null),
+              for (var star = 1; star <= 5; star++)
+                _buildDifficultyFilterOption(context, '★' * star + '☆' * (5 - star), star),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDifficultyFilterOption(BuildContext context, String label, int? value) {
+    return ListTile(
+      title: Text(label),
+      selected: _filterDifficulty == value,
+      onTap: () {
+        setState(() => _filterDifficulty = value);
+        Navigator.pop(context);
+      },
     );
   }
 
@@ -285,6 +366,8 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
               children: [
                 _buildInfoItem(context, l10n.categoryLabel, game.category.toString().split('.').last),
                 _buildInfoItem(context, l10n.sourceLabel, game.source),
+                if (game.getDifficultyName() != null)
+                  _buildInfoItem(context, l10n.difficultyLabel, game.getDifficultyName()!),
               ],
             ),
           ],

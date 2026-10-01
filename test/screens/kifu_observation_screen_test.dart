@@ -481,4 +481,119 @@ void main() {
       expect(find.byType(Container), findsWidgets);
     });
   });
+
+  group('KifuObservationScreen difficulty filter', () {
+    final easyKifu = KifuLibrary(
+      id: 'easy-kifu',
+      title: 'Easy Game',
+      blackPlayer: 'Player A',
+      whitePlayer: 'Player B',
+      sgfData: '(;GM[1]SZ[9];B[cc];W[gg])',
+      category: KifuCategory.copyrightFree,
+      isPremium: false,
+      source: 'Public Domain',
+      createdAt: DateTime.now(),
+      difficulty: 1,
+    );
+    final hardKifu = KifuLibrary(
+      id: 'hard-kifu',
+      title: 'Hard Game',
+      blackPlayer: 'Player C',
+      whitePlayer: 'Player D',
+      sgfData: '(;GM[1]SZ[9];B[cc];W[gg])',
+      category: KifuCategory.copyrightFree,
+      isPremium: false,
+      source: 'Public Domain',
+      createdAt: DateTime.now(),
+      difficulty: 5,
+    );
+    final unratedKifu = KifuLibrary(
+      id: 'unrated-kifu',
+      title: 'Unrated Game',
+      blackPlayer: 'Player E',
+      whitePlayer: 'Player F',
+      sgfData: '(;GM[1]SZ[9];B[cc];W[gg])',
+      category: KifuCategory.copyrightFree,
+      isPremium: false,
+      source: 'Public Domain',
+      createdAt: DateTime.now(),
+    );
+
+    late ProviderContainer container;
+
+    setUp(() {
+      container = ProviderContainer(
+        overrides: [
+          currentUserProvider.overrideWithValue(TestData.testUser),
+          kifuLibraryProvider.overrideWith(
+            (ref) async => [easyKifu, hardKifu, unratedKifu],
+          ),
+        ],
+      );
+    });
+
+    testWidgets('shows every game by default, with a difficulty icon only for rated ones',
+        (tester) async {
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const KifuObservationScreen(),
+          container: container,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Easy Game'), findsOneWidget);
+      expect(find.text('Hard Game'), findsOneWidget);
+      expect(find.text('Unrated Game'), findsOneWidget);
+      expect(find.text('★☆☆☆☆'), findsOneWidget);
+      expect(find.text('★★★★★'), findsOneWidget);
+    });
+
+    testWidgets('filtering by a difficulty hides games that do not match',
+        (tester) async {
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const KifuObservationScreen(),
+          container: container,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(ListTile, '★☆☆☆☆'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Easy Game'), findsOneWidget);
+      expect(find.text('Hard Game'), findsNothing);
+      expect(find.text('Unrated Game'), findsNothing);
+    });
+
+    testWidgets('a filter with no matches shows the no-match state with a way back',
+        (tester) async {
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const KifuObservationScreen(),
+          container: container,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(ListTile, '★★☆☆☆'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('この難易度に該当する棋譜はありません'), findsOneWidget);
+
+      await tester.tap(find.text('すべて'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Easy Game'), findsOneWidget);
+      expect(find.text('Hard Game'), findsOneWidget);
+      expect(find.text('Unrated Game'), findsOneWidget);
+    });
+  });
 }

@@ -13,6 +13,9 @@ class KifuLibrary {
   final String source; // Attribution (copyright-free historical games)
   final DateTime? gameDate;
   final DateTime createdAt;
+  // 1-5: 1=easy, 5=very hard. Nullable since curated entries aren't all
+  // rated yet (unlike TsumeGoProblem.difficulty, which is required).
+  final int? difficulty;
 
   KifuLibrary({
     required this.id,
@@ -26,6 +29,7 @@ class KifuLibrary {
     required this.source,
     this.gameDate,
     required this.createdAt,
+    this.difficulty,
   });
 
   /// Create from Firestore document
@@ -45,6 +49,7 @@ class KifuLibrary {
       createdAt: data['createdAt'] is Timestamp
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
+      difficulty: (data['difficulty'] as num?)?.toInt(),
     );
   }
 
@@ -61,7 +66,27 @@ class KifuLibrary {
       'source': source,
       'gameDate': gameDate != null ? Timestamp.fromDate(gameDate!) : null,
       'createdAt': Timestamp.fromDate(createdAt),
+      'difficulty': difficulty,
     };
+  }
+
+  /// Human-readable difficulty name (same star convention as
+  /// TsumeGoProblem.getDifficultyName), or null if unrated.
+  String? getDifficultyName() {
+    switch (difficulty) {
+      case 1:
+        return '★☆☆☆☆';
+      case 2:
+        return '★★☆☆☆';
+      case 3:
+        return '★★★☆☆';
+      case 4:
+        return '★★★★☆';
+      case 5:
+        return '★★★★★';
+      default:
+        return null;
+    }
   }
 
   String getDisplayTitle() {
