@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/services/fuego_engine_service.dart';
 import 'package:goen/services/go_rules.dart';
+import 'package:goen/services/go_scoring.dart';
 
 void main() {
   group('Fuego Engine Service', () {
@@ -297,5 +298,94 @@ void main() {
     // 統合テストで実行してください
     //
     // flutter test test/fuego_engine_integration_test.dart
+
+    test('GoRules.groupAt should return the connected same-colored group', () {
+      final boardSize = 9;
+      final stones = List.generate(boardSize, (_) => List.filled(boardSize, 0));
+      stones[0][0] = 1;
+      stones[0][1] = 1; // connected to (0,0)
+      stones[1][1] = 1; // connected to (0,1)
+      stones[5][5] = 1; // separate black stone, not connected
+
+      final group = GoRules.groupAt(stones, boardSize, 0, 0);
+      expect(group, {(0, 0), (0, 1), (1, 1)});
+      expect(group.contains((5, 5)), isFalse);
+    });
+
+    test('GoRules.groupAt should return an empty set for an empty point', () {
+      final boardSize = 9;
+      final stones = List.generate(boardSize, (_) => List.filled(boardSize, 0));
+      expect(GoRules.groupAt(stones, boardSize, 4, 4), isEmpty);
+    });
+
+    test('GoScoring.withDeadStonesRemoved should clear only the given points', () {
+      final boardSize = 9;
+      final stones = List.generate(boardSize, (_) => List.filled(boardSize, 0));
+      stones[0][0] = 1;
+      stones[0][1] = 1;
+      stones[3][3] = 2;
+
+      final result = GoScoring.withDeadStonesRemoved(stones, const {(0, 0), (0, 1)});
+
+      expect(result[0][0], equals(0));
+      expect(result[0][1], equals(0));
+      expect(result[3][3], equals(2), reason: 'Untouched points keep their original value');
+      // The original board is not mutated.
+      expect(stones[0][0], equals(1));
+    });
+
+    test('GoScoring.withDeadStonesRemoved should return the same board for an empty set', () {
+      final boardSize = 9;
+      final stones = List.generate(boardSize, (_) => List.filled(boardSize, 0));
+      stones[2][2] = 1;
+
+      final result = GoScoring.withDeadStonesRemoved(stones, const {});
+      expect(result, same(stones));
+    });
+
+    test('FuegoEngineService.scoreWithDeadStones should exclude dead points from scoring', () {
+      final engine = engineService;
+      if (engine == null) return;
+
+      final boardSize = 9;
+      // A black group deep inside white's wall: everything black-adjacent
+      // this black group touches is already fully enclosed by white, so
+      // marking it dead flips that area to white's territory.
+      final stones = List.generate(boardSize, (_) => List.filled(boardSize, 2));
+      stones[4][4] = 1;
+      stones[4][5] = 1;
+
+      final aliveResult = engine.scoreWithDeadStones(
+        boardSize: boardSize,
+        stones: stones,
+        deadPoints: const {},
+      );
+      expect(aliveResult.deadStoneCount, equals(0));
+      expect(aliveResult.blackScore, equals(2.0));
+
+      final deadResult = engine.scoreWithDeadStones(
+        boardSize: boardSize,
+        stones: stones,
+        deadPoints: const {(4, 4), (4, 5)},
+      );
+      expect(deadResult.deadStoneCount, equals(2));
+      expect(deadResult.blackScore, equals(0.0));
+      expect(deadResult.winner, equals('white'));
+    });
+
+    test('FuegoEngineService.suggestDeadStones should fall back to no suggestions '
+        'when the native safety solver is unavailable', () {
+      final engine = engineService;
+      if (engine == null) return;
+
+      final boardSize = 9;
+      final stones = List.generate(boardSize, (_) => List.filled(boardSize, 0));
+      stones[4][4] = 1;
+
+      // This sandbox never bundles libfuego.so, so supportsDeadStoneDetection
+      // is false and this must return an empty list rather than throwing.
+      final suggestions = engine.suggestDeadStones(stones: stones, boardSize: boardSize);
+      expect(suggestions, isEmpty);
+    });
   });
 }

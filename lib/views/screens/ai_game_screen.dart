@@ -11,6 +11,7 @@ import 'package:goen/utils/wa_decorations.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/views/screens/dead_stone_marking_screen.dart';
 import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
@@ -618,13 +619,50 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     });
   }
 
-  /// Two consecutive passes: score the game and move to the result screen.
-  Future<void> _endGameByPasses(BuildContext context, WidgetRef ref) async {
+  /// Two consecutive passes: let the player confirm dead stones (the native
+  /// Fuego safety solver that could do this automatically isn't bundled in
+  /// most builds), then score the game and move to the result screen.
+  void _endGameByPasses(BuildContext context, WidgetRef ref) {
     _logger.i('🏁 Game ended by two consecutive passes');
     ref.read(isGameActiveProvider.notifier).state = false;
 
+    final boardState = ref.read(gameBoardStateProvider);
+    final aiEngine = ref.read(aiEngineServiceProvider);
+    final suggestedDeadPoints = aiEngine
+        .suggestDeadStones(stones: boardState.stones, boardSize: boardState.boardSize)
+        .toSet();
+
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DeadStoneMarkingScreen(
+          stones: boardState.stones,
+          boardSize: boardState.boardSize,
+          suggestedDeadPoints: suggestedDeadPoints,
+          onConfirm: (deadPoints) => _finishGameWithDeadStones(
+            context,
+            ref,
+            boardState: boardState,
+            deadPoints: deadPoints,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _finishGameWithDeadStones(
+    BuildContext context,
+    WidgetRef ref, {
+    required BoardState boardState,
+    required Set<(int, int)> deadPoints,
+  }) {
     try {
-      final result = await ref.read(judgeGameEndProvider.future);
+      final aiEngine = ref.read(aiEngineServiceProvider);
+      final result = aiEngine.scoreWithDeadStones(
+        boardSize: boardState.boardSize,
+        stones: boardState.stones,
+        deadPoints: deadPoints,
+      );
       ref.read(gameResultProvider.notifier).state = result;
 
       final resultLabel = result.winner == 'black'
@@ -641,7 +679,6 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         },
       );
 
-      if (!context.mounted) return;
       Navigator.of(context).pushReplacementNamed(
         '/game-result',
         arguments: {

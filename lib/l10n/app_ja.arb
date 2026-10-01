@@ -1012,5 +1012,22 @@
     }
   },
   "commentInputHint": "コメントを入力...",
-  "lastMoveLegendLabel": "直前の一手"
+  "lastMoveLegendLabel": "直前の一手",
+
+  "deadStoneMarkingTitle": "死石の確認",
+  "deadStoneMarkingInstructions": "死んでいる石をタップして取り除いてください。つながった石は一緒に切り替わります。",
+  "deadStoneMarkingBlackScoreLabel": "黒: {score}",
+  "@deadStoneMarkingBlackScoreLabel": {
+    "placeholders": {
+      "score": { "type": "String" }
+    }
+  },
+  "deadStoneMarkingWhiteScoreLabel": "白: {score}",
+  "@deadStoneMarkingWhiteScoreLabel": {
+    "placeholders": {
+      "score": { "type": "String" }
+    }
+  },
+  "deadStoneMarkingResetButton": "リセット",
+  "deadStoneMarkingConfirmButton": "この地合で確定する"
 }

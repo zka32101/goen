@@ -20,18 +20,34 @@ class AreaScore {
 /// PvpGameService (PvP games) so both count territory the same way instead
 /// of PvP using a separate, less accurate stones-only estimate.
 ///
-/// This does NOT attempt dead-stone detection — FuegoEngineService's own
-/// judgeGameEnd only gets that from the native Fuego library's safety
-/// solver when bundled, and PvP games have no engine in the loop at all —
-/// so, same as that fallback, every stone left on the board is counted as
-/// alive. A human player who passes on a board with actually-dead stones
-/// still on it will get a score that doesn't match what they'd expect;
-/// there's no automated way to resolve that without a real engine judging
-/// the position.
+/// This method itself does NOT attempt dead-stone detection — it scores
+/// whatever board it's given. FuegoEngineService's own judgeGameEnd gets an
+/// automatic dead-stone guess from the native Fuego library's safety solver
+/// only when that's bundled (most builds don't have it), and PvP games have
+/// no engine in the loop at all. For the common case where no engine
+/// resolves it automatically, callers are expected to run a manual
+/// dead-stone-marking step first (see [withDeadStonesRemoved] and
+/// `DeadStoneMarkingScreen`) and pass the result in here, the same way
+/// every other Go server (OGS/KGS/Tygem) resolves life & death at game end.
 class GoScoring {
   GoScoring._();
 
   static const double defaultKomi = 3.75;
+
+  /// Returns a copy of [stones] with every point in [deadPoints] cleared to
+  /// empty (0), so [computeAreaScore] counts them as the opponent's
+  /// territory instead of the owner's living stones.
+  static List<List<int>> withDeadStonesRemoved(
+    List<List<int>> stones,
+    Iterable<(int, int)> deadPoints,
+  ) {
+    if (deadPoints.isEmpty) return stones;
+    final copy = [for (final row in stones) [...row]];
+    for (final (row, col) in deadPoints) {
+      copy[row][col] = 0;
+    }
+    return copy;
+  }
 
   static AreaScore computeAreaScore(
     List<List<int>> stones,

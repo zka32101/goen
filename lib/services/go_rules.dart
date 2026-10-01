@@ -51,6 +51,20 @@ class GoRules {
     return visited;
   }
 
+  /// Public wrapper around [_group] for callers outside this file that need
+  /// the connected same-colored group at a point (e.g. dead-stone marking,
+  /// where tapping one stone should toggle its whole chain). Returns an
+  /// empty set if (row, col) is empty.
+  static Set<(int, int)> groupAt(
+    List<List<int>> stones,
+    int boardSize,
+    int row,
+    int col,
+  ) {
+    if (stones[row][col] == 0) return const {};
+    return _group(stones, boardSize, row, col);
+  }
+
   /// Number of distinct empty liberties adjacent to the group.
   static int _liberties(
     List<List<int>> stones,

@@ -1012,5 +1012,22 @@
     }
   },
   "commentInputHint": "Enter a comment...",
-  "lastMoveLegendLabel": "Last move"
+  "lastMoveLegendLabel": "Last move",
+
+  "deadStoneMarkingTitle": "Confirm Dead Stones",
+  "deadStoneMarkingInstructions": "Tap any dead stones to remove them. Connected stones toggle together.",
+  "deadStoneMarkingBlackScoreLabel": "Black: {score}",
+  "@deadStoneMarkingBlackScoreLabel": {
+    "placeholders": {
+      "score": { "type": "String" }
+    }
+  },
+  "deadStoneMarkingWhiteScoreLabel": "White: {score}",
+  "@deadStoneMarkingWhiteScoreLabel": {
+    "placeholders": {
+      "score": { "type": "String" }
+    }
+  },
+  "deadStoneMarkingResetButton": "Reset",
+  "deadStoneMarkingConfirmButton": "Confirm This Score"
 }

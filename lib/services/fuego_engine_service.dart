@@ -176,6 +176,9 @@ class FuegoEngineService {
   /// Fuego の安全性読み（GoSafetySolver 相当）が使えるネイティブビルド
   /// では、死石を自動判定して盤面から除外してから採点する。未対応の
   /// ビルドでは全ての石を生きているものとして数える（フォールバック）。
+  /// 自動判定が使えないビルドでも正しく採点したい場合は、
+  /// [suggestDeadStones]/[scoreWithDeadStones] を使い、手動の死石確認
+  /// ステップ（DeadStoneMarkingScreen 等）を挟むこと。
   Future<GameEndResult> judgeGameEnd({
     required int boardSize,
     required List<List<int>> stones,
@@ -185,36 +188,14 @@ class FuegoEngineService {
     _logger.i('🏁 ゲーム終了判定: lastPassed=$lastPlayerPassed');
 
     try {
-      final deadPoints = _detectDeadStones(stones, boardSize);
-
-      List<List<int>> scoringStones = stones;
+      final deadPoints = suggestDeadStones(stones: stones, boardSize: boardSize);
       if (deadPoints.isNotEmpty) {
-        scoringStones = [for (final row in stones) [...row]];
-        for (final (row, col) in deadPoints) {
-          scoringStones[row][col] = 0;
-        }
         _logger.i('☠️ 死石 ${deadPoints.length} 個を除外して採点');
       }
-
-      final score = GoScoring.computeAreaScore(scoringStones, boardSize);
-
-      _logger.i(
-        '📊 終局スコア: 黒=${score.blackScore} 白=${score.whiteScore}',
-      );
-
-      final winner = score.blackScore > score.whiteScore
-          ? 'black'
-          : score.whiteScore > score.blackScore
-              ? 'white'
-              : 'draw';
-
-      return GameEndResult(
-        gameEnded: true,
-        blackScore: score.blackScore,
-        whiteScore: score.whiteScore,
-        winner: winner,
-        scoringMethod: 'chinese',
-        deadStoneCount: deadPoints.length,
+      return scoreWithDeadStones(
+        stones: stones,
+        boardSize: boardSize,
+        deadPoints: deadPoints.toSet(),
       );
     } catch (e) {
       _logger.e('🔥 終局判定エラー: $e');
@@ -222,10 +203,40 @@ class FuegoEngineService {
     }
   }
 
+  /// [deadPoints]（空=死石なし）を盤面から除外した上で中国ルールの地合を
+  /// 採点する。ネイティブの自動判定・手動マーキングのどちらの結果も
+  /// このメソッドで最終スコアに変換できる。
+  GameEndResult scoreWithDeadStones({
+    required int boardSize,
+    required List<List<int>> stones,
+    required Set<(int, int)> deadPoints,
+  }) {
+    final scoringStones = GoScoring.withDeadStonesRemoved(stones, deadPoints);
+    final score = GoScoring.computeAreaScore(scoringStones, boardSize);
+
+    _logger.i('📊 終局スコア: 黒=${score.blackScore} 白=${score.whiteScore}');
+
+    final winner = score.blackScore > score.whiteScore
+        ? 'black'
+        : score.whiteScore > score.blackScore
+            ? 'white'
+            : 'draw';
+
+    return GameEndResult(
+      gameEnded: true,
+      blackScore: score.blackScore,
+      whiteScore: score.whiteScore,
+      winner: winner,
+      scoringMethod: 'chinese',
+      deadStoneCount: deadPoints.length,
+    );
+  }
+
   /// Fuego の安全性読みで死石を判定する。
   /// ネイティブ側が fuego_get_dead_stones を実装していない場合は
-  /// 空リストを返す（＝全石生存扱いにフォールバック）。
-  List<(int, int)> _detectDeadStones(List<List<int>> stones, int boardSize) {
+  /// 空リストを返す（＝全石生存扱いにフォールバック。手動マーキング
+  /// 画面の初期提案としても使われるため公開メソッドにしている）。
+  List<(int, int)> suggestDeadStones({required List<List<int>> stones, required int boardSize}) {
     final fuego = _fuego;
     if (fuego == null || !fuego.supportsDeadStoneDetection) {
       return const [];

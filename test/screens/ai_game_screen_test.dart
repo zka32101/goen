@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/screens/ai_game_screen.dart';
+import 'package:goen/views/screens/dead_stone_marking_screen.dart';
 import 'package:goen/viewmodels/index.dart';
 
 import '../fixtures/test_data.dart';
@@ -102,6 +103,39 @@ void main() {
 
       final passButton = find.byType(OutlinedButton).first;
       expect(passButton, findsWidgets);
+    });
+
+    testWidgets(
+        'passing when the opponent already passed opens dead-stone marking '
+        'instead of scoring immediately',
+        (WidgetTester tester) async {
+      // Simulate the AI having already passed once: the player's next
+      // pass is the second consecutive pass, which should end the game.
+      final endingContainer = TestUtils.createTestContainer(
+        currentUser: TestData.testUser,
+        boardState: TestData.emptyBoardState,
+        isGameActive: true,
+        aiLevel: 5,
+        extraOverrides: [
+          consecutivePassesProvider.overrideWith((ref) => 1),
+        ],
+      );
+
+      await tester.pumpWidget(
+        TestUtils.buildTestableWidget(
+          child: const AIGameScreen(),
+          container: endingContainer,
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.widgetWithText(OutlinedButton, 'パス'));
+      await tester.pump();
+      await tester.pump();
+
+      // The old behavior scored immediately with every stone treated as
+      // alive; now it must stop at a manual dead-stone confirmation step.
+      expect(find.byType(DeadStoneMarkingScreen), findsOneWidget);
     });
 
     testWidgets('resign button enabled when game active',
