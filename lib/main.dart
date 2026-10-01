@@ -115,6 +115,7 @@ class GoEnApp extends ConsumerWidget {
         '/tournament': (_) => const TournamentScreen(),
         '/pvp-games': (_) => const PvpGamesListScreen(),
         '/notifications': (_) => const NotificationScreen(),
+        '/messages': (_) => const MessageThreadsScreen(),
         '/how-to-play': (_) => const HowToPlayScreen(),
         '/joseki': (_) => const JosekiScreen(),
         // 縁 (En) features

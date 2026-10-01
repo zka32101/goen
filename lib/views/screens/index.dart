@@ -39,6 +39,7 @@ export 'tournament_screen.dart';
 export 'tournament_bracket_screen.dart';
 export 'tournament_create_screen.dart';
 export 'notification_screen.dart';
+export 'message_threads_screen.dart';
 
 // 縁 (En) features
 export 'en_hub_screen.dart';

@@ -5,6 +5,7 @@ import '../../models/index.dart';
 import '../../viewmodels/index.dart';
 import '../widgets/index.dart';
 import 'friend_profile_screen.dart';
+import 'chat_screen.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/l10n/app_localizations.dart';
 
@@ -93,7 +94,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
             _openFriendProfile(context, uid, friend);
           },
           onMessage: (friend) {
-            _showMessage(context, l10n.messagingComingSoonMessage);
+            _openChat(context, uid, friend);
           },
           onInvite: (friend) {
             _showGameInviteDialog(context, l10n, uid, friend.uid, friend.displayName);
@@ -378,7 +379,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
   ) {
     switch (action) {
       case 'message':
-        _showMessage(context, l10n.messagingComingSoonMessage);
+        _openChat(context, uid, friend);
         break;
       case 'invite':
         _showGameInviteDialog(context, l10n, uid, friend.uid, friend.displayName);
@@ -483,6 +484,24 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
           currentUid: uid,
           friend: friend,
           onInvite: () => _showGameInviteDialog(context, l10n, uid, friend.uid, friend.displayName),
+        ),
+      ),
+    );
+  }
+
+  void _openChat(BuildContext context, String uid, Friend friend) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentUser = ref.read(currentUserProvider);
+    final currentDisplayName = currentUser?.displayName ?? l10n.homeDefaultPlayerName;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          currentUid: uid,
+          currentDisplayName: currentDisplayName,
+          friendUid: friend.uid,
+          friendDisplayName: friend.displayName,
         ),
       ),
     );

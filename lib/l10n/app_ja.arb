@@ -517,7 +517,6 @@
   "friendsTitle": "フレンド",
   "pendingTab": "招待待ち",
   "blockedTab": "ブロック中",
-  "messagingComingSoonMessage": "メッセージ機能は準備中です",
   "noPendingRequestsMessage": "待機中のリクエストはありません",
   "requestPendingLabel": "リクエスト待機中",
   "acceptButton": "承認",
@@ -1029,5 +1028,12 @@
     }
   },
   "deadStoneMarkingResetButton": "リセット",
-  "deadStoneMarkingConfirmButton": "この地合で確定する"
+  "deadStoneMarkingConfirmButton": "この地合で確定する",
+
+  "messagesTitle": "メッセージ",
+  "noConversationsYetMessage": "まだ会話がありません",
+  "noMessagesYetMessage": "まだメッセージがありません。最初のメッセージを送ってみましょう。",
+  "messageInputHint": "メッセージを入力...",
+  "sendMessageButton": "送信",
+  "messageSendFailedMessage": "メッセージの送信に失敗しました"
 }

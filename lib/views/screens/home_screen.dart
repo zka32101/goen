@@ -40,6 +40,7 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: AppColors.sumi,
         elevation: 0,
         actions: [
+          _buildMessagesButton(context, ref, l10n, currentUser?.uid),
           _buildNotificationButton(context, ref, l10n, currentUser?.uid),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -570,6 +571,54 @@ class HomeScreen extends ConsumerWidget {
   void _navigateToJoseki(BuildContext context) {
     _logger.i('Navigating to Joseki');
     Navigator.of(context).pushNamed('/joseki');
+  }
+
+  /// Messages icon with an unread-count badge
+  Widget _buildMessagesButton(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    String? uid,
+  ) {
+    const minTapTarget = BoxConstraints(minWidth: 44, minHeight: 44);
+
+    if (uid == null) {
+      return IconButton(
+        icon: const Icon(Icons.chat_bubble_outline),
+        onPressed: () => Navigator.of(context).pushNamed('/messages'),
+        tooltip: l10n.messagesTitle,
+        constraints: minTapTarget,
+      );
+    }
+
+    final unreadCount = ref.watch(unreadMessageCountProvider(uid));
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.chat_bubble_outline),
+          onPressed: () => Navigator.of(context).pushNamed('/messages'),
+          tooltip: l10n.messagesTitle,
+          constraints: minTapTarget,
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+              child: Text(
+                unreadCount > 9 ? '9+' : '$unreadCount',
+                style: const TextStyle(color: AppColors.washi, fontSize: 9, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   /// Notification bell with an unread-count badge

@@ -49,3 +49,4 @@ export 'en_score_provider.dart';
 export 'pvp_game_provider.dart';
 export 'ai_review_provider.dart';
 export 'purchase_provider.dart';
+export 'direct_message_provider.dart';

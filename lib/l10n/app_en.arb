@@ -517,7 +517,6 @@
   "friendsTitle": "Friends",
   "pendingTab": "Pending",
   "blockedTab": "Blocked",
-  "messagingComingSoonMessage": "Messaging is coming soon",
   "noPendingRequestsMessage": "No pending requests",
   "requestPendingLabel": "Request pending",
   "acceptButton": "Accept",
@@ -1029,5 +1028,12 @@
     }
   },
   "deadStoneMarkingResetButton": "Reset",
-  "deadStoneMarkingConfirmButton": "Confirm This Score"
+  "deadStoneMarkingConfirmButton": "Confirm This Score",
+
+  "messagesTitle": "Messages",
+  "noConversationsYetMessage": "No conversations yet",
+  "noMessagesYetMessage": "No messages yet. Say hello!",
+  "messageInputHint": "Type a message...",
+  "sendMessageButton": "Send",
+  "messageSendFailedMessage": "Failed to send message"
 }
