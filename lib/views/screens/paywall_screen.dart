@@ -265,7 +265,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             _buildPricingCard(
               context,
               title: l10n.monthlyLabel,
-              price: '3.00',
+              price: _priceLabel(SubscriptionPlan.monthly),
               period: '/month',
               description: l10n.monthlyPlanDescription,
             )
@@ -273,7 +273,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             _buildPricingCard(
               context,
               title: l10n.annualLabel,
-              price: '29.99',
+              price: _priceLabel(SubscriptionPlan.annual),
               period: '/year',
               description: l10n.annualPlanDescription,
               isBestValue: true,
@@ -375,7 +375,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: '\$$price',
+                  text: price,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: AppColors.washi,
                     fontWeight: FontWeight.bold,
@@ -516,10 +516,27 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         SubscriptionPlan.annual => l10n.annualLabel,
       };
 
-  double _planPrice(SubscriptionPlan plan) => switch (plan) {
-        SubscriptionPlan.monthly => 3.00,
-        SubscriptionPlan.annual => 29.99,
-      };
+  /// ストアの現地通貨価格。取得できない間は日本円の既定価格を出す
+  /// （実際の請求額は常にストア側の設定が正）。
+  String _priceLabel(SubscriptionPlan plan) {
+    final product = ref.watch(subscriptionProductProvider(plan)).valueOrNull;
+    if (product != null) return product.price;
+    return switch (plan) {
+      SubscriptionPlan.monthly => '¥300',
+      SubscriptionPlan.annual => '¥2,400',
+    };
+  }
+
+  ({double price, String currency}) _planPrice(SubscriptionPlan plan) {
+    final product = ref.read(subscriptionProductProvider(plan)).valueOrNull;
+    if (product != null) {
+      return (price: product.rawPrice, currency: product.currencyCode);
+    }
+    return switch (plan) {
+      SubscriptionPlan.monthly => (price: 300.0, currency: 'JPY'),
+      SubscriptionPlan.annual => (price: 2400.0, currency: 'JPY'),
+    };
+  }
 
   void _handlePurchase(BuildContext context, AppLocalizations l10n) async {
     _logger.i('Processing purchase');
@@ -549,8 +566,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       try {
         await ref.read(logPaywallConvertedProvider)(
           plan: planLabel,
-          price: price,
-          currency: 'USD',
+          price: price.price,
+          currency: price.currency,
         );
       } catch (e) {
         _logger.w('Failed to log paywall conversion (purchase still succeeded): $e');
