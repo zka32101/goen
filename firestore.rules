@@ -53,7 +53,8 @@ service cloud.firestore {
       // goes through this uid. Real enforcement needs App Store/Play
       // receipt verification in a Cloud Function.
       allow update: if isOwner(uid);
-      allow delete: if false;
+      // Account deletion (AccountDataDeletionService) removes the owner's own profile.
+      allow delete: if isOwner(uid);
 
       match /friends/{friendUid} {
         allow read, write: if isOwner(uid);
@@ -133,7 +134,9 @@ service cloud.firestore {
     match /gameRecords/{recordId} {
       allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if false; // history is immutable
+      allow update: if false; // history is immutable
+      // ...but its owner may delete it when deleting their account
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
     }
 
     // ---------------- curated, admin/server-only content ----------------
@@ -160,14 +163,16 @@ service cloud.firestore {
     match /userTsumeGoLogs/{logId} {
       allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
     }
 
     // ---------------- observationLogs/{autoId} ----------------
     match /observationLogs/{logId} {
       allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
     }
 
     // ---------------- pvp_games/{gameId} ----------------

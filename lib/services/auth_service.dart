@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
+import 'package:goen/services/account_data_deletion_service.dart';
 import 'package:goen/services/firestore_service.dart';
 
 /// Firebase reports an empty string (not null) for users without a display
@@ -366,6 +367,13 @@ class AuthService {
       }
 
       _logger.w('Deleting user account: ${user.uid}');
+      // Firestore data first: once the auth user is gone the security rules
+      // no longer let us touch it. Best effort and idempotent, so a failed
+      // auth delete (e.g. requires-recent-login) can simply be retried.
+      final failed = await AccountDataDeletionService().deleteAllUserData(user.uid);
+      if (failed.isNotEmpty) {
+        _logger.w('Account data cleanup incomplete: ${failed.join(', ')}');
+      }
       await user.delete();
       _logger.i('✅ Account deleted');
     } on firebase_auth.FirebaseAuthException catch (e) {
