@@ -361,19 +361,40 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
             const SizedBox(height: 12),
 
             // Game info
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing: 24,
+              runSpacing: 8,
               children: [
-                _buildInfoItem(context, l10n.categoryLabel, game.category.toString().split('.').last),
-                _buildInfoItem(context, l10n.sourceLabel, game.source),
+                _buildInfoItem(context, l10n.categoryLabel, _categoryText(context, game.category)),
                 if (game.getDifficultyName() != null)
                   _buildInfoItem(context, l10n.difficultyLabel, game.getDifficultyName()!),
               ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              game.source,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.washiDim,
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _categoryText(BuildContext context, KifuCategory c) {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    switch (c) {
+      case KifuCategory.copyrightFree:
+        return ja ? '名局' : 'Classic games';
+      case KifuCategory.ownGames:
+        return ja ? '自分の対局' : 'My games';
+      case KifuCategory.unknown:
+        return ja ? 'その他' : 'Other';
+    }
   }
 
   Widget _buildInfoItem(BuildContext context, String label, String value) {
@@ -450,7 +471,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '${game.source} • ${game.category}',
+                  '${_categoryText(context, game.category)} • ${game.source}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.washiDim,
                   ),
