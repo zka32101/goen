@@ -517,11 +517,15 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     return Container(
       width: 300,
       height: 300,
-      decoration: BoxDecoration(
+      // Frame is a foreground decoration so it does not inset the 300px
+      // coordinate space shared by the grid and the stones.
+      foregroundDecoration: BoxDecoration(
         border: Border.all(
           color: AppColors.wakatake,
           width: 2,
         ),
+      ),
+      decoration: BoxDecoration(
         color: AppColors.kinLight.withOpacity(0.1),
       ),
       child: Stack(
@@ -632,8 +636,9 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                           setState(() => _currentMoveIndex--);
                         }
                       : null,
+                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
                   icon: const Icon(Icons.skip_previous),
-                  label: Text(l10n.previousButton),
+                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(l10n.previousButton, maxLines: 1)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -641,9 +646,10 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                 child: ElevatedButton.icon(
                   onPressed: totalMoves == 0 ? null : () => _handleAutoplay(context, totalMoves),
                   icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                  label: Text(isPlaying ? l10n.pauseButton : l10n.playButton),
+                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(isPlaying ? l10n.pauseButton : l10n.playButton, maxLines: 1)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.kin,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                 ),
               ),
@@ -656,8 +662,9 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                           setState(() => _currentMoveIndex++);
                         }
                       : null,
+                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
                   icon: const Icon(Icons.skip_next),
-                  label: Text(l10n.nextButton),
+                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(l10n.nextButton, maxLines: 1)),
                 ),
               ),
             ],
