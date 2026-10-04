@@ -246,7 +246,8 @@
 
   "loginRequiredMessage": "Please log in",
   "couldNotLoadMessagesMessage": "Could not load messages. Please try again later.",
-  "errorPrefix": "Error: {error}",
+  "errorPrefix": "Something went wrong. Check your connection and try again.",
+  "enNoFriendsYetMessage": "No friends yet. Add friends to calculate En scores.",
   "@errorPrefix": { "placeholders": { "error": { "type": "String" } } },
   "genericErrorMessage": "An error occurred",
 
