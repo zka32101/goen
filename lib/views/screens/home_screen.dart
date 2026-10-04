@@ -173,6 +173,17 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
 
+                  // Friends (add / requests / list)
+                  _buildActionCard(
+                    context,
+                    title: l10n.homeFriendsTitle,
+                    subtitle: l10n.homeFriendsSubtitle,
+                    icon: Icons.group_add,
+                    color: Colors.lightBlue[300]!,
+                    onTap: () => Navigator.of(context).pushNamed('/friends'),
+                  ),
+                  const SizedBox(height: 16),
+
                   // 縁 (En) hub
                   _buildActionCard(
                     context,
