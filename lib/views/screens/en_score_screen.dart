@@ -149,6 +149,15 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
     setState(() => _isCalculating = true);
     try {
       final friends = await ref.read(friendsStreamProvider(uid).future);
+      if (friends.isEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.enNoFriendsYetMessage,
+            ),
+          ),
+        );
+      }
       for (final Friend friend in friends) {
         await ref.read(calculateEnScoreProvider)(
           uid,
@@ -160,6 +169,15 @@ class _EnScoreScreenState extends ConsumerState<EnScoreScreen> {
       ref.invalidate(enConnectionsProvider(uid));
     } catch (e) {
       _logger.e('Error recalculating en scores: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.genericErrorMessage,
+            ),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isCalculating = false);
