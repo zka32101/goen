@@ -116,7 +116,7 @@
   "resetSettingsButton": "設定をリセット",
 
   "unlockPremiumTitle": "プレミアムを解放",
-  "unlockPremiumDescription": "対局数無制限、詳細なAI分析、エキスパートによる棋譜解説をご利用いただけます。",
+  "unlockPremiumDescription": "AIレベル6〜10に挑戦でき、形勢判断の詳細も確認できます。広告も表示されません。",
   "upgradeNowButton": "今すぐアップグレード",
 
   "resetSettingsDialogTitle": "設定をリセットしますか？",
