@@ -503,11 +503,13 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               child: Container(
                 width: 300,
                 height: 300,
-                decoration: BoxDecoration(
+                foregroundDecoration: BoxDecoration(
                   border: Border.all(
                     color: AppColors.fuji,
                     width: 2,
                   ),
+                ),
+                decoration: BoxDecoration(
                   color: AppColors.kinLight.withOpacity(0.1),
                 ),
                 child: Builder(builder: (context) {
