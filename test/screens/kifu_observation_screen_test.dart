@@ -152,7 +152,7 @@ void main() {
 
       // Category and source should be visible
       expect(find.text('カテゴリー'), findsWidgets);
-      expect(find.text('出典'), findsWidgets);
+      expect(find.text('名局'), findsWidgets);
     });
 
     testWidgets('play icon on game card', (WidgetTester tester) async {

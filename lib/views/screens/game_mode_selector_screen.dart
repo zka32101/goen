@@ -155,6 +155,16 @@ class GameModeSelectorScreen extends ConsumerWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _modeHint(context, mode.type),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.washiDim,
+                      height: 1.4,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
               // Mode details
@@ -184,6 +194,25 @@ class GameModeSelectorScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// One-line explanation shown on each mode card.
+  String _modeHint(BuildContext context, GameModeType type) {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    switch (type) {
+      case GameModeType.blitz:
+        return ja ? '持ち時間の短い早打ち対局' : 'Fast games on a short clock';
+      case GameModeType.correspondence:
+        return ja ? '1手ずつ好きな時間に打てる' : 'Play each move at your own pace';
+      case GameModeType.team:
+        return ja ? 'チームで対戦' : 'Play together as a team';
+      case GameModeType.puzzleRush:
+        return ja ? '制限時間内に詰碁を解く' : 'Solve puzzles against the clock';
+      case GameModeType.handicap:
+        return ja ? '先に石を置いて実力差を補う' : 'Even out skill with starting stones';
+      case GameModeType.traditional:
+        return ja ? '標準ルールの1局' : 'A standard game';
+    }
   }
 
   /// Get icon for game mode type

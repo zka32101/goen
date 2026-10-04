@@ -4,6 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/views/widgets/go_stone.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/l10n/app_localizations.dart';
@@ -413,11 +414,15 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
       child: Container(
         width: 300,
         height: 300,
-        decoration: BoxDecoration(
+        // Frame drawn in the foreground so it does not inset the 300px
+        // space shared by grid, stones and tap hit-testing.
+        foregroundDecoration: BoxDecoration(
           border: Border.all(
             color: AppColors.kin,
             width: 2,
           ),
+        ),
+        decoration: BoxDecoration(
           color: AppColors.kinLight.withOpacity(0.1),
         ),
         child: Stack(
@@ -447,32 +452,14 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
       for (int col = 0; col < geometry.boardSize; col++) {
         final stone = stones[row][col];
         if (stone != 0) {
-          final color = stone == 1 ? AppColors.sumi : AppColors.washi;
-          final border = stone == 1
-              ? null
-              : Border.all(color: AppColors.sumi, width: 1);
+          final isBlack = stone == 1;
           final center = geometry.intersectionOffset(row, col);
 
           stoneWidgets.add(
             Positioned(
               left: center.dx - stoneRadius,
               top: center.dy - stoneRadius,
-              child: Container(
-                width: stoneRadius * 2,
-                height: stoneRadius * 2,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color,
-                  border: border,
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black38,
-                      blurRadius: 4,
-                      offset: Offset(2, 2),
-                    ),
-                  ],
-                ),
-              ),
+              child: GoStone(radius: stoneRadius, isBlack: isBlack),
             ),
           );
         }

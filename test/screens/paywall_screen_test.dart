@@ -119,7 +119,10 @@ void main() {
       expect(find.text('得られるもの'), findsWidgets);
     });
 
-    testWidgets('displays all 6 benefits', (WidgetTester tester) async {
+    testWidgets('displays all real premium benefits', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const PaywallScreen(),
@@ -128,12 +131,12 @@ void main() {
       );
 
       // All benefits should be visible
-      expect(find.text('対局数無制限'), findsWidgets);
-      expect(find.text('棋譜ライブラリ'), findsWidgets);
-      expect(find.text('詳細統計'), findsWidgets);
+      expect(find.text('強いAIと対局'), findsWidgets);
+      expect(find.text('形勢判断の詳細'), findsWidgets);
       expect(find.text('広告なし'), findsWidgets);
-      expect(find.text('早期アクセス'), findsWidgets);
-      expect(find.text('優先サポート'), findsWidgets);
+      // Benefits that are not actually implemented must not be advertised.
+      expect(find.text('対局数無制限'), findsNothing);
+      expect(find.text('優先サポート'), findsNothing);
     });
 
     testWidgets('benefits have checkmark icons', (WidgetTester tester) async {
@@ -149,6 +152,9 @@ void main() {
     });
 
     testWidgets('shows benefit descriptions', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 4000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(
         TestUtils.buildTestableWidget(
           child: const PaywallScreen(),
@@ -157,8 +163,8 @@ void main() {
       );
 
       // Descriptions should be visible
-      expect(find.text('AI対局を好きなだけプレイ'), findsWidgets);
-      expect(find.text('1000局以上の過去対局から学ぶ'), findsWidgets);
+      expect(find.text('レベル6〜10のAIに挑戦できます'), findsWidgets);
+      expect(find.text('目差と勝率で局面を分析できます'), findsWidgets);
     });
 
     testWidgets('pricing section visible', (WidgetTester tester) async {
@@ -198,7 +204,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Monthly pricing should be visible
-      expect(findRichText('3.00'), findsWidgets);
+      expect(findRichText('300'), findsWidgets);
     });
 
     testWidgets('can switch to annual pricing', (WidgetTester tester) async {
@@ -217,7 +223,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Annual pricing should be visible
-      expect(findRichText('29.99'), findsWidgets);
+      expect(findRichText('2,400'), findsWidgets);
     });
 
     testWidgets('pricing cards have descriptions', (WidgetTester tester) async {
@@ -469,7 +475,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Period suffix
-      expect(findRichText('/month'), findsWidgets);
+      expect(findRichText('/月'), findsWidgets);
     });
 
     testWidgets('benefits list uses Row layout', (WidgetTester tester) async {

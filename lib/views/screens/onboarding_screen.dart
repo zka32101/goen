@@ -141,12 +141,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             );
                           }
                         : _handleCompleteTutorial,
-                    child: Text(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
                       _currentPage < 2 ? l10n.nextButton : l10n.startPlayingButton,
+                      maxLines: 1,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
+                    ),
                     ),
                   ),
                 ),
@@ -226,54 +230,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const SizedBox(height: 32),
 
             // Mini board visualization
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.kin, width: 2),
-                borderRadius: BorderRadius.circular(8),
-                color: AppColors.kinLight.withOpacity(0.1),
-              ),
-              child: Stack(
-                children: [
-                  // Grid lines
-                  CustomPaint(
-                    painter: _GoGridPainter(),
-                    size: const Size(200, 200),
-                  ),
-                  // Black stone
-                  Positioned(
-                    left: 75,
-                    top: 75,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.sumi,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black38,
-                            blurRadius: 4,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Annotation arrow
-                  Positioned(
-                    right: -20,
-                    top: 80,
-                    child: Icon(
-                      Icons.arrow_forward,
-                      color: AppColors.kin,
-                      size: 32,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const _MiniBoard(stones: [_MiniStone(2, 2, highlight: true)]),
             const SizedBox(height: 32),
 
             Text(
@@ -318,85 +275,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const SizedBox(height: 32),
 
             // Mini board visualization
-            Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.kin, width: 2),
-                borderRadius: BorderRadius.circular(8),
-                color: AppColors.kinLight.withOpacity(0.1),
-              ),
-              child: Stack(
-                children: [
-                  // Grid lines
-                  CustomPaint(
-                    painter: _GoGridPainter(),
-                    size: const Size(200, 200),
-                  ),
-                  // White stone (AI's move)
-                  Positioned(
-                    left: 100,
-                    top: 75,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.washi,
-                        border: Border.all(color: AppColors.sumi, width: 1),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black38,
-                            blurRadius: 4,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Black stone (player's capture)
-                  Positioned(
-                    left: 100,
-                    top: 50,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.sumi,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black38,
-                            blurRadius: 4,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Original black stone
-                  Positioned(
-                    left: 75,
-                    top: 75,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.sumi,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black38,
-                            blurRadius: 4,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _MiniBoard(stones: const [
+              _MiniStone(2, 2, white: true),
+              _MiniStone(1, 2),
+              _MiniStone(2, 1, highlight: true),
+            ]),
             const SizedBox(height: 32),
 
             Text(
@@ -447,31 +330,70 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
-/// Custom painter for Go board grid
-class _GoGridPainter extends CustomPainter {
+class _MiniStone {
+  const _MiniStone(this.col, this.row, {this.white = false, this.highlight = false});
+  final int col;
+  final int row;
+  final bool white;
+  final bool highlight;
+}
+
+/// 5x5-intersection illustration board; stones sit on line intersections.
+class _MiniBoard extends StatelessWidget {
+  const _MiniBoard({required this.stones});
+  final List<_MiniStone> stones;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 220,
+      height: 220,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.kin, width: 2),
+        borderRadius: BorderRadius.circular(8),
+        color: AppColors.kinLight.withOpacity(0.1),
+      ),
+      child: CustomPaint(painter: _MiniBoardPainter(stones)),
+    );
+  }
+}
+
+class _MiniBoardPainter extends CustomPainter {
+  _MiniBoardPainter(this.stones);
+  final List<_MiniStone> stones;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    const n = 5;
+    final pad = size.width * 0.12;
+    final step = (size.width - pad * 2) / (n - 1);
+    final line = Paint()
       ..color = AppColors.grey500
       ..strokeWidth = 1;
-
-    final step = size.width / 4;
-
-    // Horizontal lines
-    for (int i = 0; i <= 4; i++) {
-      canvas.drawLine(Offset(0, i * step), Offset(size.width, i * step), paint);
+    for (var i = 0; i < n; i++) {
+      final v = pad + step * i;
+      canvas.drawLine(Offset(pad, v), Offset(size.width - pad, v), line);
+      canvas.drawLine(Offset(v, pad), Offset(v, size.height - pad), line);
     }
-
-    // Vertical lines
-    for (int i = 0; i <= 4; i++) {
-      canvas.drawLine(
-        Offset(i * step, 0),
-        Offset(i * step, size.height),
-        paint,
-      );
+    for (final s in stones) {
+      final c = Offset(pad + step * s.col, pad + step * s.row);
+      final r = step * 0.46;
+      canvas.drawCircle(c + const Offset(1.5, 2), r, Paint()..color = Colors.black45);
+      canvas.drawCircle(c, r, Paint()..color = s.white ? AppColors.washi : AppColors.sumi);
+      if (s.white) {
+        canvas.drawCircle(c, r, Paint()
+          ..color = AppColors.sumi
+          ..style = PaintingStyle.stroke);
+      }
+      if (s.highlight) {
+        canvas.drawCircle(c, r + 4, Paint()
+          ..color = AppColors.kin
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2);
+      }
     }
   }
 
   @override
-  bool shouldRepaint(_GoGridPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _MiniBoardPainter old) => old.stones != stones;
 }

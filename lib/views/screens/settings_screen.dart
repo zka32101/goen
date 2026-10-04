@@ -256,6 +256,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           },
         ),
         const SizedBox(height: 16),
+        if (!user.email.endsWith('@goen.local')) ...[
         Text(
           l10n.emailLabel,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -276,6 +277,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
         ),
+        ],
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
@@ -369,11 +371,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
+        LayoutBuilder(builder: (context, constraints) {
+          const gap = 8.0;
+          final w = (constraints.maxWidth - gap * 3) / 4;
+          return Wrap(
+          spacing: gap,
+          runSpacing: gap,
           children: [7, 9, 13, 19].map((size) {
-            return ChoiceChip(
-              label: Text('${size}×$size'),
+            return SizedBox(width: w, child: ChoiceChip(
+              showCheckmark: false,
+              label: SizedBox(width: double.infinity, child: Text('${size}×$size', textAlign: TextAlign.center)),
               selected: _selectedBoardSize == size,
               onSelected: (selected) {
                 if (selected) {
@@ -382,9 +389,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _logger.i('Board size preference changed to $size');
                 }
               },
-            );
+            ));
           }).toList(),
-        ),
+        );
+        }),
         const SizedBox(height: 24),
         Text(
           l10n.defaultAiDifficultyLabel,

@@ -7,6 +7,7 @@ import 'package:goen/utils/sgf_parser.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/views/widgets/go_stone.dart';
 import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
@@ -503,11 +504,13 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
               child: Container(
                 width: 300,
                 height: 300,
-                decoration: BoxDecoration(
+                foregroundDecoration: BoxDecoration(
                   border: Border.all(
                     color: AppColors.fuji,
                     width: 2,
                   ),
+                ),
+                decoration: BoxDecoration(
                   color: AppColors.kinLight.withOpacity(0.1),
                 ),
                 child: Builder(builder: (context) {
@@ -602,24 +605,7 @@ class _GameHistoryScreenState extends ConsumerState<GameHistoryScreen> {
           Positioned(
             left: center.dx - stoneRadius,
             top: center.dy - stoneRadius,
-            child: Container(
-              width: stoneRadius * 2,
-              height: stoneRadius * 2,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: isBlack ? null : Border.all(color: AppColors.washiDim, width: 0.5),
-                gradient: RadialGradient(
-                  center: const Alignment(-0.35, -0.4),
-                  radius: 0.9,
-                  colors: isBlack
-                      ? [AppColors.washiDim, AppColors.sumi]
-                      : [AppColors.washi, AppColors.washiDim],
-                ),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(1, 2)),
-                ],
-              ),
-            ),
+            child: GoStone(radius: stoneRadius, isBlack: isBlack),
           ),
         );
       }

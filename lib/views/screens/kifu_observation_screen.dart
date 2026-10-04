@@ -8,6 +8,7 @@ import 'package:goen/utils/sgf_parser.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/views/widgets/go_stone.dart';
 import 'package:goen/l10n/app_localizations.dart';
 
 final _logger = Logger();
@@ -361,19 +362,40 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
             const SizedBox(height: 12),
 
             // Game info
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing: 24,
+              runSpacing: 8,
               children: [
-                _buildInfoItem(context, l10n.categoryLabel, game.category.toString().split('.').last),
-                _buildInfoItem(context, l10n.sourceLabel, game.source),
+                _buildInfoItem(context, l10n.categoryLabel, _categoryText(context, game.category)),
                 if (game.getDifficultyName() != null)
                   _buildInfoItem(context, l10n.difficultyLabel, game.getDifficultyName()!),
               ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              game.source,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.washiDim,
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _categoryText(BuildContext context, KifuCategory c) {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    switch (c) {
+      case KifuCategory.copyrightFree:
+        return ja ? '名局' : 'Classic games';
+      case KifuCategory.ownGames:
+        return ja ? '自分の対局' : 'My games';
+      case KifuCategory.unknown:
+        return ja ? 'その他' : 'Other';
+    }
   }
 
   Widget _buildInfoItem(BuildContext context, String label, String value) {
@@ -450,7 +472,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '${game.source} • ${game.category}',
+                  '${_categoryText(context, game.category)} • ${game.source}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.washiDim,
                   ),
@@ -480,7 +502,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           // Move commentary (placeholder)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildCommentarySection(context),
+            child: _buildCommentarySection(context, boardSize, moves),
           ),
 
           const SizedBox(height: 24),
@@ -496,11 +518,15 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     return Container(
       width: 300,
       height: 300,
-      decoration: BoxDecoration(
+      // Frame is a foreground decoration so it does not inset the 300px
+      // coordinate space shared by the grid and the stones.
+      foregroundDecoration: BoxDecoration(
         border: Border.all(
           color: AppColors.wakatake,
           width: 2,
         ),
+      ),
+      decoration: BoxDecoration(
         color: AppColors.kinLight.withOpacity(0.1),
       ),
       child: Stack(
@@ -529,24 +555,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           Positioned(
             left: center.dx - stoneRadius,
             top: center.dy - stoneRadius,
-            child: Container(
-              width: stoneRadius * 2,
-              height: stoneRadius * 2,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: isBlack ? null : Border.all(color: AppColors.washiDim, width: 0.5),
-                gradient: RadialGradient(
-                  center: const Alignment(-0.35, -0.4),
-                  radius: 0.9,
-                  colors: isBlack
-                      ? [AppColors.washiDim, AppColors.sumi]
-                      : [AppColors.washi, AppColors.washiDim],
-                ),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(1, 2)),
-                ],
-              ),
-            ),
+            child: GoStone(radius: stoneRadius, isBlack: isBlack),
           ),
         );
       }
@@ -611,8 +620,9 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                           setState(() => _currentMoveIndex--);
                         }
                       : null,
+                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
                   icon: const Icon(Icons.skip_previous),
-                  label: Text(l10n.previousButton),
+                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(l10n.previousButton, maxLines: 1)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -620,9 +630,10 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                 child: ElevatedButton.icon(
                   onPressed: totalMoves == 0 ? null : () => _handleAutoplay(context, totalMoves),
                   icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                  label: Text(isPlaying ? l10n.pauseButton : l10n.playButton),
+                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(isPlaying ? l10n.pauseButton : l10n.playButton, maxLines: 1)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.kin,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                 ),
               ),
@@ -635,8 +646,9 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
                           setState(() => _currentMoveIndex++);
                         }
                       : null,
+                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8)),
                   icon: const Icon(Icons.skip_next),
-                  label: Text(l10n.nextButton),
+                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(l10n.nextButton, maxLines: 1)),
                 ),
               ),
             ],
@@ -646,7 +658,49 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     );
   }
 
-  Widget _buildCommentarySection(BuildContext context) {
+  /// Move-by-move notes derived from the position itself (no engine needed):
+  /// who played where, what was captured and the running stone count.
+  String _commentaryFor(BuildContext context, int boardSize, List<SgfMove> moves) {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    final index = _currentMoveIndex;
+    if (index <= 0 || moves.isEmpty) {
+      return ja
+          ? 'スライダーか「次へ」で手を進めると、一手ごとの着手と取った石の数がここに表示されます。'
+          : 'Step through the game to see each move and any captures here.';
+    }
+    int count(List<List<int>> g, int who) =>
+        g.fold(0, (a, r) => a + r.where((v) => v == who).length);
+    final before = replaySgfMoves(moves, boardSize, index - 1);
+    final after = replaySgfMoves(moves, boardSize, index);
+    final move = moves[index - 1];
+    final isBlack = move.player == 1;
+    final who = ja ? (isBlack ? '黒' : '白') : (isBlack ? 'Black' : 'White');
+    final opp = isBlack ? 2 : 1;
+    final captured = count(before, opp) - count(after, opp);
+    final blackNow = count(after, 1);
+    final whiteNow = count(after, 2);
+    final board = ja
+        ? '盤上: 黒$blackNow子 / 白$whiteNow子'
+        : 'On board: Black $blackNow / White $whiteNow';
+    if (move.isPass) {
+      return ja ? '$index手目: $whoはパスしました。\n$board' : 'Move $index: $who passed.\n$board';
+    }
+    const letters = 'ABCDEFGHJKLMNOPQRST';
+    final coord = '${letters[move.col]}${boardSize - move.row}';
+    final String cap;
+    if (captured <= 0) {
+      cap = '';
+    } else if (ja) {
+      cap = '\n相手の石を$captured子取りました。';
+    } else {
+      cap = '\nCaptured $captured ${captured == 1 ? "stone" : "stones"}.';
+    }
+    return ja
+        ? '$index手目: $whoが$coordに打ちました。$cap\n$board'
+        : 'Move $index: $who played $coord.$cap\n$board';
+  }
+
+  Widget _buildCommentarySection(BuildContext context, int boardSize, List<SgfMove> moves) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -666,7 +720,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            l10n.commentaryPlaceholderMessage,
+            _commentaryFor(context, boardSize, moves),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.washiDim,
               height: 1.6,

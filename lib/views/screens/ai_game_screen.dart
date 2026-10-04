@@ -11,6 +11,7 @@ import 'package:goen/utils/wa_decorations.dart';
 import 'package:goen/utils/go_board_geometry.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/views/widgets/index.dart';
+import 'package:goen/views/widgets/go_stone.dart';
 import 'package:goen/views/screens/dead_stone_marking_screen.dart';
 import 'package:goen/l10n/app_localizations.dart';
 
@@ -26,6 +27,9 @@ final _logger = Logger();
 /// - Move-by-move game recording
 ///
 /// Priority: Aha moment path - Capture stone on first move
+/// Ink colour for grid lines and star points drawn on the wooden board.
+const Color _woodLine = Color(0xB83A2711);
+
 class AIGameScreen extends ConsumerStatefulWidget {
   const AIGameScreen({Key? key}) : super(key: key);
 
@@ -380,7 +384,11 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
               children: [
                 // Grid lines
                 CustomPaint(
-                  painter: GoBoardGridPainter(boardSize: boardSize),
+                  painter: GoBoardGridPainter(
+                    boardSize: boardSize,
+                    lineColor: _woodLine,
+                    starPointColor: _woodLine,
+                  ),
                   size: Size(boardPixelSize, boardPixelSize),
                 ),
 
@@ -471,39 +479,13 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
         if (stone != 0) {
           // 0 = empty, 1 = black, 2 = white
           final isBlack = stone == 1;
-          final border = isBlack
-              ? null
-              : Border.all(color: AppColors.washiDim, width: 0.5);
           final center = geometry.intersectionOffset(row, col);
 
           stoneWidgets.add(
             Positioned(
               left: center.dx - stoneRadius,
               top: center.dy - stoneRadius,
-              child: Container(
-                width: stoneRadius * 2,
-                height: stoneRadius * 2,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: border,
-                  // 光源が左上にあるガラス/石のような艶を出すため、
-                  // ハイライトを左上にずらしたradialGradientにする。
-                  gradient: RadialGradient(
-                    center: const Alignment(-0.35, -0.4),
-                    radius: 0.9,
-                    colors: isBlack
-                        ? [AppColors.washiDim, AppColors.sumi]
-                        : [AppColors.washi, AppColors.washiDim],
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black45,
-                      blurRadius: 5,
-                      offset: Offset(1.5, 2.5),
-                    ),
-                  ],
-                ),
-              ),
+              child: GoStone(radius: stoneRadius, isBlack: isBlack),
             ),
           );
         }
@@ -731,30 +713,45 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       borderRadius: BorderRadius.circular(8),
       onTap: () => Navigator.of(context).pushNamed('/paywall'),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.kin, width: 1),
-          borderRadius: BorderRadius.circular(8),
-          color: AppColors.washiDim.withOpacity(0.5),
+          border: Border.all(color: AppColors.kin.withOpacity(0.6), width: 1),
+          borderRadius: BorderRadius.circular(12),
+          color: AppColors.kin.withOpacity(0.08),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.lock_outline, color: AppColors.kin),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                l10n.analysisLockedMessage,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.washi,
+            Row(
+              children: [
+                Icon(Icons.lock_outline, size: 20, color: AppColors.kin),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.analysisLockedMessage,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.washi,
+                      height: 1.5,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              l10n.analysisLockedAction,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: AppColors.kin,
-                fontWeight: FontWeight.bold,
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l10n.analysisLockedAction,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: AppColors.kin,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, size: 20, color: AppColors.kin),
+                ],
               ),
             ),
           ],
@@ -1006,7 +1003,11 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
                 ),
               ),
               CustomPaint(
-                painter: GoBoardGridPainter(boardSize: boardSize),
+                painter: GoBoardGridPainter(
+                    boardSize: boardSize,
+                    lineColor: _woodLine,
+                    starPointColor: _woodLine,
+                  ),
                 size: const Size(previewSize, previewSize),
               ),
               ..._buildPreviewStones(geometry, stones),

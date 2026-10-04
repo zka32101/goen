@@ -176,8 +176,8 @@ void main() {
       await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
-      // Black stone container should exist
-      expect(find.byType(Positioned), findsWidgets);
+      // Mini board illustration with the first black stone should exist
+      expect(find.byWidgetPredicate((w) => w.runtimeType.toString() == '_MiniBoard'), findsOneWidget);
     });
 
     testWidgets('can navigate to third card', (WidgetTester tester) async {
@@ -343,8 +343,8 @@ void main() {
       await tester.tap(find.text('次へ'));
       await tester.pumpAndSettle();
 
-      // Multiple positioned elements for stones
-      expect(find.byType(Positioned), findsWidgets);
+      // Mini board illustration with several stones should exist
+      expect(find.byWidgetPredicate((w) => w.runtimeType.toString() == '_MiniBoard'), findsOneWidget);
     });
 
     testWidgets('has full height page view', (WidgetTester tester) async {

@@ -42,17 +42,22 @@ class GoBoardGridPainter extends CustomPainter {
     final paint = Paint()
       ..color = lineColor
       ..strokeWidth = 1;
+    // The outermost lines are the board's edge: draw them a touch heavier.
+    final edgePaint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 1.8;
 
     for (int i = 0; i < boardSize; i++) {
+      final p = (i == 0 || i == boardSize - 1) ? edgePaint : paint;
       canvas.drawLine(
         geometry.intersectionOffset(i, 0),
         geometry.intersectionOffset(i, boardSize - 1),
-        paint,
+        p,
       );
       canvas.drawLine(
         geometry.intersectionOffset(0, i),
         geometry.intersectionOffset(boardSize - 1, i),
-        paint,
+        p,
       );
     }
 
@@ -61,7 +66,11 @@ class GoBoardGridPainter extends CustomPainter {
     if (starColor != null && starPositions != null) {
       final starPaint = Paint()..color = starColor;
       for (final (row, col) in starPositions) {
-        canvas.drawCircle(geometry.intersectionOffset(row, col), 3, starPaint);
+        canvas.drawCircle(
+          geometry.intersectionOffset(row, col),
+          (geometry.pitch * 0.085).clamp(2.0, 4.5),
+          starPaint,
+        );
       }
     }
   }
