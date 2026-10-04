@@ -136,9 +136,14 @@ class _AiLevelSheetState extends ConsumerState<_AiLevelSheet> {
       avatar: locked
           ? Icon(Icons.lock_outline, size: 16, color: AppColors.washiDim)
           : null,
+      // ロック用アイコンの分だけ幅が狭くなっても「レベル 6」が欠けないよう縮小して収める
+      labelPadding: const EdgeInsets.symmetric(horizontal: 2),
       label: SizedBox(
         width: double.infinity,
-        child: Text(l10n.aiLevelOption(level), textAlign: TextAlign.center),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(l10n.aiLevelOption(level), textAlign: TextAlign.center),
+        ),
       ),
       labelStyle: TextStyle(
         color: selected
