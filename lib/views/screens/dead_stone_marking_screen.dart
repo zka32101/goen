@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:goen/config/theme.dart';
+import 'package:goen/views/widgets/go_stone.dart';
 import 'package:goen/l10n/app_localizations.dart';
 import 'package:goen/services/go_rules.dart';
 import 'package:goen/services/go_scoring.dart';
@@ -12,6 +13,9 @@ import 'package:goen/views/widgets/go_board_grid_painter.dart';
 /// ないため、OGS/KGS/Tygemなど他の囲碁アプリと同じく、対局者自身が死んで
 /// いる石をタップして取り除く手動確認を挟む。盤面に残った石を全て生存
 /// として数える旧来のフォールバックより、実際の対局結果を正しく反映する。
+/// Ink colour for grid lines and star points drawn on the wooden board.
+const Color _woodLine = Color(0xB83A2711);
+
 class DeadStoneMarkingScreen extends StatefulWidget {
   final List<List<int>> stones;
   final int boardSize;
@@ -206,7 +210,11 @@ class _DeadStoneMarkingScreenState extends State<DeadStoneMarkingScreen> {
                   ),
                 ),
                 CustomPaint(
-                  painter: GoBoardGridPainter(boardSize: widget.boardSize),
+                  painter: GoBoardGridPainter(
+                    boardSize: widget.boardSize,
+                    lineColor: _woodLine,
+                    starPointColor: _woodLine,
+                  ),
                   size: Size(boardPixelSize, boardPixelSize),
                 ),
                 ..._buildStones(geometry),
@@ -237,29 +245,9 @@ class _DeadStoneMarkingScreenState extends State<DeadStoneMarkingScreen> {
             top: center.dy - stoneRadius,
             child: Opacity(
               opacity: isDead ? 0.35 : 1.0,
-              child: Container(
-                width: stoneRadius * 2,
-                height: stoneRadius * 2,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: isBlack
-                      ? null
-                      : Border.all(color: AppColors.washiDim, width: 0.5),
-                  gradient: RadialGradient(
-                    center: const Alignment(-0.35, -0.4),
-                    radius: 0.9,
-                    colors: isBlack
-                        ? [AppColors.washiDim, AppColors.sumi]
-                        : [AppColors.washi, AppColors.washiDim],
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black45,
-                      blurRadius: 5,
-                      offset: Offset(1.5, 2.5),
-                    ),
-                  ],
-                ),
+              child: GoStone(
+                radius: stoneRadius,
+                isBlack: isBlack,
                 child: isDead
                     ? Icon(
                         Icons.close,
