@@ -731,30 +731,45 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
       borderRadius: BorderRadius.circular(8),
       onTap: () => Navigator.of(context).pushNamed('/paywall'),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.kin, width: 1),
-          borderRadius: BorderRadius.circular(8),
-          color: AppColors.washiDim.withOpacity(0.5),
+          border: Border.all(color: AppColors.kin.withOpacity(0.6), width: 1),
+          borderRadius: BorderRadius.circular(12),
+          color: AppColors.kin.withOpacity(0.08),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.lock_outline, color: AppColors.kin),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                l10n.analysisLockedMessage,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.washi,
+            Row(
+              children: [
+                Icon(Icons.lock_outline, size: 20, color: AppColors.kin),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.analysisLockedMessage,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.washi,
+                      height: 1.5,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              l10n.analysisLockedAction,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: AppColors.kin,
-                fontWeight: FontWeight.bold,
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l10n.analysisLockedAction,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: AppColors.kin,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, size: 20, color: AppColors.kin),
+                ],
               ),
             ),
           ],
