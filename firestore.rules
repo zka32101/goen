@@ -27,6 +27,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid in ids;
     }
 
+    // Same as isEither(a, b) but written as an OR of equalities so
+    // list queries filtered on a or b are provably allowed (the `in [..]`
+    // form is rejected for queries).
+    function isEither(a, b) {
+      return isSignedIn() && (request.auth.uid == a || request.auth.uid == b);
+    }
+
     function unchanged(field) {
       return request.resource.data[field] == resource.data[field];
     }
@@ -178,13 +185,13 @@ service cloud.firestore {
     // ---------------- pvp_games/{gameId} ----------------
     match /pvp_games/{gameId} {
       allow read: if isSignedIn();
-      allow create: if isParticipant([request.resource.data.blackUid, request.resource.data.whiteUid]);
+      allow create: if isEither(request.resource.data.blackUid, request.resource.data.whiteUid);
       // GoRules itself (legality, captures, scoring) runs client-side and
       // can't be re-verified by rules — a participant can still write an
       // illegal board. What rules CAN enforce: only a participant writes,
       // the identities/board size/tournament link never change, and any
       // declared winner is one of the two players.
-      allow update: if isParticipant([resource.data.blackUid, resource.data.whiteUid]) &&
+      allow update: if isEither(resource.data.blackUid, resource.data.whiteUid) &&
         unchanged('blackUid') && unchanged('whiteUid') && unchanged('boardSize') &&
         (!('tournamentId' in resource.data) || unchanged('tournamentId')) &&
         (!('winnerUid' in request.resource.data) ||
@@ -206,9 +213,9 @@ service cloud.firestore {
 
     // ---------------- match_results/{matchId} ----------------
     match /match_results/{matchId} {
-      allow read: if isParticipant([resource.data.player1Uid, resource.data.player2Uid]);
+      allow read: if isEither(resource.data.player1Uid, resource.data.player2Uid);
       allow create: if isSignedIn() && request.resource.data.player1Uid == request.auth.uid;
-      allow update: if isParticipant([resource.data.player1Uid, resource.data.player2Uid]) &&
+      allow update: if isEither(resource.data.player1Uid, resource.data.player2Uid) &&
         onlyChanged(['gameId']);
       allow delete: if false;
     }
@@ -276,7 +283,7 @@ service cloud.firestore {
       // not-found and reveals nothing.
       allow read: if isSignedIn() &&
         (resource == null ||
-         isParticipant([resource.data.sponsorUserId, resource.data.sponsoredUserId]));
+         isEither(resource.data.sponsorUserId, resource.data.sponsoredUserId));
       allow create: if isSignedIn() &&
         request.resource.data.sponsorUserId == request.auth.uid &&
         sponsorshipId == request.resource.data.sponsorUserId + '_' + request.resource.data.sponsoredUserId;
@@ -392,9 +399,9 @@ service cloud.firestore {
     }
 
     match /correspondenceGames/{gameId} {
-      allow read: if isParticipant([resource.data.uid, resource.data.opponentUid]);
+      allow read: if isEither(resource.data.uid, resource.data.opponentUid);
       allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow update: if isParticipant([resource.data.uid, resource.data.opponentUid]) &&
+      allow update: if isEither(resource.data.uid, resource.data.opponentUid) &&
         unchanged('uid') && unchanged('opponentUid');
       allow delete: if false;
     }
@@ -412,17 +419,17 @@ service cloud.firestore {
     }
 
     match /game_sessions/{sessionId} {
-      allow read: if isParticipant([resource.data.blackPlayerId, resource.data.whitePlayerId]);
-      allow create: if isParticipant([request.resource.data.blackPlayerId, request.resource.data.whitePlayerId]);
-      allow update: if isParticipant([resource.data.blackPlayerId, resource.data.whitePlayerId]) &&
+      allow read: if isEither(resource.data.blackPlayerId, resource.data.whitePlayerId);
+      allow create: if isEither(request.resource.data.blackPlayerId, request.resource.data.whitePlayerId);
+      allow update: if isEither(resource.data.blackPlayerId, resource.data.whitePlayerId) &&
         unchanged('blackPlayerId') && unchanged('whitePlayerId');
       allow delete: if false;
     }
 
     match /games/{gameId} {
-      allow read: if isParticipant([resource.data.blackPlayerId, resource.data.whitePlayerId]);
-      allow create: if isParticipant([request.resource.data.blackPlayerId, request.resource.data.whitePlayerId]);
-      allow update: if isParticipant([resource.data.blackPlayerId, resource.data.whitePlayerId]) &&
+      allow read: if isEither(resource.data.blackPlayerId, resource.data.whitePlayerId);
+      allow create: if isEither(request.resource.data.blackPlayerId, request.resource.data.whitePlayerId);
+      allow update: if isEither(resource.data.blackPlayerId, resource.data.whitePlayerId) &&
         unchanged('blackPlayerId') && unchanged('whitePlayerId');
       allow delete: if false;
 
@@ -454,7 +461,7 @@ service cloud.firestore {
 
     // ---------------- invitations, two parallel collections ----------------
     match /gameInvitations/{invitationId} {
-      allow read: if isParticipant([resource.data.fromUid, resource.data.toUid]);
+      allow read: if isEither(resource.data.fromUid, resource.data.toUid);
       allow create: if isSignedIn() && request.resource.data.fromUid == request.auth.uid;
       allow update: if isSignedIn() && (
         (request.auth.uid == resource.data.toUid && onlyChanged(['status'])) ||
@@ -465,16 +472,16 @@ service cloud.firestore {
       // to the calling user's own invitations precisely because deletion
       // here is participant-only (no admin/server context exists to run a
       // global sweep).
-      allow delete: if isParticipant([resource.data.fromUid, resource.data.toUid]);
+      allow delete: if isEither(resource.data.fromUid, resource.data.toUid);
     }
 
     match /game_invitations/{invitationId} {
-      allow read: if isParticipant([resource.data.fromUserId, resource.data.toUserId]);
+      allow read: if isEither(resource.data.fromUserId, resource.data.toUserId);
       allow create: if isSignedIn() && request.resource.data.fromUserId == request.auth.uid;
       allow update: if isSignedIn() &&
         request.auth.uid in [resource.data.fromUserId, resource.data.toUserId] &&
         onlyChanged(['status', 'respondedAt']);
-      allow delete: if isParticipant([resource.data.fromUserId, resource.data.toUserId]);
+      allow delete: if isEither(resource.data.fromUserId, resource.data.toUserId);
     }
 
     // ---------------- chat_messages/{messageId} ----------------
