@@ -243,6 +243,7 @@
   },
 
   "loginRequiredMessage": "ログインが必要です",
+  "couldNotLoadMessagesMessage": "メッセージを読み込めませんでした。時間をおいてもう一度お試しください",
   "errorPrefix": "エラー: {error}",
   "@errorPrefix": { "placeholders": { "error": { "type": "String" } } },
   "genericErrorMessage": "エラーが発生しました",

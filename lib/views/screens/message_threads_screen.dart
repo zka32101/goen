@@ -105,7 +105,15 @@ class MessageThreadsScreen extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text(l10n.errorPrefix('$err'))),
+      error: (err, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            l10n.couldNotLoadMessagesMessage,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
     );
   }
 }
