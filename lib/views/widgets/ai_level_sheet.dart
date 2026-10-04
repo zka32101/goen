@@ -84,13 +84,23 @@ class _AiLevelSheetState extends ConsumerState<_AiLevelSheet> {
               ),
             ],
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (var level = 1; level <= AIOpponentConfig.maxLevel; level++)
-                  _levelChip(context, l10n, level, isPremium),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const gap = 8.0;
+                const columns = 3;
+                final w = (constraints.maxWidth - gap * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  children: [
+                    for (var level = 1; level <= AIOpponentConfig.maxLevel; level++)
+                      SizedBox(
+                        width: w,
+                        child: _levelChip(context, l10n, level, isPremium),
+                      ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -126,7 +136,10 @@ class _AiLevelSheetState extends ConsumerState<_AiLevelSheet> {
       avatar: locked
           ? Icon(Icons.lock_outline, size: 16, color: AppColors.washiDim)
           : null,
-      label: Text(l10n.aiLevelOption(level)),
+      label: SizedBox(
+        width: double.infinity,
+        child: Text(l10n.aiLevelOption(level), textAlign: TextAlign.center),
+      ),
       labelStyle: TextStyle(
         color: selected
             ? AppColors.sumi
