@@ -243,6 +243,7 @@
   },
 
   "loginRequiredMessage": "Please log in",
+  "couldNotLoadMessagesMessage": "Could not load messages. Please try again later.",
   "errorPrefix": "Error: {error}",
   "@errorPrefix": { "placeholders": { "error": { "type": "String" } } },
   "genericErrorMessage": "An error occurred",
