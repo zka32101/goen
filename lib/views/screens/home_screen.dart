@@ -38,6 +38,9 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('碁縁'),
         centerTitle: true,
+        // Mirror the three action icons (3 x 48dp) so the title stays centred.
+        leading: const SizedBox.shrink(),
+        leadingWidth: 144,
         backgroundColor: AppColors.sumi,
         elevation: 0,
         actions: [
