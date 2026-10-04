@@ -501,7 +501,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           // Move commentary (placeholder)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildCommentarySection(context),
+            child: _buildCommentarySection(context, boardSize, moves),
           ),
 
           const SizedBox(height: 24),
@@ -674,7 +674,49 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
     );
   }
 
-  Widget _buildCommentarySection(BuildContext context) {
+  /// Move-by-move notes derived from the position itself (no engine needed):
+  /// who played where, what was captured and the running stone count.
+  String _commentaryFor(BuildContext context, int boardSize, List<SgfMove> moves) {
+    final ja = Localizations.localeOf(context).languageCode == 'ja';
+    final index = _currentMoveIndex;
+    if (index <= 0 || moves.isEmpty) {
+      return ja
+          ? 'スライダーか「次へ」で手を進めると、一手ごとの着手と取った石の数がここに表示されます。'
+          : 'Step through the game to see each move and any captures here.';
+    }
+    int count(List<List<int>> g, int who) =>
+        g.fold(0, (a, r) => a + r.where((v) => v == who).length);
+    final before = replaySgfMoves(moves, boardSize, index - 1);
+    final after = replaySgfMoves(moves, boardSize, index);
+    final move = moves[index - 1];
+    final isBlack = move.player == 1;
+    final who = ja ? (isBlack ? '黒' : '白') : (isBlack ? 'Black' : 'White');
+    final opp = isBlack ? 2 : 1;
+    final captured = count(before, opp) - count(after, opp);
+    final blackNow = count(after, 1);
+    final whiteNow = count(after, 2);
+    final board = ja
+        ? '盤上: 黒$blackNow子 / 白$whiteNow子'
+        : 'On board: Black $blackNow / White $whiteNow';
+    if (move.isPass) {
+      return ja ? '$index手目: $whoはパスしました。\n$board' : 'Move $index: $who passed.\n$board';
+    }
+    const letters = 'ABCDEFGHJKLMNOPQRST';
+    final coord = '${letters[move.col]}${boardSize - move.row}';
+    final String cap;
+    if (captured <= 0) {
+      cap = '';
+    } else if (ja) {
+      cap = '\n相手の石を$captured子取りました。';
+    } else {
+      cap = '\nCaptured $captured ${captured == 1 ? "stone" : "stones"}.';
+    }
+    return ja
+        ? '$index手目: $whoが$coordに打ちました。$cap\n$board'
+        : 'Move $index: $who played $coord.$cap\n$board';
+  }
+
+  Widget _buildCommentarySection(BuildContext context, int boardSize, List<SgfMove> moves) {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -694,7 +736,7 @@ class _KifuObservationScreenState extends ConsumerState<KifuObservationScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            l10n.commentaryPlaceholderMessage,
+            _commentaryFor(context, boardSize, moves),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.washiDim,
               height: 1.6,
