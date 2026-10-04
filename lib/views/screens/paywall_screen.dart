@@ -133,10 +133,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     final benefits = [
       (l10n.benefitUnlimitedGamesTitle, l10n.benefitUnlimitedGamesDesc),
       (l10n.benefitKifuLibraryTitle, l10n.benefitKifuLibraryDesc),
-      (l10n.benefitAdvancedStatsTitle, l10n.benefitAdvancedStatsDesc),
       (l10n.benefitNoAdsTitle, l10n.benefitNoAdsDesc),
-      (l10n.benefitEarlyAccessTitle, l10n.benefitEarlyAccessDesc),
-      (l10n.benefitPremiumSupportTitle, l10n.benefitPremiumSupportDesc),
     ];
 
     return Padding(
@@ -266,7 +263,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               context,
               title: l10n.monthlyLabel,
               price: _priceLabel(SubscriptionPlan.monthly),
-              period: '/month',
+              period: l10n.pricePerMonthSuffix,
               description: l10n.monthlyPlanDescription,
             )
           else
@@ -274,7 +271,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               context,
               title: l10n.annualLabel,
               price: _priceLabel(SubscriptionPlan.annual),
-              period: '/year',
+              period: l10n.pricePerYearSuffix,
               description: l10n.annualPlanDescription,
               isBestValue: true,
               l10n: l10n,
