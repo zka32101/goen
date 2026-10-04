@@ -39,10 +39,13 @@ class FatefulMovesScreen extends ConsumerWidget {
       data: (moves) {
         if (moves.isEmpty) {
           return Center(
-            child: Text(
-              l10n.noFatefulMovesMessage,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.washiDim),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                l10n.noFatefulMovesMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.washiDim),
+              ),
             ),
           );
         }
