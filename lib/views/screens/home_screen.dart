@@ -36,11 +36,17 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: AppColors.sumi,
       bottomNavigationBar: const AdBanner(),
       appBar: AppBar(
-        title: const Text('碁縁'),
-        centerTitle: true,
-        // Mirror the three action icons (3 x 48dp) so the title stays centred.
-        leading: const SizedBox.shrink(),
-        leadingWidth: 144,
+        // The title lives in flexibleSpace so it is centred on the screen
+        // regardless of how many action icons sit on the right.
+        title: const SizedBox.shrink(),
+        flexibleSpace: SafeArea(
+          child: Center(
+            child: Text(
+              '碁縁',
+              style: Theme.of(context).appBarTheme.titleTextStyle,
+            ),
+          ),
+        ),
         backgroundColor: AppColors.sumi,
         elevation: 0,
         actions: [
