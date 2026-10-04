@@ -1,3 +1,6 @@
+import 'package:goen/services/go_hints.dart';
+import 'package:goen/viewmodels/danger_hints_provider.dart';
+import 'package:goen/views/widgets/go_hint_painter.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -394,6 +397,31 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
                 // Stones
                 ..._buildStones(geometry, boardState.stones),
+
+                // 初心者向け: アタリの石と打てない点の可視化（設定でオフにできる）
+                if (ref.watch(dangerHintsProvider))
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: GoHintPainter(
+                          geometry: geometry,
+                          atari: GoHints.atariStones(
+                            boardState.stones,
+                            boardSize,
+                          ),
+                          illegal: boardState.isBlackTurn
+                              ? GoHints.illegalPoints(
+                                  boardState.stones,
+                                  boardSize,
+                                  1,
+                                  koRow: boardState.koRow,
+                                  koCol: boardState.koCol,
+                                )
+                              : const {},
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // 直前の一手を示す朱の印
                 if (lastMove != null)

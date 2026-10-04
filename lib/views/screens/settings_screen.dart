@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../viewmodels/danger_hints_provider.dart';
 import 'package:goen/models/index.dart';
 import 'package:goen/viewmodels/index.dart';
 import 'package:goen/views/widgets/index.dart';
@@ -445,6 +446,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 24),
+        _buildSettingSwitch(
+          context,
+          l10n.dangerHintsTitle,
+          l10n.dangerHintsSubtitle,
+          ref.watch(dangerHintsProvider),
+          (value) => ref.read(dangerHintsProvider.notifier).set(value),
         ),
       ],
     );

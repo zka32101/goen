@@ -65,6 +65,18 @@ class GoRules {
     return _group(stones, boardSize, row, col);
   }
 
+  /// Number of liberties of the group containing the stone at (row, col),
+  /// or 0 if the point is empty.
+  static int libertiesAt(
+    List<List<int>> stones,
+    int boardSize,
+    int row,
+    int col,
+  ) {
+    if (stones[row][col] == 0) return 0;
+    return _liberties(stones, boardSize, _group(stones, boardSize, row, col));
+  }
+
   /// Number of distinct empty liberties adjacent to the group.
   static int _liberties(
     List<List<int>> stones,
