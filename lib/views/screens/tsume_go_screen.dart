@@ -413,11 +413,15 @@ class _TsumeGoScreenState extends ConsumerState<TsumeGoScreen> {
       child: Container(
         width: 300,
         height: 300,
-        decoration: BoxDecoration(
+        // Frame drawn in the foreground so it does not inset the 300px
+        // space shared by grid, stones and tap hit-testing.
+        foregroundDecoration: BoxDecoration(
           border: Border.all(
             color: AppColors.kin,
             width: 2,
           ),
+        ),
+        decoration: BoxDecoration(
           color: AppColors.kinLight.withOpacity(0.1),
         ),
         child: Stack(
