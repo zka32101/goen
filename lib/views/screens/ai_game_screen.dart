@@ -164,7 +164,7 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
             children: [
               // Game info
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -230,30 +230,20 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
               Expanded(
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 4,
+                    ),
                     child: _buildGoBoard(context, ref, boardState, lastMove),
                   ),
                 ),
-              ),
-
-              // 指し手リスト（タップで局面をプレビュー表示）
-              // 高さを常に確保し、最初の着手で盤が動かないようにする。
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: moveHistory.isNotEmpty
-                    ? _buildMoveList(
-                        context,
-                        moveHistory,
-                        boardState.boardSize,
-                      )
-                    : const SizedBox(height: 40),
               ),
 
               // Position evaluation display
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 4,
                 ),
                 child: SizedBox(
                   height: _evaluationPanelHeight,
@@ -263,13 +253,13 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
 
               // Game controls
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                 child: Column(
                   children: [
                     // AI move status
                     // 出入りで盤の高さが変わらないよう、枠は常に確保する。
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: 8),
                       child: SizedBox(
                         height: 28,
                         child: ref.watch(aiMoveProvider).isLoading
@@ -913,176 +903,6 @@ class _AIGameScreenState extends ConsumerState<AIGameScreen> {
     );
   }
 
-  /// 指し手の一覧。タップすると、その時点までの局面をライブの対局状態を
-  /// 変えずにプレビューできる（棋譜観戦の簡易版）。
-  Widget _buildMoveList(
-    BuildContext context,
-    List<({int row, int col, String player})> history,
-    int boardSize,
-  ) {
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: history.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
-        itemBuilder: (context, index) {
-          final move = history[index];
-          final isBlack = move.player == 'black';
-          return GestureDetector(
-            onTap: () => _showMovePreview(context, history, boardSize, index),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey700),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isBlack ? AppColors.sumi : AppColors.washi,
-                      border: isBlack
-                          ? null
-                          : Border.all(color: AppColors.washiDim),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${index + 1}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelSmall?.copyWith(color: AppColors.washi),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// `history`の先頭から`upToIndex`（0始まり、その手を含む）までを
-  /// GoRulesで再生し、その時点の盤面を求める。ライブの対局状態
-  /// （gameBoardStateProvider等）には一切触れない、表示専用の計算。
-  List<List<int>> _replayHistoryUpTo(
-    List<({int row, int col, String player})> history,
-    int boardSize,
-    int upToIndex,
-  ) {
-    var stones = List.generate(boardSize, (_) => List.filled(boardSize, 0));
-    int? koRow;
-    int? koCol;
-
-    for (var i = 0; i <= upToIndex && i < history.length; i++) {
-      final move = history[i];
-      final player = move.player == 'black' ? 1 : 2;
-      final result = GoRules.applyMove(
-        stones: stones,
-        boardSize: boardSize,
-        row: move.row,
-        col: move.col,
-        player: player,
-        koRow: koRow,
-        koCol: koCol,
-      );
-      if (result == null) continue;
-      stones = result.stones;
-      koRow = result.koRow;
-      koCol = result.koCol;
-    }
-    return stones;
-  }
-
-  void _showMovePreview(
-    BuildContext context,
-    List<({int row, int col, String player})> history,
-    int boardSize,
-    int index,
-  ) {
-    final l10n = AppLocalizations.of(context)!;
-    final stones = _replayHistoryUpTo(history, boardSize, index);
-    const previewSize = 240.0;
-    final geometry = GoBoardGeometry(size: previewSize, boardSize: boardSize);
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.primaryDark,
-        title: Text(
-          l10n.movePreviewTitle(index + 1),
-          style: const TextStyle(color: AppColors.washi),
-        ),
-        content: SizedBox(
-          width: previewSize,
-          height: previewSize,
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFC79A5C),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              CustomPaint(
-                painter: GoBoardGridPainter(
-                    boardSize: boardSize,
-                    lineColor: _woodLine,
-                    starPointColor: _woodLine,
-                  ),
-                size: const Size(previewSize, previewSize),
-              ),
-              ..._buildPreviewStones(geometry, stones),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(l10n.closeButton),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildPreviewStones(
-    GoBoardGeometry geometry,
-    List<List<int>> stones,
-  ) {
-    final widgets = <Widget>[];
-    final radius = geometry.pitch * 0.4;
-    for (int row = 0; row < geometry.boardSize; row++) {
-      for (int col = 0; col < geometry.boardSize; col++) {
-        final stone = stones[row][col];
-        if (stone == 0) continue;
-        final isBlack = stone == 1;
-        final center = geometry.intersectionOffset(row, col);
-        widgets.add(
-          Positioned(
-            left: center.dx - radius,
-            top: center.dy - radius,
-            child: Container(
-              width: radius * 2,
-              height: radius * 2,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isBlack ? AppColors.sumi : AppColors.washi,
-                border: isBlack ? null : Border.all(color: AppColors.washiDim),
-              ),
-            ),
-          ),
-        );
-      }
-    }
-    return widgets;
-  }
 }
 
 /// AIの「考え中」演出。墨がにじむような、ゆっくり明滅する円で表現する。
