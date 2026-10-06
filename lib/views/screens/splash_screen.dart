@@ -6,6 +6,7 @@ import 'package:goen/viewmodels/index.dart';
 import 'package:goen/config/theme.dart';
 import 'package:goen/utils/wa_decorations.dart';
 import 'package:goen/l10n/app_localizations.dart';
+import 'package:goen/widgets/org_logo_footer.dart';
 
 final _logger = Logger();
 
@@ -136,7 +137,13 @@ class SplashScreen extends ConsumerWidget {
             colors: [AppColors.primaryLight, AppColors.primaryDark],
           ),
         ),
-        child: Center(child: child),
+        // 中央にアプリロゴ等、下部に組織ロゴ
+        child: Column(
+          children: [
+            Expanded(child: Center(child: child)),
+            const OrgLogoFooter(),
+          ],
+        ),
       ),
     );
   }
