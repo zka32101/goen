@@ -15,11 +15,19 @@ import 'services/ad_service.dart';
 import 'services/push_notification_service.dart';
 import 'viewmodels/index.dart';
 import 'views/screens/index.dart';
+import 'widgets/startup_splash.dart';
 
 final _logger = Logger();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 初期化(await)の間、空白画面にならないよう先に起動画面を出す。
+  // 初期化後の本来のrunAppで差し替わる。
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: StartupSplash(),
+  ));
 
   // Initialize Firebase
   await Firebase.initializeApp(

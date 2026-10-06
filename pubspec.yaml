@@ -78,6 +78,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/app_icon/
+    - assets/branding/
     - assets/animations/
     - assets/sounds/
     - assets/fonts/
