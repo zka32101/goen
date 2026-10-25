@@ -1,3 +1,5 @@
+> ⚠️ **非推奨 / Deprecated**: このリポジトリは [komovia_go](https://github.com/zka32101/komovia_go) に移行済みです。開発は今後 komovia_go 側で行われます。
+
 # 碁縁（GoEn） - Premium Go Learning App
 
 > ルールを知らなくても3分で最初の一局へ。大人が上質な世界観でハマる囲碁アプリ
