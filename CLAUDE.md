@@ -1,3 +1,5 @@
+> ⚠️ **非推奨 / Deprecated**: このリポジトリは [komovia_go](https://github.com/zka32101/komovia_go) に移行済みです。新規の開発作業は komovia_go 側で行ってください。
+
 # GoEn - Claude Development Context
 
 **Project**: 碁縁（GoEn） - Premium adult Go learning app
